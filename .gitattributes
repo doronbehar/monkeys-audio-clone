@@ -1,0 +1,10 @@
+# Every tracked file outside .github/ and tools/ is a verbatim copy of a file
+# from upstream's MAC_*_SDK.zip. Most of them use CRLF endings, and some of the
+# 3rd-party blobs are binary. Nothing imported may be rewritten on checkout or
+# commit, whatever core.autocrlf happens to be set to locally.
+* -text
+
+.gitattributes text eol=lf
+README.md text eol=lf
+.github/** text eol=lf
+tools/** text eol=lf
