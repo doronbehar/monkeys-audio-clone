@@ -29,7 +29,7 @@ public:
 
     BOOL StartFileInsertion(BOOL bClearList = TRUE);
     BOOL FinishFileInsertion();
-    BOOL AddFileInternal(const CString & strFilename);
+    BOOL AddFileInternal(CString strFilename);
     BOOL AddFolderInternal(CString strPath);
 
     BOOL AddFile(const CString & strFilename);
@@ -39,6 +39,7 @@ public:
     BOOL RemoveSelectedFiles();
 
     BOOL Update();
+    void SaveColumns();
     void LoadColumns();
 
     BOOL SelectNone();
@@ -76,6 +77,9 @@ protected:
 
     // image
     APE::CSmartPtr<Gdiplus::Bitmap> m_spBitmap;
+
+    // font
+    CFont m_Font;
 
     // other data
     CMACDlg * m_pParent;

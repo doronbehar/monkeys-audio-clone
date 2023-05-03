@@ -400,6 +400,9 @@ HRESULT CAPEStream::OpenAPEFile(LPWSTR pFileName)
     pwf->wFormatTag = WAVE_FORMAT_PCM;
     pwf->nAvgBytesPerSec = pwf->nChannels * (pwf->wBitsPerSample>>3) * pwf->nSamplesPerSec;
 
+    if (m_pDecoder->GetInfo(APE::IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_FLOATING_POINT)
+        pwf->wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
+
     m_mtOut.SetFormatType(&FORMAT_WaveFormatEx);
 
     m_iBlocksDecoded = 0;

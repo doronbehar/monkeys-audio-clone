@@ -25,7 +25,7 @@ public:
     int Write(const void * pBuffer, unsigned int nBytesToWrite, unsigned int * pBytesWritten) APE_OVERRIDE;
 
     // seek
-    int64 PerformSeek() APE_OVERRIDE;
+    int Seek(int64 nPosition, SeekMethod nMethod) APE_OVERRIDE;
 
     // other functions
     int SetEOF() APE_OVERRIDE;
@@ -43,7 +43,7 @@ public:
 private:
     CSmartPtr<unsigned char> m_spBuffer;
     HANDLE      m_hFile;
-    wchar_t     m_cFileName[MAX_PATH];
+    wchar_t     m_cFileName[APE_MAX_PATH];
     bool        m_bReadOnly;
 };
 

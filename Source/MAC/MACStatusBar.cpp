@@ -280,7 +280,7 @@ void CMACStatusBar::ShowFreeSpaceDrivePopup()
 void CMACStatusBar::SizeStatusbar()
 {
     // size
-    int aryWidth[3] = { 75, 300, 185 };
+    int aryWidth[3] = { 75, 300, 250 };
     for (int nPane = 0; nPane <= 2; nPane++)
     {
         // get text

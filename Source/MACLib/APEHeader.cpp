@@ -20,9 +20,7 @@ int CAPEHeader::FindDescriptor(bool bSeek)
 {
     // store the original location and seek to the beginning
     const int64 nOriginalFileLocation = m_pIO->GetPosition();
-    m_pIO->SetSeekMethod(APE_FILE_BEGIN);
-    m_pIO->SetSeekPosition(0);
-    m_pIO->PerformSeek();
+    m_pIO->Seek(0, SeekFileBegin);
 
     // set the default junk bytes to 0
     int nJunkBytes = 0;
@@ -61,9 +59,7 @@ int CAPEHeader::FindDescriptor(bool bSeek)
             // really do the trick
         }
 
-        m_pIO->SetSeekMethod(APE_FILE_BEGIN);
-        m_pIO->SetSeekPosition(nJunkBytes);
-        m_pIO->PerformSeek();
+        m_pIO->Seek(nJunkBytes, SeekFileBegin);
 
         // scan for padding (slow and stupid, but who cares here...)
         if (!bHasTagFooter)
@@ -77,19 +73,19 @@ int CAPEHeader::FindDescriptor(bool bSeek)
             }
         }
     }
-    m_pIO->SetSeekMethod(APE_FILE_BEGIN);
-    m_pIO->SetSeekPosition(nJunkBytes);
-    m_pIO->PerformSeek();
+
+    m_pIO->Seek(nJunkBytes, SeekFileBegin);
 
     // scan until we hit the APE_DESCRIPTOR, the end of the file, or 1 MB later
-    const unsigned int nGoalID = (' ' << 24) | ('C' << 16) | ('A' << 8) | ('M');
+    const unsigned int nGoalID1 = (' ' << 24) | ('C' << 16) | ('A' << 8) | ('M');
+    const unsigned int nGoalID2 = ('F' << 24) | ('C' << 16) | ('A' << 8) | ('M');
     unsigned int nReadID = 0;
     const int nResult = m_pIO->Read(&nReadID, 4, &nBytesRead);
     if (nResult != 0 || nBytesRead != 4) return ERROR_UNDEFINED;
 
     nBytesRead = 1;
     int nScanBytes = 0;
-    while ((nGoalID != nReadID) && (nBytesRead == 1) && (nScanBytes < (1024 * 1024)))
+    while (((nGoalID1 != nReadID) && (nGoalID2 != nReadID)) && (nBytesRead == 1) && (nScanBytes < (1024 * 1024)))
     {
         unsigned char cTemp = 0;
         m_pIO->Read(&cTemp, 1, &nBytesRead);
@@ -98,23 +94,19 @@ int CAPEHeader::FindDescriptor(bool bSeek)
         nScanBytes++;
     }
 
-    if (nGoalID != nReadID)
+    if ((nGoalID1 != nReadID) && (nGoalID2 != nReadID))
         nJunkBytes = -1;
 
     // seek to the proper place (depending on result and settings)
     if (bSeek && (nJunkBytes != -1))
     {
         // successfully found the start of the file (seek to it and return)
-        m_pIO->SetSeekMethod(APE_FILE_BEGIN);
-        m_pIO->SetSeekPosition(nJunkBytes);
-        m_pIO->PerformSeek();
+        m_pIO->Seek(nJunkBytes, SeekFileBegin);
     }
     else
     {
         // restore the original file pointer
-        m_pIO->SetSeekMethod(APE_FILE_BEGIN);
-        m_pIO->SetSeekPosition(nOriginalFileLocation);
-        m_pIO->PerformSeek();
+        m_pIO->Seek(nOriginalFileLocation, SeekFileBegin);
     }
 
     return nJunkBytes;
@@ -154,8 +146,11 @@ int CAPEHeader::Analyze(APE_FILE_INFO * pInfo)
         return ERROR_IO_READ;
 
     // make sure we're at the ID
-    if (CommonHeader.cID[0] != 'M' || CommonHeader.cID[1] != 'A' || CommonHeader.cID[2] != 'C' || CommonHeader.cID[3] != ' ')
+    if ((CommonHeader.cID[0] != 'M' || CommonHeader.cID[1] != 'A' || CommonHeader.cID[2] != 'C' || CommonHeader.cID[3] != ' ') &&
+        (CommonHeader.cID[0] != 'M' || CommonHeader.cID[1] != 'A' || CommonHeader.cID[2] != 'C' || CommonHeader.cID[3] != 'F'))
+    {
         return ERROR_UNDEFINED;
+    }
 
     int nResult = ERROR_UNDEFINED;
 
@@ -189,17 +184,13 @@ int CAPEHeader::AnalyzeCurrent(APE_FILE_INFO * pInfo)
     APE_CLEAR(APEHeader);
 
     // read the descriptor
-    m_pIO->SetSeekMethod(APE_FILE_BEGIN);
-    m_pIO->SetSeekPosition(pInfo->nJunkHeaderBytes);
-    m_pIO->PerformSeek();
+    m_pIO->Seek(pInfo->nJunkHeaderBytes, SeekFileBegin);
     if (m_pIO->Read(pInfo->spAPEDescriptor.GetPtr(), sizeof(APE_DESCRIPTOR), &nBytesRead) || nBytesRead != sizeof(APE_DESCRIPTOR))
         return ERROR_IO_READ;
 
     if ((pInfo->spAPEDescriptor->nDescriptorBytes - nBytesRead) > 0)
     {
-        m_pIO->SetSeekMethod(APE_FILE_CURRENT);
-        m_pIO->SetSeekPosition(pInfo->spAPEDescriptor->nDescriptorBytes - nBytesRead);
-        m_pIO->PerformSeek();
+        m_pIO->Seek(pInfo->spAPEDescriptor->nDescriptorBytes - nBytesRead, SeekFileCurrent);
     }
 
     // read the header
@@ -208,9 +199,7 @@ int CAPEHeader::AnalyzeCurrent(APE_FILE_INFO * pInfo)
 
     if ((pInfo->spAPEDescriptor->nHeaderBytes - nBytesRead) > 0)
     {
-        m_pIO->SetSeekMethod(APE_FILE_CURRENT);
-        m_pIO->SetSeekPosition(pInfo->spAPEDescriptor->nHeaderBytes - nBytesRead);
-        m_pIO->PerformSeek();
+        m_pIO->Seek(pInfo->spAPEDescriptor->nHeaderBytes - nBytesRead, SeekFileCurrent);
     }
 
     // fill the APE info structure
@@ -306,9 +295,7 @@ int CAPEHeader::AnalyzeOld(APE_FILE_INFO * pInfo)
     // read the MAC header from the file
     APE_HEADER_OLD APEHeader;
 
-    m_pIO->SetSeekMethod(APE_FILE_BEGIN);
-    m_pIO->SetSeekPosition(pInfo->nJunkHeaderBytes);
-    m_pIO->PerformSeek();
+    m_pIO->Seek(pInfo->nJunkHeaderBytes, SeekFileBegin);
 
     if (m_pIO->Read(&APEHeader, sizeof(APEHeader), &nBytesRead) || nBytesRead != sizeof(APEHeader))
         return ERROR_IO_READ;

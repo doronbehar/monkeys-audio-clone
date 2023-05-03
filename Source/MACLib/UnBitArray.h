@@ -15,6 +15,23 @@ struct RANGE_CODER_STRUCT_DECOMPRESS
     unsigned int padding;   // for 64-bit alignment
 };
 
+/**************************************************************************************************
+RangeOverflowTable
+**************************************************************************************************/
+class RangeOverflowTable
+{
+public:
+    RangeOverflowTable(const uint32 * RANGE_TOTAL);
+    ~RangeOverflowTable();
+    uint8 operator[](uint32 nIndex) const;
+
+private:
+    uint8 * m_pTable;
+};
+
+/**************************************************************************************************
+CUnBitArray
+**************************************************************************************************/
 class CUnBitArray : public CUnBitArrayBase
 {
 public:
@@ -37,6 +54,7 @@ private:
 
     // functions
     inline uint32 DecodeByte();
+    uint32 DecodeOverflow(uint32 & nPivotValue);
     uint32 RangeDecodeFast(int nShift);
     uint32 RangeDecodeFastWithUpdate(int nShift);
     void GenerateArrayRange(int * pOutputArray, int nElements);

@@ -5,6 +5,7 @@
 #include "BufferIO.h"
 #include "MACLib.h"
 #include "GlobalFunctions.h"
+#include "FloatTransform.h"
 
 namespace APE
 {
@@ -69,7 +70,10 @@ CInputSource * CreateInputSource(const wchar_t * pSourceName, WAVEFORMATEX * pwf
     if (StringIsEqual(pExtension, L".wav", false) || StringIsEqual(pSourceName, L"-", false))
     {
         if (pErrorCode) *pErrorCode = ERROR_SUCCESS;
-        return new CWAVInputSource(pSourceName, pwfeSource, pTotalBlocks, pHeaderBytes, pTerminatingBytes, pErrorCode);
+        CInputSource * pWAV =  new CWAVInputSource(pSourceName, pwfeSource, pTotalBlocks, pHeaderBytes, pTerminatingBytes, pErrorCode);
+        if (pwfeSource->wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
+            *pFlags |= MAC_FORMAT_FLAG_FLOATING_POINT;
+        return pWAV;
     }
     else if (StringIsEqual(pExtension, L".aiff", false) || StringIsEqual(pExtension, L".aif", false))
     {
@@ -80,13 +84,18 @@ CInputSource * CreateInputSource(const wchar_t * pSourceName, WAVEFORMATEX * pwf
             *pFlags |= MAC_FORMAT_FLAG_BIG_ENDIAN;
         if (pwfeSource->wBitsPerSample == 8)
             *pFlags |= MAC_FORMAT_FLAG_SIGNED_8_BIT;
+        if (pwfeSource->wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
+            *pFlags |= MAC_FORMAT_FLAG_FLOATING_POINT;
         return pAIFF;
     }
     else if (StringIsEqual(pExtension, L".w64", false))
     {
         if (pErrorCode) *pErrorCode = ERROR_SUCCESS;
         *pFlags |= MAC_FORMAT_FLAG_W64;
-        return new CW64InputSource(pSourceName, pwfeSource, pTotalBlocks, pHeaderBytes, pTerminatingBytes, pErrorCode);
+        CW64InputSource * pW64 = new CW64InputSource(pSourceName, pwfeSource, pTotalBlocks, pHeaderBytes, pTerminatingBytes, pErrorCode);
+        if (pwfeSource->wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
+            *pFlags |= MAC_FORMAT_FLAG_FLOATING_POINT;
+        return pW64;
     }
     else if (StringIsEqual(pExtension, L".snd", false) || StringIsEqual(pExtension, L".au", false))
     {
@@ -94,6 +103,8 @@ CInputSource * CreateInputSource(const wchar_t * pSourceName, WAVEFORMATEX * pwf
         CSNDInputSource * pSND = new CSNDInputSource(pSourceName, pwfeSource, pTotalBlocks, pHeaderBytes, pTerminatingBytes, pErrorCode, pFlags);
         if (pwfeSource->wBitsPerSample == 8)
             *pFlags |= MAC_FORMAT_FLAG_SIGNED_8_BIT;
+        if (pwfeSource->wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
+            *pFlags |= MAC_FORMAT_FLAG_FLOATING_POINT;
         return pSND;
     }
     else if (StringIsEqual(pExtension, L".caf", false))
@@ -105,6 +116,8 @@ CInputSource * CreateInputSource(const wchar_t * pSourceName, WAVEFORMATEX * pwf
             *pFlags |= MAC_FORMAT_FLAG_BIG_ENDIAN;
         if (pwfeSource->wBitsPerSample == 8)
             *pFlags |= MAC_FORMAT_FLAG_SIGNED_8_BIT;
+        if (pwfeSource->wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
+            *pFlags |= MAC_FORMAT_FLAG_FLOATING_POINT;
         return pInputSource;
     }
     else
@@ -129,9 +142,7 @@ int CInputSource::GetHeaderDataHelper(bool bIsValid, unsigned char * pBuffer, ui
 
         if (nOriginalFileLocation != 0)
         {
-            pIO->SetSeekMethod(APE_FILE_BEGIN);
-            pIO->SetSeekPosition(0);
-            pIO->PerformSeek();
+            pIO->Seek(0, SeekFileBegin);
         }
 
         unsigned int nBytesRead = 0;
@@ -142,9 +153,7 @@ int CInputSource::GetHeaderDataHelper(bool bIsValid, unsigned char * pBuffer, ui
             nResult = ERROR_UNDEFINED;
         }
 
-        pIO->SetSeekMethod(APE_FILE_BEGIN);
-        pIO->SetSeekPosition(nOriginalFileLocation);
-        pIO->PerformSeek();
+        pIO->Seek(nOriginalFileLocation, SeekFileBegin);
     }
 
     return nResult;
@@ -160,9 +169,7 @@ int CInputSource::GetTerminatingDataHelper(bool bIsValid, unsigned char * pBuffe
     {
         const int64 nOriginalFileLocation = pIO->GetPosition();
 
-        pIO->SetSeekMethod(APE_FILE_END);
-        pIO->SetSeekPosition(-static_cast<int64>(nTerminatingBytes));
-        pIO->PerformSeek();
+        pIO->Seek(-static_cast<int64>(nTerminatingBytes), SeekFileEnd);
 
         unsigned int nBytesRead = 0;
         const int nReadRetVal = pIO->Read(pBuffer, nTerminatingBytes, &nBytesRead);
@@ -172,12 +179,52 @@ int CInputSource::GetTerminatingDataHelper(bool bIsValid, unsigned char * pBuffe
             nResult = ERROR_UNDEFINED;
         }
 
-        pIO->SetSeekMethod(APE_FILE_BEGIN);
-        pIO->SetSeekPosition(nOriginalFileLocation);
-        pIO->PerformSeek();
+        pIO->Seek(nOriginalFileLocation, SeekFileBegin);
     }
 
     return nResult;
+}
+
+void CInputSource::Convert8BitSignedToUnsigned(unsigned char * pBuffer, int nChannels, int nBlocks)
+{
+    for (int nSample = 0; nSample < nBlocks * nChannels; nSample++)
+    {
+        const char cTemp = static_cast<char>(pBuffer[nSample]);
+        const unsigned char cConvert = static_cast<unsigned char>(static_cast<int>(cTemp) + 128);
+        pBuffer[nSample] = cConvert;
+    }
+}
+
+void CInputSource::FlipEndian(unsigned char * pBuffer, int nBitsPerSample, int nChannels, int nBlocks)
+{
+    if (nBitsPerSample == 16)
+    {
+        for (int nSample = 0; nSample < nBlocks * nChannels; nSample++)
+        {
+            const unsigned char cTemp = pBuffer[(nSample * 2) + 0];
+            pBuffer[(nSample * 2) + 0] = pBuffer[(nSample * 2) + 1];
+            pBuffer[(nSample * 2) + 1] = cTemp;
+        }
+    }
+    else if (nBitsPerSample == 24)
+    {
+        for (int nSample = 0; nSample < nBlocks * nChannels; nSample++)
+        {
+            const unsigned char cTemp = pBuffer[(nSample * 3) + 0];
+            pBuffer[(nSample * 3) + 0] = pBuffer[(nSample * 3) + 2];
+            pBuffer[(nSample * 3) + 2] = cTemp;
+        }
+    }
+    else if (nBitsPerSample == 32)
+    {
+        uint32_t * pBufferUINT32 = reinterpret_cast<uint32_t *>(pBuffer);
+        for (int nSample = 0; nSample < nBlocks * nChannels; nSample++)
+        {
+            const uint32_t nValue = pBufferUINT32[nSample];
+            uint32_t nFlippedValue = (((nValue >> 0) & 0xFF) << 24) | (((nValue >> 8) & 0xFF) << 16) | (((nValue >> 16) & 0xFF) << 8) | (((nValue >> 24) & 0xFF) << 0);
+            pBufferUINT32[nSample] = nFlippedValue;
+        }
+    }
 }
 
 /**************************************************************************************************
@@ -236,11 +283,15 @@ int CWAVInputSource::AnalyzeSource()
 {
     // see if we're a pipe
     bool bPipe = false;
-    wchar_t cName[1024]; APE_CLEAR(cName);
-    m_spIO->GetName(cName);
-    if (_wcsicmp(cName, L"-") == 0)
-        bPipe = true;
-
+    {
+        wchar_t * pName = new wchar_t [APE_MAX_PATH]; 
+        pName[0] = 0;
+        m_spIO->GetName(pName);
+        if (_wcsicmp(pName, L"-") == 0)
+            bPipe = true;
+        APE_SAFE_ARRAY_DELETE(pName)
+    }
+    
     // get the file size
     m_nFileBytes = m_spIO->GetSize();
 
@@ -301,8 +352,13 @@ int CWAVInputSource::AnalyzeSource()
     RETURN_ON_ERROR(ReadSafe(m_spIO, &WAVFormatHeader, sizeof(WAVFormatHeader)))
 
     // error check the header to see if we support it
-    if ((WAVFormatHeader.nFormatTag != WAVE_FORMAT_PCM) && (WAVFormatHeader.nFormatTag != WAVE_FORMAT_EXTENSIBLE))
+    if ((WAVFormatHeader.nFormatTag != WAVE_FORMAT_PCM) && (WAVFormatHeader.nFormatTag != WAVE_FORMAT_EXTENSIBLE) && (WAVFormatHeader.nFormatTag != WAVE_FORMAT_IEEE_FLOAT))
         return ERROR_INVALID_INPUT_FILE;
+
+    #ifndef APE_SUPPORT_FLOAT_COMPRESSION
+        if (WAVFormatHeader.nFormatTag == WAVE_FORMAT_IEEE_FLOAT)
+            return ERROR_INVALID_INPUT_FILE;
+    #endif
 
     // if the format is an odd bits per sample, just update to a known number -- decoding stores the header so will still be correct (and the block align is that size anyway)
     const int nSampleBits = 8 * WAVFormatHeader.nBlockAlign / ape_max(1, WAVFormatHeader.nChannels);
@@ -599,7 +655,7 @@ int CAIFFInputSource::AnalyzeSource()
 
                 CSmartPtr<BYTE> spBuffer(new BYTE[static_cast<size_t>(nExtraBytes)], true);
                 RETURN_ON_ERROR(ReadSafe(m_spIO, spBuffer, nExtraBytes))
-                
+
                 // COMM chunks can optionally have a compression type after the last cExtra parameter and in this case "sowt" mean we're little endian (reversed from normal AIFF)
                 m_bLittleEndian = false;
                 if (nExtraBytes >= 4)
@@ -623,8 +679,10 @@ int CAIFFInputSource::AnalyzeSource()
                         (spBuffer[2] == '3') &&
                         (spBuffer[3] == '2'))
                     {
-                        // 32-bit floating point data (not supported)
-                        return ERROR_INVALID_INPUT_FILE;
+                        #ifndef APE_SUPPORT_FLOAT_COMPRESSION
+                            // 32-bit floating point data (not supported)
+                            return ERROR_INVALID_INPUT_FILE;
+                        #endif
                     }
                     else
                     {
@@ -656,9 +714,7 @@ int CAIFFInputSource::AnalyzeSource()
         if (bSeekToNextChunk)
         {
             const int nNextChunkBytes = static_cast<int>(Chunk.nChunkBytes);
-            m_spIO->SetSeekMethod(APE_FILE_CURRENT);
-            m_spIO->SetSeekPosition(nNextChunkBytes);
-            m_spIO->PerformSeek();
+            m_spIO->Seek(nNextChunkBytes, SeekFileCurrent);
         }
     }
 
@@ -685,38 +741,9 @@ int CAIFFInputSource::GetData(unsigned char * pBuffer, int nBlocks, int * pBlock
         return ERROR_IO_READ;
 
     if (m_wfeSource.wBitsPerSample == 8)
-    {
-        for (int nSample = 0; nSample < nBlocks * m_wfeSource.nChannels; nSample++)
-        {
-            const char cTemp = static_cast<char>(pBuffer[nSample]);
-            const unsigned char cConvert = static_cast<unsigned char>(static_cast<int>(cTemp) + 128);
-            pBuffer[nSample] = cConvert;
-        }
-    }
-    else if (m_wfeSource.wBitsPerSample == 16)
-    {
-        if (!m_bLittleEndian)
-        {
-            for (int nSample = 0; nSample < nBlocks * m_wfeSource.nChannels; nSample++)
-            {
-                const unsigned char cTemp = pBuffer[(nSample * 2) + 0];
-                pBuffer[(nSample * 2) + 0] = pBuffer[(nSample * 2) + 1];
-                pBuffer[(nSample * 2) + 1] = cTemp;
-            }
-        }
-    }
-    else if (m_wfeSource.wBitsPerSample == 24)
-    {
-        if (!m_bLittleEndian)
-        {
-            for (int nSample = 0; nSample < nBlocks * m_wfeSource.nChannels; nSample++)
-            {
-                const unsigned char cTemp = pBuffer[(nSample * 3) + 0];
-                pBuffer[(nSample * 3) + 0] = pBuffer[(nSample * 3) + 2];
-                pBuffer[(nSample * 3) + 2] = cTemp;
-            }
-        }
-    }
+        Convert8BitSignedToUnsigned(pBuffer, m_wfeSource.nChannels, nBlocks);
+    else
+        FlipEndian(pBuffer, m_wfeSource.wBitsPerSample, m_wfeSource.nChannels, nBlocks);
 
     if (pBlocksRetrieved) *pBlocksRetrieved = static_cast<int>(nBytesRead / m_wfeSource.nBlockAlign);
 
@@ -736,7 +763,7 @@ int CAIFFInputSource::GetTerminatingData(unsigned char * pBuffer)
 double CAIFFInputSource::GetExtendedDouble(uint16_t exponent, uint64_t mantissa)
 {
     // this code is borrowed from David Bryant's WavPack
-    // he said it derives from this: 
+    // he said it derives from this:
     // https://en.wikipedia.org/wiki/Extended_precision#x86_extended_precision_format
     // there's also code here:
     // https://stackoverflow.com/questions/2963055/convert-extended-precision-float-80-bit-to-double-64-bit-in-msvc
@@ -850,19 +877,25 @@ int CW64InputSource::AnalyzeSource()
                         break;
 
                     // skip the rest
-                    m_spIO->SetSeekMethod(APE_FILE_CURRENT);
-                    m_spIO->SetSeekPosition(Align(nChunkRemainingBytes, 8) - static_cast<int64>(sizeof(Data)));
-                    m_spIO->PerformSeek();
+                    m_spIO->Seek(Align(nChunkRemainingBytes, 8) - static_cast<int64>(sizeof(Data)), SeekFileCurrent);
 
-                    // verify the format (must be WAVE_FORMAT_PCM)
-                    if (Data.nFormatTag != WAVE_FORMAT_PCM)
+                    // verify the format (must be WAVE_FORMAT_PCM or WAVE_FORMAT_EXTENSIBLE)
+                    bool bFloat = false;
+                    if (Data.nFormatTag == WAVE_FORMAT_IEEE_FLOAT)
+                    {
+                        #ifndef APE_SUPPORT_FLOAT_COMPRESSION
+                            break;
+                        #endif
+                        bFloat = true;
+                    }
+                    else if ((Data.nFormatTag != WAVE_FORMAT_PCM) && (Data.nFormatTag != WAVE_FORMAT_EXTENSIBLE))
                     {
                         break;
                     }
 
                     // copy information over for internal storage
                     // may want to error check this header (bad avg bytes per sec, bad format, bad block align, etc...)
-                    FillWaveFormatEx(&m_wfeSource, WAVE_FORMAT_PCM, static_cast<int>(Data.nSamplesPerSecond), static_cast<int>(Data.nBitsPerSample), static_cast<int>(Data.nChannels));
+                    FillWaveFormatEx(&m_wfeSource, bFloat ? WAVE_FORMAT_IEEE_FLOAT : WAVE_FORMAT_PCM, static_cast<int>(Data.nSamplesPerSecond), static_cast<int>(Data.nBitsPerSample), static_cast<int>(Data.nChannels));
 
                     m_wfeSource.nAvgBytesPerSec = Data.nAverageBytesPerSecond;
                     m_wfeSource.nBlockAlign = Data.nBlockAlign;
@@ -888,15 +921,11 @@ int CW64InputSource::AnalyzeSource()
                         break;
 
                     // move to the end of WAVEFORM data, so we can read other chunks behind it (if necessary)
-                    m_spIO->SetSeekMethod(APE_FILE_CURRENT);
-                    m_spIO->SetSeekPosition(Align(nChunkRemainingBytes, 8));
-                    m_spIO->PerformSeek();
+                    m_spIO->Seek(Align(nChunkRemainingBytes, 8), SeekFileCurrent);
                 }
                 else
                 {
-                    m_spIO->SetSeekMethod(APE_FILE_CURRENT);
-                    m_spIO->SetSeekPosition(Align(nChunkRemainingBytes, 8));
-                    m_spIO->PerformSeek();
+                    m_spIO->Seek(Align(nChunkRemainingBytes, 8), SeekFileCurrent);
                 }
             }
         }
@@ -916,7 +945,7 @@ int CW64InputSource::AnalyzeSource()
     }
 
     // we made it this far, everything must be cool
-    return ERROR_SUCCESS;
+    return m_bIsValid ? ERROR_SUCCESS : ERROR_INVALID_INPUT_FILE;
 }
 
 int CW64InputSource::GetData(unsigned char * pBuffer, int nBlocks, int * pBlocksRetrieved)
@@ -1082,7 +1111,12 @@ int CSNDInputSource::AnalyzeSource(int32 * pFlags)
             else if (Header.m_nEncoding == 6)
             {
                 // 32-bit float
-                // not supported
+                #ifdef APE_SUPPORT_FLOAT_COMPRESSION
+                    FillWaveFormatEx(&m_wfeSource, WAVE_FORMAT_IEEE_FLOAT, static_cast<int>(Header.m_nSampleRate), 32, static_cast<int>(Header.m_nChannels));
+                    bSupportedFormat = true;
+                #else
+                    // not supported
+                #endif
             }
             else if (Header.m_nEncoding == 7)
             {
@@ -1107,9 +1141,7 @@ int CSNDInputSource::AnalyzeSource(int32 * pFlags)
     }
 
     // seek to the end of the header
-    m_spIO->SetSeekMethod(APE_FILE_BEGIN);
-    m_spIO->SetSeekPosition(m_nHeaderBytes);
-    m_spIO->PerformSeek();
+    m_spIO->Seek(m_nHeaderBytes, SeekFileBegin);
 
     // update flags
     *pFlags |= MAC_FORMAT_FLAG_SND;
@@ -1135,45 +1167,10 @@ int CSNDInputSource::GetData(unsigned char * pBuffer, int nBlocks, int * pBlocks
     if (m_spIO->Read(pBuffer, nBytes, &nBytesRead) != ERROR_SUCCESS)
         return ERROR_IO_READ;
 
-    if (m_bBigEndian)
-    {
-        if (m_wfeSource.wBitsPerSample == 16)
-        {
-            for (int nSample = 0; nSample < nBlocks * m_wfeSource.nChannels; nSample++)
-            {
-                const unsigned char cTemp = pBuffer[(nSample * 2) + 0];
-                pBuffer[(nSample * 2) + 0] = pBuffer[(nSample * 2) + 1];
-                pBuffer[(nSample * 2) + 1] = cTemp;
-            }
-        }
-        else if (m_wfeSource.wBitsPerSample == 24)
-        {
-            for (int nSample = 0; nSample < nBlocks * m_wfeSource.nChannels; nSample++)
-            {
-                const unsigned char cTemp = pBuffer[(nSample * 3) + 0];
-                pBuffer[(nSample * 3) + 0] = pBuffer[(nSample * 3) + 2];
-                pBuffer[(nSample * 3) + 2] = cTemp;
-            }
-        }
-        else if (m_wfeSource.wBitsPerSample == 32)
-        {
-            for (int nSample = 0; nSample < nBlocks * m_wfeSource.nChannels; nSample++)
-            {
-                const uint32_t nValue = *(reinterpret_cast<uint32_t *>(&pBuffer[(nSample * 4) + 0]));
-                uint32_t nFlippedValue = (((nValue >> 0) & 0xFF) << 24) | (((nValue >> 8) & 0xFF) << 16) | (((nValue >> 16) & 0xFF) << 8) | (((nValue >> 24) & 0xFF) << 0);
-                *(reinterpret_cast<uint32_t *>(&pBuffer[(nSample * 4) + 0])) = nFlippedValue;
-            }
-        }
-        else if (m_wfeSource.wBitsPerSample == 8)
-        {
-            for (int nSample = 0; nSample < nBlocks * m_wfeSource.nChannels; nSample++)
-            {
-                const char cTemp = static_cast<char>(pBuffer[nSample]);
-                const unsigned char cConvert = static_cast<unsigned char>(static_cast<int>(cTemp) + 128);
-                pBuffer[nSample] = cConvert;
-            }
-        }
-    }
+    if (m_wfeSource.wBitsPerSample == 8)
+        Convert8BitSignedToUnsigned(pBuffer, m_wfeSource.nChannels, nBlocks);
+    else if (m_bBigEndian)
+        FlipEndian(pBuffer, m_wfeSource.wBitsPerSample, m_wfeSource.nChannels, nBlocks);
 
     if (pBlocksRetrieved) *pBlocksRetrieved = static_cast<int>(nBytesRead / m_wfeSource.nBlockAlign);
 
@@ -1320,15 +1317,28 @@ int CCAFInputSource::AnalyzeSource()
                 AudioFormat.mChannelsPerFrame = Swap4Bytes(AudioFormat.mChannelsPerFrame);
                 AudioFormat.mFormatFlags = Swap4Bytes(AudioFormat.mFormatFlags);
 
-                // only support 8-bit, 16-bit, and 24-bit
-                if ((AudioFormat.mBitsPerChannel != 8) && (AudioFormat.mBitsPerChannel != 16) && (AudioFormat.mBitsPerChannel != 24))
+                // only support 8-bit, 16-bit, and 24-bit, maybe 32-bit
+                bool bFloat = false;
+                if (AudioFormat.mBitsPerChannel == 32)
+                {
+                    if (AudioFormat.mFormatFlags & kCAFLinearPCMFormatFlagIsFloat)
+                    {
+                        #ifndef APE_SUPPORT_FLOAT_COMPRESSION
+                            return ERROR_INVALID_INPUT_FILE;
+                        #endif
+                        bFloat = true;
+                    }
+                }
+                else if ((AudioFormat.mBitsPerChannel != 8) && (AudioFormat.mBitsPerChannel != 16) && (AudioFormat.mBitsPerChannel != 24))
+                {
                     return ERROR_INVALID_INPUT_FILE;
+                }
 
                 // if we're little endian, mark that
                 if (AudioFormat.mFormatFlags & kCAFLinearPCMFormatFlagIsLittleEndian)
                     m_bLittleEndian = true;
 
-                FillWaveFormatEx(&m_wfeSource, WAVE_FORMAT_PCM, static_cast<int>(dSampleRate), static_cast<int>(AudioFormat.mBitsPerChannel), static_cast<int>(AudioFormat.mChannelsPerFrame));
+                FillWaveFormatEx(&m_wfeSource, bFloat ? WAVE_FORMAT_IEEE_FLOAT : WAVE_FORMAT_PCM, static_cast<int>(dSampleRate), static_cast<int>(AudioFormat.mBitsPerChannel), static_cast<int>(AudioFormat.mChannelsPerFrame));
                 bFoundDesc = true;
             }
             else
@@ -1351,6 +1361,9 @@ int CCAFInputSource::AnalyzeSource()
             // data bytes are this chunk
             m_nDataBytes = static_cast<int64>(Chunk.mChunkSize);
 
+            // align at the block size
+            m_nDataBytes = (m_nDataBytes / m_wfeSource.nBlockAlign) * m_wfeSource.nBlockAlign;
+
             // terminating bytes are whatever is left
             m_nTerminatingBytes = static_cast<uint32>(m_nFileBytes - (m_nHeaderBytes + m_nDataBytes));
 
@@ -1360,9 +1373,7 @@ int CCAFInputSource::AnalyzeSource()
         else
         {
             // skip this chunk
-            m_spIO->SetSeekPosition(static_cast<int64>(Chunk.mChunkSize));
-            m_spIO->SetSeekMethod(APE_FILE_CURRENT);
-            m_spIO->PerformSeek();
+            m_spIO->Seek(static_cast<int64>(Chunk.mChunkSize), SeekFileCurrent);
         }
     }
 
@@ -1382,56 +1393,9 @@ int CCAFInputSource::GetData(unsigned char * pBuffer, int nBlocks, int * pBlocks
 
     // read data
     if (m_wfeSource.wBitsPerSample == 8)
-    {
-        for (int nSample = 0; nSample < nBlocks * m_wfeSource.nChannels; nSample++)
-        {
-            const char cTemp = static_cast<char>(pBuffer[nSample]);
-            const unsigned char cConvert = static_cast<unsigned char>(static_cast<int>(cTemp) + 128);
-            pBuffer[nSample] = cConvert;
-        }
-    }
-    else if (m_wfeSource.wBitsPerSample == 16)
-    {
-        for (int nSample = 0; nSample < nBlocks * m_wfeSource.nChannels; nSample++)
-        {
-            const unsigned char cTemp = pBuffer[(nSample * 2) + 0];
-            pBuffer[(nSample * 2) + 0] = pBuffer[(nSample * 2) + 1];
-            pBuffer[(nSample * 2) + 1] = cTemp;
-        }
-    }
-    else if (m_wfeSource.wBitsPerSample == 24)
-    {
-        for (int nSample = 0; nSample < nBlocks * m_wfeSource.nChannels; nSample++)
-        {
-            const unsigned char cTemp = pBuffer[(nSample * 3) + 0];
-            pBuffer[(nSample * 3) + 0] = pBuffer[(nSample * 3) + 2];
-            pBuffer[(nSample * 3) + 2] = cTemp;
-        }
-    }
-
-    // flip endian if required
-    if (m_bLittleEndian)
-    {
-        if (m_wfeSource.wBitsPerSample == 16)
-        {
-            for (int nSample = 0; nSample < nBlocks * m_wfeSource.nChannels; nSample++)
-            {
-                const unsigned char cTemp = pBuffer[(m_wfeSource.nChannels * nSample) + 0];
-                pBuffer[(m_wfeSource.nChannels * nSample) + 0] = pBuffer[(m_wfeSource.nChannels * nSample) + 1];
-                pBuffer[(m_wfeSource.nChannels * nSample) + 1] = cTemp;
-            }
-        }
-        else if (m_wfeSource.wBitsPerSample == 24)
-        {
-            for (int nSample = 0; nSample < nBlocks * m_wfeSource.nChannels; nSample++)
-            {
-                const unsigned char cTemp = pBuffer[(3 * nSample) + 0];
-                pBuffer[(3 * nSample) + 0] = pBuffer[(3 * nSample) + 2];
-                pBuffer[(3 * nSample) + 2] = cTemp;
-            }
-        }
-    }
-
+        Convert8BitSignedToUnsigned(pBuffer, m_wfeSource.nChannels, nBlocks);
+    else if (!m_bLittleEndian)
+        FlipEndian(pBuffer, m_wfeSource.wBitsPerSample, m_wfeSource.nChannels, nBlocks);
 
     if (pBlocksRetrieved) *pBlocksRetrieved = static_cast<int>(nBytesRead / m_wfeSource.nBlockAlign);
 

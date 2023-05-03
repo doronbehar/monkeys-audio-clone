@@ -37,8 +37,8 @@ protected:
     CString m_strInitialFolderName;
     CString m_strFinalFolderName;
 
-    TCHAR m_szDisplayName[MAX_PATH];
-    TCHAR m_szPath[MAX_PATH];
+    TCHAR m_szDisplayName[APE_MAX_PATH];
+    TCHAR m_szPath[APE_MAX_PATH];
 
     HWND m_hDialogBox;
 

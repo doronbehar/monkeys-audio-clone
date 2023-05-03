@@ -150,13 +150,19 @@ CString CAPEInfoFormatDlg::GetSummary(const CString & strFilename)
     }
     else
     {
-        APE::WAVEFORMATEX wfeInput; APE_CLEAR(wfeInput); int64 nTotalBlocks = 0; int64 nHeaderBytes = 0; int64 nTerminatingBytes = 0; int nErrorCode = 0;
-        APE::CWAVInputSource WAV(strFilename, &wfeInput, &nTotalBlocks, &nHeaderBytes, &nTerminatingBytes, &nErrorCode);
+        APE::WAVEFORMATEX wfeInput; APE_CLEAR(wfeInput); int64 nTotalBlocks = 0; int64 nHeaderBytes = 0; int64 nTerminatingBytes = 0; int32 nFlags = 0; int nErrorCode = 0;
+        CSmartPtr<CInputSource> spInputSource(CreateInputSource(strFilename, &wfeInput, &nTotalBlocks, &nHeaderBytes, &nTerminatingBytes, &nFlags, &nErrorCode));
 
         CString strFormat;
         if (nErrorCode == ERROR_SUCCESS)
         {
             strFormat.Format(_T("%d samples per second\r\n%d channels\r\n%d bits per sample\r\n%I64d header bytes\r\n%I64d terminating bytes\r\n%I64d total blocks"), static_cast<int>(wfeInput.nSamplesPerSec), static_cast<int>(wfeInput.nChannels), static_cast<int>(wfeInput.wBitsPerSample), nHeaderBytes, nTerminatingBytes, nTotalBlocks);
+            if (nFlags & MAC_FORMAT_FLAG_BIG_ENDIAN)
+                strFormat += _T("\r\nBig endian");
+            if (nFlags & MAC_FORMAT_FLAG_SIGNED_8_BIT)
+                strFormat += _T("\r\nSigned 8-bit");
+            if (wfeInput.wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
+                strFormat += _T("\r\nFloating point");
         }
         else
         {

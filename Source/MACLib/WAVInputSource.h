@@ -22,12 +22,16 @@ public:
     // get header / terminating data
     virtual int GetHeaderData(unsigned char * pBuffer) = 0;
     virtual int GetTerminatingData(unsigned char * pBuffer) = 0;
+
+    // get other properties
     virtual bool GetUnknownLengthPipe() { return false; }
 
 protected:
     // get header / terminating data
     int GetHeaderDataHelper(bool bIsValid, unsigned char * pBuffer, uint32 nHeaderBytes, CIO * pIO);
     int GetTerminatingDataHelper(bool bIsValid, unsigned char * pBuffer, uint32 nTerminatingBytes, CIO * pIO);
+    void Convert8BitSignedToUnsigned(unsigned char * pBuffer, int nChannels, int nBlocks);
+    void FlipEndian(unsigned char * pBuffer, int nBitsPerSample, int nChannels, int nBlocks);
 };
 
 /**************************************************************************************************
@@ -46,6 +50,8 @@ public:
     // get header / terminating data
     int GetHeaderData(unsigned char * pBuffer) APE_OVERRIDE;
     int GetTerminatingData(unsigned char * pBuffer) APE_OVERRIDE;
+
+    // get other properties
     bool GetUnknownLengthPipe() APE_OVERRIDE { return m_bUnknownLengthPipe; }
 
 private:

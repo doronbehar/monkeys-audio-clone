@@ -11,25 +11,35 @@
     #endif
 #endif
 
+#if !(defined(__AVX512DQ__) && defined(__AVX512BW__))
+    #define CPUID_XGETBV_LEVEL    1
+    #define CPUID_XGETBV_REGISTER 2
+    #define CPUID_XGETBV_MASK     0x0C000000
+#endif
+
 #if !defined(__SSE2__) && !defined(_M_X64)
     #define CPUID_SSE2_LEVEL      1
     #define CPUID_SSE2_REGISTER   3
-    #define CPUID_SSE2_MASK       (1 << 26)
+    #define CPUID_SSE2_MASK       0x04000000
 #endif
 
 #if !defined(__SSE4_1__)
     #define CPUID_SSE41_LEVEL     1
     #define CPUID_SSE41_REGISTER  2
-    #define CPUID_SSE41_MASK      (1 << 19)
+    #define CPUID_SSE41_MASK      0x00080000
 #endif
 
 #if !defined(__AVX2__)
+    #define XSTATE_FLAGS_AVX      0x06
+
     #define CPUID_AVX2_LEVEL      7
     #define CPUID_AVX2_REGISTER   1
-    #define CPUID_AVX2_MASK       (1 << 5)
+    #define CPUID_AVX2_MASK       0x00000020
 #endif
 
 #if !(defined(__AVX512DQ__) && defined(__AVX512BW__))
+    #define XSTATE_FLAGS_AVX512   0xE6
+
     #define CPUID_AVX512_LEVEL    7
     #define CPUID_AVX512_REGISTER 1
     #define CPUID_AVX512_MASK     0x40030000
@@ -54,8 +64,22 @@ static bool GetCPUInfo(uint32 * cpuInfo, int level)
 
     return true;
 #else
+    (void) cpuInfo; (void) level;
     return false;
 #endif
+}
+
+static uint32 GetXStateFlags()
+{
+    uint32 xcr0 = 0;
+
+#if defined(MSVC_CPUID)
+    xcr0 = static_cast<uint32>(_xgetbv(_XCR_XFEATURE_ENABLED_MASK));
+#elif defined(GNUC_CPUID)
+    __asm__("xgetbv" : "=a" (xcr0) : "c" (0) : "%edx");
+#endif
+
+    return xcr0;
 }
 
 bool GetSSE2Supported()
@@ -100,7 +124,16 @@ bool GetAVX2Supported()
         return false;
 
     if ((cpuInfo[CPUID_AVX2_REGISTER] & CPUID_AVX2_MASK) == CPUID_AVX2_MASK)
-        return true;
+    {
+        if (!GetCPUInfo(cpuInfo, CPUID_XGETBV_LEVEL))
+            return false;
+
+        if ((cpuInfo[CPUID_XGETBV_REGISTER] & CPUID_XGETBV_MASK) == CPUID_XGETBV_MASK)
+        {
+            if ((GetXStateFlags() & XSTATE_FLAGS_AVX) == XSTATE_FLAGS_AVX)
+                return true;
+        }
+    }
 
     return false;
 #endif
@@ -116,7 +149,16 @@ bool GetAVX512Supported()
         return false;
 
     if ((cpuInfo[CPUID_AVX512_REGISTER] & CPUID_AVX512_MASK) == CPUID_AVX512_MASK)
-        return true;
+    {
+        if (!GetCPUInfo(cpuInfo, CPUID_XGETBV_LEVEL))
+            return false;
+
+        if ((cpuInfo[CPUID_XGETBV_REGISTER] & CPUID_XGETBV_MASK) == CPUID_XGETBV_MASK)
+        {
+            if ((GetXStateFlags() & XSTATE_FLAGS_AVX512) == XSTATE_FLAGS_AVX512)
+                return true;
+        }
+    }
 
     return false;
 #endif

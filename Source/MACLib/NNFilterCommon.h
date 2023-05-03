@@ -17,50 +17,32 @@ Macros for SIMD expansion
 Macros to avoid code duplication
 **************************************************************************************************/
 
-#define UPDATE_DELTA_FOR_INPUT(INPUT)                                 \
-    INTTYPE nTempABS = Abs(INPUT);                                    \
-                                                                      \
-    if (nTempABS > (m_nRunningAverage * 3))                           \
-        m_rbDeltaM[0] = ((INPUT >> 25) & 64) - 32;                    \
-    else if (nTempABS > (m_nRunningAverage * 4) / 3)                  \
-        m_rbDeltaM[0] = ((INPUT >> 26) & 32) - 16;                    \
-    else if (nTempABS > 0)                                            \
-        m_rbDeltaM[0] = ((INPUT >> 27) & 16) - 8;                     \
-    else                                                              \
-        m_rbDeltaM[0] = 0;                                            \
-                                                                      \
-    m_nRunningAverage += (nTempABS - m_nRunningAverage) / 16;         \
-                                                                      \
-    m_rbDeltaM[-1] >>= 1;                                             \
-    m_rbDeltaM[-2] >>= 1;                                             \
-    m_rbDeltaM[-8] >>= 1;
+#define UPDATE_DELTA_NEW(VALUE)                                 \
+{                                                               \
+    INTTYPE nTempABS = Abs(VALUE);                              \
+                                                                \
+    if (nTempABS > (m_nRunningAverage * 3))                     \
+        m_rbDeltaM[0] = ((VALUE >> 25) & 64) - 32;              \
+    else if (nTempABS > (m_nRunningAverage * 4) / 3)            \
+        m_rbDeltaM[0] = ((VALUE >> 26) & 32) - 16;              \
+    else if (nTempABS > 0)                                      \
+        m_rbDeltaM[0] = ((VALUE >> 27) & 16) - 8;               \
+    else                                                        \
+        m_rbDeltaM[0] = 0;                                      \
+                                                                \
+    m_nRunningAverage += (nTempABS - m_nRunningAverage) / 16;   \
+                                                                \
+    m_rbDeltaM[-1] >>= 1;                                       \
+    m_rbDeltaM[-2] >>= 1;                                       \
+    m_rbDeltaM[-8] >>= 1;                                       \
+}
 
-#define UPDATE_DELTA_FOR_OUTPUT(OUTPUT)                               \
-    if ((m_nVersion == -1) || (m_nVersion >= 3980))                   \
-    {                                                                 \
-        INTTYPE nTempABS = Abs(OUTPUT);                               \
-                                                                      \
-        if (nTempABS > (m_nRunningAverage * 3))                       \
-            m_rbDeltaM[0] = ((OUTPUT >> 25) & 64) - 32;               \
-        else if (nTempABS > (m_nRunningAverage * 4) / 3)              \
-            m_rbDeltaM[0] = ((OUTPUT >> 26) & 32) - 16;               \
-        else if (nTempABS > 0)                                        \
-            m_rbDeltaM[0] = ((OUTPUT >> 27) & 16) - 8;                \
-        else                                                          \
-            m_rbDeltaM[0] = 0;                                        \
-                                                                      \
-        m_nRunningAverage += (nTempABS - m_nRunningAverage) / 16;     \
-                                                                      \
-        m_rbDeltaM[-1] >>= 1;                                         \
-        m_rbDeltaM[-2] >>= 1;                                         \
-        m_rbDeltaM[-8] >>= 1;                                         \
-    }                                                                 \
-    else                                                              \
-    {                                                                 \
-        m_rbDeltaM[0] = (OUTPUT == 0) ? 0 : ((OUTPUT >> 28) & 8) - 4; \
-        m_rbDeltaM[-4] >>= 1;                                         \
-        m_rbDeltaM[-8] >>= 1;                                         \
-    }
+#define UPDATE_DELTA_OLD(VALUE)                                 \
+{                                                               \
+    m_rbDeltaM[0] = (VALUE == 0) ? 0 : ((VALUE >> 28) & 8) - 4; \
+    m_rbDeltaM[-4] >>= 1;                                       \
+    m_rbDeltaM[-8] >>= 1;                                       \
+}
 
 namespace APE
 {
@@ -165,7 +147,7 @@ __forceinline int64 CalculateDotProduct(const int * pA, const int * pB, int nOrd
     ASSERT((nOrder % 16) == 0);
 
     int64 nDotProduct = 0;
-    int nTemporary = 0;
+    int32 nTemporary = 0;
     nOrder >>= 4;
 
     while (nOrder--)

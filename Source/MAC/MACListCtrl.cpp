@@ -94,6 +94,19 @@ BOOL CMACListCtrl::Initialize(CMACDlg * pParent, MAC_FILE_ARRAY * paryFiles)
     SetTextBkColor(CLR_NONE);
     SetTextColor(RGB(0, 0, 0));
 
+    // get system UI font
+    NONCLIENTMETRICS ncm;
+    APE_CLEAR(ncm);
+    ncm.cbSize = sizeof(ncm);
+    SystemParametersInfo(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0);
+
+    // create font
+    m_Font.CreateFont(ncm.lfMessageFont.lfHeight, 0, 0, 0, FW_NORMAL, FALSE, FALSE, 0,
+        DEFAULT_CHARSET,
+        OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+        DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, ncm.lfMessageFont.lfFaceName);
+    SetFont(&m_Font);
+
     // load settings
     m_nSortColumn = theApp.GetSettings()->LoadSetting(_T("List Sort Column"), 0);
     m_bSortAscending = theApp.GetSettings()->LoadSetting(_T("List Sort Ascending"), TRUE);
@@ -221,6 +234,17 @@ BOOL CMACListCtrl::Update()
     return TRUE;
 }
 
+void CMACListCtrl::SaveColumns()
+{
+    for (int z = 0; z < COLUMN_COUNT; z++)
+    {
+        CString strValueName; strValueName.Format(_T("List Column %d Width"), z);
+        int nWidth = GetColumnWidth(z);
+        nWidth = theApp.GetSizeReverse(nWidth);
+        theApp.GetSettings()->SaveSetting(strValueName, nWidth);
+    }
+}
+
 void CMACListCtrl::LoadColumns()
 {
     for (int z = 0; z < COLUMN_COUNT; z++)
@@ -229,7 +253,8 @@ void CMACListCtrl::LoadColumns()
         int nSize = theApp.GetSettings()->LoadSetting(strValueName, 100);
         if (nSize <= 20)
             nSize = 200;
-        SetColumnWidth(z, theApp.GetSize(nSize, 0).cx);
+        nSize = theApp.GetSize(nSize, 0).cx;
+        SetColumnWidth(z, nSize);
     }
 
     CSmartPtr<int> spOrderArray(new int[COLUMN_COUNT], TRUE);
@@ -260,7 +285,7 @@ BOOL CMACListCtrl::AddFolder(CString strPath)
     return TRUE;
 }
 
-BOOL CMACListCtrl::AddFileInternal(const CString & strInputFilename)
+BOOL CMACListCtrl::AddFileInternal(CString strInputFilename)
 {
     // make sure the file exists
     WIN32_FIND_DATA WFD;
@@ -275,6 +300,18 @@ BOOL CMACListCtrl::AddFileInternal(const CString & strInputFilename)
     }
     else
     {
+        // expand the filename
+        TCHAR * pLongFilename = new TCHAR [APE_MAX_PATH];
+        pLongFilename[0] = 0;
+        if (GetLongPathName(strInputFilename, pLongFilename, APE_MAX_PATH) > 0)
+            strInputFilename = pLongFilename;
+        APE_SAFE_ARRAY_DELETE(pLongFilename)
+        if ((strInputFilename.GetLength() >= MAX_PATH) &&
+            (strInputFilename.Left(4) != _T("\\\\?\\")))
+        {
+            strInputFilename = _T("\\\\?\\") + strInputFilename;
+        }
+
         // split the path
         CString strExtension = GetExtension(strInputFilename);
 
@@ -350,13 +387,7 @@ BOOL CMACListCtrl::RemoveAllFiles()
 void CMACListCtrl::OnDestroy()
 {
     // save the settings
-    for (int z = 0; z < COLUMN_COUNT; z++)
-    {
-        CString strValueName; strValueName.Format(_T("List Column %d Width"), z);
-        int nWidth = GetColumnWidth(z);
-        nWidth = theApp.GetSizeReverse(nWidth);
-        theApp.GetSettings()->SaveSetting(strValueName, nWidth);
-    }
+    SaveColumns();
 
     CSmartPtr<int> spOrderArray(new int [COLUMN_COUNT], TRUE);
     GetColumnOrderArray(spOrderArray, -1);
@@ -537,13 +568,14 @@ void CMACListCtrl::OnDropFiles(HDROP hDropInfo)
     StartFileInsertion(FALSE);
 
     const int nFiles = DragQueryFile(hDropInfo, 0xFFFFFFFF, NULL, 0);
+    TCHAR * pFilename = new TCHAR [APE_MAX_PATH];
     for (int z = 0; z < nFiles; z++)
     {
-        TCHAR cFilename[MAX_PATH + 1];
-        APE_CLEAR(cFilename);
-        DragQueryFile(hDropInfo, z, cFilename, MAX_PATH);
-        AddFileInternal(cFilename);
+        pFilename[0] = 0;
+        DragQueryFile(hDropInfo, z, pFilename, APE_MAX_PATH);
+        AddFileInternal(pFilename);
     }
+    APE_SAFE_ARRAY_DELETE(pFilename)
 
     FinishFileInsertion();
 

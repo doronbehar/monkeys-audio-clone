@@ -373,9 +373,9 @@ void CMACDlg::OnFileAddFiles()
         OFN_ALLOWMULTISELECT | OFN_HIDEREADONLY, theApp.GetFormatArray()->GetOpenFilesFilter());
 
     // extra initialization (hacky, but safe)
-    CSmartPtr<TCHAR> spFilename(new TCHAR [(_MAX_PATH + 1) * 512], TRUE); spFilename[0] = 0;
+    CSmartPtr<TCHAR> spFilename(new TCHAR [(APE_MAX_PATH + 1) * 512], TRUE); spFilename[0] = 0;
     FileDialog.m_ofn.lpstrInitialDir = m_strAddFilesBasePath;
-    FileDialog.m_ofn.nMaxFile = _MAX_PATH * 512;
+    FileDialog.m_ofn.nMaxFile = APE_MAX_PATH * 512;
     FileDialog.m_ofn.lpstrFile = spFilename.GetPtr();
 
     if (FileDialog.DoModal() == IDOK)
@@ -405,10 +405,10 @@ void CMACDlg::OnFileAddFolder()
     if (GetProcessing())
         return;
 
-    CFolderDialog FolderDialog(NULL, BIF_RETURNONLYFSDIRS | BIF_EDITBOX);
-    if (FolderDialog.DoModal() == IDOK)
+    CSmartPtr<CFolderDialog> spFolderDialog(new CFolderDialog(NULL, BIF_RETURNONLYFSDIRS | BIF_EDITBOX));
+    if (spFolderDialog->DoModal() == IDOK)
     {
-        m_ctrlList.AddFolder(FolderDialog.GetPathName());
+        m_ctrlList.AddFolder(spFolderDialog->GetPathName());
     }
 }
 
@@ -1132,9 +1132,11 @@ void CMACDlg::LoadScale()
     }
 
     // load menu and toolbar
-    LoadMenuAndToolbar(FALSE);
+    LoadMenuAndToolbar(GetProcessing());
 
     // load columns
+    if (m_bInitialized)
+        m_ctrlList.SaveColumns();
     m_ctrlList.LoadColumns();
 
     // size the toolbar (using the size that it lays out at plus the icon size)

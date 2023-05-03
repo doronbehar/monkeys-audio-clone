@@ -252,15 +252,11 @@ int CAPETag::WriteBufferToEndOfIO(void * pBuffer, int nBytes)
     const int64 nOriginalPosition = m_spIO->GetPosition();
 
     unsigned int nBytesWritten = 0;
-    m_spIO->SetSeekPosition(0);
-    m_spIO->SetSeekMethod(APE_FILE_END);
-    m_spIO->PerformSeek();
+    m_spIO->Seek(0, SeekFileEnd);
 
     const int nResult = m_spIO->Write(pBuffer, static_cast<unsigned int>(nBytes), &nBytesWritten);
 
-    m_spIO->SetSeekPosition(nOriginalPosition);
-    m_spIO->SetSeekMethod(APE_FILE_BEGIN);
-    m_spIO->PerformSeek();
+    m_spIO->Seek(nOriginalPosition, SeekFileBegin);
 
     return nResult;
 }
@@ -285,9 +281,7 @@ int CAPETag::Analyze()
     // check for an ID3v1 tag
     if (m_bCheckForID3v1 && (sizeof(ID3Tag) == ID3_TAG_BYTES) && (m_spIO->GetSize() > ID3_TAG_BYTES))
     {
-        m_spIO->SetSeekPosition(-ID3_TAG_BYTES);
-        m_spIO->SetSeekMethod(APE_FILE_END);
-        if (m_spIO->PerformSeek() == ERROR_SUCCESS)
+        if (m_spIO->Seek(-ID3_TAG_BYTES, SeekFileEnd) == ERROR_SUCCESS)
         {
             unsigned int nBytesRead = 0;
             const int nReadRetVal = m_spIO->Read(&ID3Tag, ID3_TAG_BYTES, &nBytesRead);
@@ -330,9 +324,7 @@ int CAPETag::Analyze()
     // we used to not load if we found an ID3 tag, but somebody sent me a file with both an ID3 tag and APE tag, so we'll try to parse that going forward
     {
         APE_TAG_FOOTER APETagFooter;
-        m_spIO->SetSeekMethod(APE_FILE_END);
-        m_spIO->SetSeekPosition(-static_cast<int>(APE_TAG_FOOTER_BYTES + (m_bHasID3Tag ? ID3_TAG_BYTES : 0)));
-        if (m_spIO->PerformSeek() == ERROR_SUCCESS)
+        if (m_spIO->Seek(-static_cast<int>(APE_TAG_FOOTER_BYTES + (m_bHasID3Tag ? ID3_TAG_BYTES : 0)), SeekFileEnd) == ERROR_SUCCESS)
         {
             unsigned int nBytesRead = 0;
             APETagFooter.Empty();
@@ -348,9 +340,7 @@ int CAPETag::Analyze()
                     m_nTagBytes += APETagFooter.GetTotalTagBytes();
 
                     CSmartPtr<char> spRawTag(new char [static_cast<size_t>(nRawFieldBytes)], true);
-                    m_spIO->SetSeekPosition(static_cast<int64>(-(APETagFooter.GetTotalTagBytes() - APETagFooter.GetFieldsOffset() + (m_bHasID3Tag ? ID3_TAG_BYTES : 0))));
-                    m_spIO->SetSeekMethod(APE_FILE_END);
-                    if (m_spIO->PerformSeek() == ERROR_SUCCESS)
+                    if (m_spIO->Seek(static_cast<int64>(-(APETagFooter.GetTotalTagBytes() - APETagFooter.GetFieldsOffset() + (m_bHasID3Tag ? ID3_TAG_BYTES : 0))), SeekFileEnd) == ERROR_SUCCESS)
                     {
                         nReadRetVal = m_spIO->Read(spRawTag.GetPtr(), static_cast<unsigned int>(nRawFieldBytes), &nBytesRead);
 
@@ -379,9 +369,7 @@ int CAPETag::Analyze()
     }
 
     // restore the file pointer
-    m_spIO->SetSeekPosition(nOriginalPosition);
-    m_spIO->SetSeekMethod(APE_FILE_BEGIN);
-    m_spIO->PerformSeek();
+    m_spIO->Seek(nOriginalPosition, SeekFileBegin);
 
     return ERROR_SUCCESS;
 }
@@ -876,9 +864,7 @@ int CAPETag::Remove(bool bUpdate)
         // ID3 tag
         if (m_bCheckForID3v1 && (m_spIO->GetSize() > ID3_TAG_BYTES))
         {
-            m_spIO->SetSeekPosition(-ID3_TAG_BYTES);
-            m_spIO->SetSeekMethod(APE_FILE_END);
-            m_spIO->PerformSeek();
+            m_spIO->Seek(-ID3_TAG_BYTES, SeekFileEnd);
             char cTagHeader[4];
             nResult = m_spIO->Read(cTagHeader, 3, &nBytesRead);
             cTagHeader[3] = 0; // null terminate
@@ -886,9 +872,7 @@ int CAPETag::Remove(bool bUpdate)
             {
                 if (strncmp(cTagHeader, "TAG", 3) == 0)
                 {
-                    m_spIO->SetSeekPosition(-ID3_TAG_BYTES);
-                    m_spIO->SetSeekMethod(APE_FILE_END);
-                    m_spIO->PerformSeek();
+                    m_spIO->Seek(-ID3_TAG_BYTES, SeekFileEnd);
                     if (m_spIO->SetEOF() != 0)
                         bFailedToRemove = true;
                     else
@@ -901,18 +885,14 @@ int CAPETag::Remove(bool bUpdate)
         if (m_spIO->GetSize() > APE_TAG_FOOTER_BYTES && !bFailedToRemove)
         {
             APE_TAG_FOOTER APETagFooter;
-            m_spIO->SetSeekMethod(APE_FILE_END);
-            m_spIO->SetSeekPosition(-static_cast<int>(APE_TAG_FOOTER_BYTES));
-            m_spIO->PerformSeek();
+            m_spIO->Seek(-static_cast<int>(APE_TAG_FOOTER_BYTES), SeekFileEnd);
             APETagFooter.Empty();
             nResult = m_spIO->Read(&APETagFooter, APE_TAG_FOOTER_BYTES, & nBytesRead);
             if ((nResult == ERROR_SUCCESS) && (nBytesRead == APE_TAG_FOOTER_BYTES))
             {
                 if (APETagFooter.GetIsValid(true))
                 {
-                    m_spIO->SetSeekPosition(-APETagFooter.GetTotalTagBytes());
-                    m_spIO->SetSeekMethod(APE_FILE_END);
-                    m_spIO->PerformSeek();
+                    m_spIO->Seek(-APETagFooter.GetTotalTagBytes(), SeekFileEnd);
 
                     if (m_spIO->SetEOF() != 0)
                         bFailedToRemove = true;
@@ -923,9 +903,7 @@ int CAPETag::Remove(bool bUpdate)
         }
     }
 
-    m_spIO->SetSeekMethod(APE_FILE_BEGIN);
-    m_spIO->SetSeekPosition(nOriginalPosition);
-    m_spIO->PerformSeek();
+    m_spIO->Seek(nOriginalPosition, SeekFileBegin);
 
     if (bUpdate && !bFailedToRemove)
     {

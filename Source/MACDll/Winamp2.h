@@ -22,12 +22,13 @@ public:
     static int IsOurFile(char * pFilename);
 
     static APE::CSmartPtr<APE::IAPEDecompress> m_spAPEDecompress;
-    static TCHAR m_cCurrentFilename[MAX_PATH];                 // the name of the currently playing file
+    static TCHAR m_cCurrentFilename[APE_MAX_PATH];                 // the name of the currently playing file
 
 protected:
-    static DWORD WINAPI __stdcall DecodeThread(void * Kill_Switch);
+    static DWORD WINAPI __stdcall DecodeThread(void * pbKillSwitch);
     static BOOL CheckBufferForSilence(void * pBuffer, const APE::uint32 nSamples);
     static long ScaleBuffer(APE::IAPEDecompress * pAPEDecompress, unsigned char * pBuffer, long nBlocks);
+    static long ScaleFloatBuffer(APE::IAPEDecompress * pAPEDecompress, unsigned char * pBuffer, long nBlocks);
     static void BuildDescriptionStringFromFilename(CString & strBuffer, const APE::str_utfn * pFilename);
     static void BuildDescriptionString(CString & strBuffer, APE::IAPETag * pAPETag, const APE::str_utfn * pFilename);
     static CWinampSettingsDlg * GetSettings();

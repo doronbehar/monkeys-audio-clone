@@ -79,7 +79,7 @@ static void DisplayProperUsage(FILE * pFile)
     fwprintf(pFile, L"    Verify: '-v'\n");
     fwprintf(pFile, L"    Full Verify: '-V'\n");
     fwprintf(pFile, L"    Convert: '-nXXXX'\n");
-    fwprintf(pFile, L"    Tag: '-t'\n\n");
+    fwprintf(pFile, L"    Tag: '-t'\n");
     fwprintf(pFile, L"    Remove Tag: '-r'\n\n");
 
     fwprintf(pFile, L"Examples:\n");
@@ -140,6 +140,9 @@ static BOOL CALLBACK CtrlHandlerCallback(DWORD dwCtrlTyp)
 }
 #endif
 
+/**************************************************************************************************
+Tag
+**************************************************************************************************/
 int Tag(const str_utfn * pFilename, const str_utfn * pTagString)
 {
     int nRetVal = ERROR_UNDEFINED;
@@ -203,6 +206,9 @@ int Tag(const str_utfn * pFilename, const str_utfn * pTagString)
     return nRetVal;
 }
 
+/**************************************************************************************************
+Remove tags
+**************************************************************************************************/
 int RemoveTags(const str_utfn * pFilename)
 {
     int nRetVal = ERROR_UNDEFINED;
@@ -410,13 +416,15 @@ int _tmain(int argc, TCHAR * argv[])
 #endif
     {
         fwprintf(stderr, L"Decompressing...\n");
-        if (_wcsicmp(spOutputFilename, AUTO) == 0)
+        if ((spOutputFilename == NULL) || (_wcsicmp(spOutputFilename, AUTO) == 0))
         {
-            wchar_t cOutput[MAX_PATH];
+            // this needs to be allocated with a new or else Virus Total was losing it on 4/24/2023
+            // strange things set it off!
+            wchar_t * pOutput = new wchar_t [APE_MAX_PATH];
             wchar_t * pExtension = wcschr(spInputFilename, '.');
             if (pExtension != APE_NULL)
                 *pExtension = 0;
-            wcscpy_s(cOutput, MAX_PATH, spInputFilename);
+            wcscpy_s(pOutput, APE_MAX_PATH, spInputFilename);
             if (pExtension != APE_NULL)
                 *pExtension = '.';
 
@@ -424,9 +432,11 @@ int _tmain(int argc, TCHAR * argv[])
             GetAPEFileType(spInputFilename, cFileType);
             CSmartPtr<APE::str_utfn> spFileTypeUTF16(CAPECharacterHelper::GetUTF16FromANSI(cFileType), true);
 
-            wcscat_s(cOutput, MAX_PATH, spFileTypeUTF16);
-            spOutputFilename.Assign(new wchar_t[wcslen(cOutput) + 1], true);
-            wcscpy_s(spOutputFilename, wcslen(cOutput) + 1, cOutput);
+            wcscat_s(pOutput, APE_MAX_PATH, spFileTypeUTF16);
+            spOutputFilename.Assign(new wchar_t[wcslen(pOutput) + 1], true);
+            wcscpy_s(spOutputFilename, wcslen(pOutput) + 1, pOutput);
+
+            APE_SAFE_ARRAY_DELETE(pOutput)
         }
         nRetVal = DecompressFileW(spInputFilename, spOutputFilename, &nPercentageDone, ProgressCallback, &nKillFlag);
     }

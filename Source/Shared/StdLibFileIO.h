@@ -23,7 +23,7 @@ public:
     int Write(const void * pBuffer, unsigned int nBytesToWrite, unsigned int * pBytesWritten);
 
     // seek
-    int64 PerformSeek();
+    int Seek(int64 nPosition, SeekMethod nMethod);
 
     // other functions
     int SetEOF();

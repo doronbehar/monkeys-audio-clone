@@ -46,7 +46,9 @@ template <class INTTYPE, class DATATYPE> CNNFilter<INTTYPE, DATATYPE>::CNNFilter
         CompressImpl = &CNNFilter::CompressSSE2;
         DecompressImpl = &CNNFilter::DecompressSSE2;
     }
-#elif defined(__arm__) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64)
+#endif
+
+#if defined(__arm__) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64) || defined(_M_ARM64EC)
     if (GetNeonAvailable() && GetNeonSupported())
     {
         CompressImpl = &CNNFilter::CompressNeon;

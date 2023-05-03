@@ -59,7 +59,7 @@ const char * __stdcall GetLibraryVersionString()
 
 unsigned int __stdcall GetLibraryVersionNumber()
 {
-    return MAC_VERSION_MAJOR << 16 | MAC_VERSION_REVISION << 8;
+    return MAC_VERSION_MAJOR << 16 | MAC_VERSION_REVISION_NUMBER << 8;
 }
 
 unsigned int __stdcall GetLibraryInterfaceVersion()

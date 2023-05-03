@@ -59,12 +59,14 @@ BOOL CMACApp::InitInstance()
     // uninstall if specified
     if (strCommandLine.CompareNoCase(_T("-uninstall")) == 0)
     {
-        TCHAR cUninstall[MAX_PATH];
-        APE_CLEAR(cUninstall);
-        _tcscat_s(cUninstall, MAX_PATH, GetInstallPath());
-        _tcscat_s(cUninstall, MAX_PATH, _T("uninstall.exe"));
+        TCHAR * pUninstall = new TCHAR [APE_MAX_PATH];
+        pUninstall[0] = 0;
+        _tcscat_s(pUninstall, APE_MAX_PATH, GetInstallPath());
+        _tcscat_s(pUninstall, APE_MAX_PATH, _T("uninstall.exe"));
 
-        ShellExecute(NULL, NULL, cUninstall, NULL, NULL, SW_SHOW);
+        ShellExecute(NULL, NULL, pUninstall, NULL, NULL, SW_SHOW);
+
+        APE_SAFE_ARRAY_DELETE(pUninstall)
 
         return FALSE;
     }

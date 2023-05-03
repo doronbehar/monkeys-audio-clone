@@ -29,7 +29,7 @@ int CWinFileIO::Open(const wchar_t * pName, bool bOpenReadOnly)
 {
     Close();
 
-    if (wcslen(pName) >= MAX_PATH)
+    if (wcslen(pName) >= APE_MAX_PATH)
         return ERROR_UNDEFINED;
 
     #ifdef _UNICODE
@@ -86,7 +86,7 @@ int CWinFileIO::Open(const wchar_t * pName, bool bOpenReadOnly)
         }
     }
 
-    wcscpy_s(m_cFileName, MAX_PATH, pName);
+    wcscpy_s(m_cFileName, APE_MAX_PATH, pName);
 
     return ERROR_SUCCESS;
 }
@@ -142,25 +142,25 @@ int CWinFileIO::Write(const void * pBuffer, unsigned int nBytesToWrite, unsigned
         return ERROR_SUCCESS;
 }
 
-int64 CWinFileIO::PerformSeek()
+int CWinFileIO::Seek(int64 nPosition, SeekMethod nMethod)
 {
     DWORD dwMoveMethod = 0;
-    if (m_nSeekMethod == APE_FILE_BEGIN)
+    if (nMethod == SeekFileBegin)
     {
         dwMoveMethod = FILE_BEGIN;
     }
-    else if (m_nSeekMethod == APE_FILE_END)
+    else if (nMethod == SeekFileEnd)
     {
-        m_nSeekPosition = -abs(m_nSeekPosition);
+        nPosition = -abs(nPosition);
         dwMoveMethod = FILE_END;
     }
-    else if (m_nSeekMethod == APE_FILE_CURRENT)
+    else if (nMethod == SeekFileCurrent)
     {
         dwMoveMethod = FILE_CURRENT;
     }
 
-    const LONG Low = static_cast<LONG>(m_nSeekPosition & 0xFFFFFFFF);
-    LONG High = static_cast<LONG>(m_nSeekPosition >> 32);
+    const LONG Low = static_cast<LONG>(nPosition & 0xFFFFFFFF);
+    LONG High = static_cast<LONG>(nPosition >> 32);
 
     SetFilePointer(m_hFile, Low, &High, dwMoveMethod);
 
@@ -190,7 +190,7 @@ int64 CWinFileIO::GetSize()
 
 int CWinFileIO::GetName(wchar_t * pBuffer)
 {
-    wcscpy_s(pBuffer, MAX_PATH, m_cFileName);
+    wcscpy_s(pBuffer, APE_MAX_PATH, m_cFileName);
     return ERROR_SUCCESS;
 }
 
@@ -198,7 +198,7 @@ int CWinFileIO::Create(const wchar_t * pName)
 {
     Close();
 
-    if (wcslen(pName) >= MAX_PATH)
+    if (wcslen(pName) >= APE_MAX_PATH)
         return ERROR_UNDEFINED;
 
     #ifdef _UNICODE
@@ -227,7 +227,7 @@ int CWinFileIO::Create(const wchar_t * pName)
         m_bReadOnly = false;
     }
 
-    wcscpy_s(m_cFileName, MAX_PATH, pName);
+    wcscpy_s(m_cFileName, APE_MAX_PATH, pName);
 
     return ERROR_SUCCESS;
 }

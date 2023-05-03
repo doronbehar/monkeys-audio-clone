@@ -68,20 +68,21 @@ CAPEInfo::CAPEInfo(int * pErrorCode, const wchar_t * pFilename, CAPETag * pTag, 
     }
 
     // flag to read the whole file if specified
-#ifdef APE_64_BIT
-    if (bReadWholeFile && (m_spIO->GetSize() < (APE_BYTES_IN_MEGABYTE * 500)))
-#else
-    if (bReadWholeFile && (m_spIO->GetSize() < (APE_BYTES_IN_MEGABYTE * 100)))
-#endif
+    if (bReadWholeFile)
     {
-        m_spIO.SetDelete(false);
-        m_spIO.Assign(new CWholeFileIO(m_spIO.GetPtr()));
-        m_spIO.SetDelete(true);
-        *pErrorCode = m_spIO->Open(APE_NULL, false); // open again to get a return value
-        if (*pErrorCode != ERROR_SUCCESS)
+        // get size
+        const int64 nSize = m_spIO->GetSize();
+
+        // only create if we're less than 200 MB
+        if (nSize < (APE_BYTES_IN_MEGABYTE * 200))
         {
-            CloseFile();
-            return;
+            CWholeFileIO * pWholeFile = CreateWholeFileIO(m_spIO, nSize);
+            if (pWholeFile != NULL)
+            {
+                m_spIO.SetDelete(false);
+                m_spIO.Assign(pWholeFile);
+                m_spIO.SetDelete(true);
+            }
         }
     }
 
@@ -418,15 +419,11 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nPara
                 unsigned int nBytesRead = 0;
 
                 // check for a tag
-                m_spIO->SetSeekMethod(APE_FILE_END);
-                m_spIO->SetSeekPosition(-(static_cast<int64>(m_spAPETag->GetTagBytes()) + static_cast<int64>(m_APEFileInfo.nWAVTerminatingBytes)));
-                m_spIO->PerformSeek();
+                m_spIO->Seek(-(static_cast<int64>(m_spAPETag->GetTagBytes()) + static_cast<int64>(m_APEFileInfo.nWAVTerminatingBytes)), SeekFileEnd);
                 m_spIO->Read(pBuffer, m_APEFileInfo.nWAVTerminatingBytes, &nBytesRead);
 
                 // restore the file pointer
-                m_spIO->SetSeekMethod(APE_FILE_BEGIN);
-                m_spIO->SetSeekPosition(nOriginalFileLocation);
-                m_spIO->PerformSeek();
+                m_spIO->Seek(nOriginalFileLocation, SeekFileBegin);
             }
             nResult = 0;
         }

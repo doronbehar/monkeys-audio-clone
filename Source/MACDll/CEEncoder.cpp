@@ -113,7 +113,6 @@ __declspec(dllexport) DWORD FAR PASCAL WriteFilterOutput(HANDLE hOutput, unsigne
         long AudioBytesLeft = lBytes*3/4;
         long c=0;
 
-
         float far *ibuf;
         ibuf=reinterpret_cast<float far *>(buf);
 

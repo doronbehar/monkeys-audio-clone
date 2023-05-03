@@ -112,6 +112,7 @@ set(MAC_LIBRARY_HEADERS
         Source/MACLib/APELink.h
         Source/MACLib/APETag.h
         Source/MACLib/BitArray.h
+        Source/MACLib/FloatTransform.h
         Source/MACLib/MACLib.h
         Source/MACLib/MACProgressHelper.h
         Source/MACLib/MD5.h
@@ -145,7 +146,6 @@ set(MAC_SHARED_SOURCE_FILES
         Source/Shared/CPUFeatures.cpp
         Source/Shared/CRC.cpp
         Source/Shared/GlobalFunctions.cpp
-        Source/Shared/IO.cpp
         Source/Shared/WholeFileIO.cpp
         ${MAC_OS_SRC})
 
@@ -160,6 +160,7 @@ set(MAC_LIBRARY_SOURCE_FILES
         Source/MACLib/APELink.cpp
         Source/MACLib/APETag.cpp
         Source/MACLib/BitArray.cpp
+        Source/MACLib/FloatTransform.cpp
         Source/MACLib/MACLib.cpp
         Source/MACLib/MACProgressHelper.cpp
         Source/MACLib/MD5.cpp

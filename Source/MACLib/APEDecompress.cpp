@@ -3,6 +3,7 @@
 #include "APEDecompress.h"
 #include "APEInfo.h"
 #include "NewPredictor.h"
+#include "FloatTransform.h"
 
 namespace APE
 {
@@ -91,7 +92,10 @@ int CAPEDecompress::InitializeDecompressor()
     const int nCompressionLevel = static_cast<int>(GetInfo(APE_INFO_COMPRESSION_LEVEL));
     const int nVersion = static_cast<int>(GetInfo(APE_INFO_FILE_VERSION));
     const int nBitsPerSample = static_cast<int>(GetInfo(APE_INFO_BITS_PER_SAMPLE));
+
+    // loop channels
     for (int nChannel = 0; nChannel < nChannels; nChannel++)
+    {
         if (nVersion >= 3950)
             if (nBitsPerSample < 32)
                 m_aryPredictor[nChannel] = new CPredictorDecompress3950toCurrent<int, short>(nCompressionLevel, nVersion, nBitsPerSample);
@@ -99,6 +103,7 @@ int CAPEDecompress::InitializeDecompressor()
                 m_aryPredictor[nChannel] = new CPredictorDecompress3950toCurrent<int64, int>(nCompressionLevel, nVersion, nBitsPerSample);
         else
             m_aryPredictor[nChannel] = new CPredictorDecompressNormal3930to3950(nCompressionLevel, nVersion);
+    }
 
     // start with interim mode off
     m_bInterimMode = false;
@@ -112,7 +117,7 @@ int CAPEDecompress::InitializeDecompressor()
     return Seek(0);
 }
 
-int CAPEDecompress::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlocksRetrieved)
+int CAPEDecompress::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlocksRetrieved, APE_GET_DATA_PROCESSING * pProcessing)
 {
     int nResult = ERROR_SUCCESS;
     if (pBlocksRetrieved) *pBlocksRetrieved = 0;
@@ -125,6 +130,7 @@ int CAPEDecompress::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlo
     const int64 nBlocksToRetrieve = ape_min(nBlocks, nBlocksUntilFinish);
 
     // get the data
+    unsigned char * pBufferGet = pBuffer;
     int64 nBlocksLeft = nBlocksToRetrieve; int nBlocksThisPass = 1;
     while ((nBlocksLeft > 0) && (nBlocksThisPass > 0))
     {
@@ -140,8 +146,8 @@ int CAPEDecompress::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlo
         // remove as much as possible
         if (nBlocksThisPass > 0)
         {
-            m_cbFrameBuffer.Get(pBuffer, static_cast<uint32>(nBlocksThisPass * m_nBlockAlign));
-            pBuffer = &pBuffer[nBlocksThisPass * m_nBlockAlign];
+            m_cbFrameBuffer.Get(pBufferGet, static_cast<uint32>(nBlocksThisPass * m_nBlockAlign));
+            pBufferGet = &pBufferGet[nBlocksThisPass * m_nBlockAlign];
             nBlocksLeft -= nBlocksThisPass;
             m_nFrameBufferFinishedBlocks -= nBlocksThisPass;
         }
@@ -153,6 +159,65 @@ int CAPEDecompress::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlo
     // update position
     m_nCurrentBlock += nBlocksRetrieved;
     if (pBlocksRetrieved) *pBlocksRetrieved = nBlocksRetrieved;
+
+    // process data
+    int64 nBlocksDecoded = nBlocksRetrieved;
+    if ((pProcessing == NULL) || (pProcessing->bApplyFloatProcessing == true))
+    {
+        if (GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_FLOATING_POINT)
+            CFloatTransform::Process(reinterpret_cast<uint32 *>(pBuffer), static_cast<int>(nBlocksDecoded * GetInfo(IAPEDecompress::APE_INFO_CHANNELS)));
+    }
+
+    if ((pProcessing == NULL) || (pProcessing->bApplySigned8BitProcessing == true))
+    {
+        if (GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_SIGNED_8_BIT)
+        {
+            const int64 nChannels = GetInfo(IAPEDecompress::APE_INFO_CHANNELS);
+            for (int nSample = 0; nSample < nBlocksDecoded * nChannels; nSample++)
+            {
+                const unsigned char cTemp = pBuffer[nSample];
+                const char cTemp2 = static_cast<char>(cTemp + 128);
+                pBuffer[nSample] = static_cast<unsigned char>(cTemp2);
+            }
+        }
+    }
+
+    if ((pProcessing == NULL) || (pProcessing->bApplyBigEndianProcessing == true))
+    {
+        if (GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_BIG_ENDIAN)
+        {
+            const int64 nChannels = GetInfo(IAPEDecompress::APE_INFO_CHANNELS);
+            const int64 nBitdepth = GetInfo(IAPEDecompress::APE_INFO_BITS_PER_SAMPLE);
+            if (nBitdepth == 16)
+            {
+                for (int nSample = 0; nSample < nBlocksDecoded * nChannels; nSample++)
+                {
+                    const unsigned char cTemp = pBuffer[(nChannels * nSample) + 0];
+                    pBuffer[(nChannels * nSample) + 0] = pBuffer[(nChannels * nSample) + 1];
+                    pBuffer[(nChannels * nSample) + 1] = cTemp;
+                }
+            }
+            else if (nBitdepth == 24)
+            {
+                for (int nSample = 0; nSample < nBlocksDecoded * nChannels; nSample++)
+                {
+                    const unsigned char cTemp = pBuffer[(3 * nSample) + 0];
+                    pBuffer[(3 * nSample) + 0] = pBuffer[(3 * nSample) + 2];
+                    pBuffer[(3 * nSample) + 2] = cTemp;
+                }
+            }
+            else if (nBitdepth == 32)
+            {
+                uint32 * pBuffer32 = reinterpret_cast<uint32 *>(&pBuffer[0]);
+                for (int nSample = 0; nSample < nBlocksDecoded * nChannels; nSample++)
+                {
+                    const uint32 nValue = pBuffer32[nSample];
+                    const uint32 nFlippedValue = (((nValue >> 0) & 0xFF) << 24) | (((nValue >> 8) & 0xFF) << 16) | (((nValue >> 16) & 0xFF) << 8) | (((nValue >> 24) & 0xFF) << 0);
+                    pBuffer32[nSample] = nFlippedValue;
+                }
+            }
+        }
+    }
 
     return nResult;
 }
@@ -187,7 +252,7 @@ int CAPEDecompress::Seek(int64 nBlockOffset)
     if (spTempBuffer == APE_NULL) return ERROR_INSUFFICIENT_MEMORY;
 
     int64 nBlocksRetrieved = 0;
-    GetData(spTempBuffer, nBlocksToSkip, &nBlocksRetrieved);
+    GetData(spTempBuffer, nBlocksToSkip, &nBlocksRetrieved, NULL);
     if (nBlocksRetrieved != nBlocksToSkip)
         return ERROR_UNDEFINED;
 

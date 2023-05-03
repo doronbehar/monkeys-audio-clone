@@ -2,7 +2,7 @@
 #include "NNFilterCommon.h"
 #include "CPUFeatures.h"
 
-#if defined(__ARM_NEON) || defined(__ARM_NEON__) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64)
+#if defined(__ARM_NEON) || defined(__ARM_NEON__) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64) || defined(_M_ARM64EC)
     #define APE_USE_NEON_INTRINSICS
 #endif
 
@@ -15,7 +15,7 @@
             #define APE_NEON_HAVE_LD1QX
         #endif
     #elif defined(_MSC_VER) && !defined(__clang__)
-        #if defined(_M_ARM64)
+        #if defined(_M_ARM64) || defined(_M_ARM64EC)
             #define APE_NEON_HAVE_LD1QX
         #endif
     #else
@@ -151,7 +151,7 @@ static int32 CalculateDotProductNeon(const short * pA, const short * pB, int nOr
     // build output
     int32x4_t neonSum = vaddq_s32(vaddq_s32(neonSum1Lo, neonSum1Hi), vaddq_s32(neonSum2Lo, neonSum2Hi));
 
-    #if !defined(__aarch64__) && !defined(_M_ARM64)
+    #if !defined(__aarch64__) && !defined(_M_ARM64) && !defined(_M_ARM64EC)
         int32x2_t n = vadd_s32(vget_low_s32(neonSum), vget_high_s32(neonSum));
         return vget_lane_s32(n, 0) + vget_lane_s32(n, 1);
     #else
@@ -192,7 +192,7 @@ static int64 CalculateDotProductNeon(const int * pA, const int * pB, int nOrder)
     // build output
     int64x2_t neonSum = vaddq_s64(vaddq_s64(neonSum1Lo, neonSum1Hi), vaddq_s64(neonSum2Lo, neonSum2Hi));
 
-    #if !defined(__aarch64__) && !defined(_M_ARM64)
+    #if !defined(__aarch64__) && !defined(_M_ARM64) && !defined(_M_ARM64EC)
         return vget_lane_s64(vadd_s64(vget_low_s64(neonSum), vget_high_s64(neonSum)), 0);
     #else
         return vaddvq_s64(neonSum);
@@ -200,13 +200,10 @@ static int64 CalculateDotProductNeon(const int * pA, const int * pB, int nOrder)
 }
 #endif
 
-#if defined(__arm__) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64)
+#if defined(__arm__) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64) || defined(_M_ARM64EC)
 template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::CompressNeon(INTTYPE nInput)
 {
 #ifdef APE_USE_NEON_INTRINSICS
-    // convert the input to a short and store it
-    m_rbInput[0] = GetSaturatedShortFromInt(nInput);
-
     // figure a dot product
     INTTYPE nDotProduct = CalculateDotProductNeon(&m_rbInput[-m_nOrder], &m_paryM[0], m_nOrder);
 
@@ -216,7 +213,11 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::C
     // adapt
     AdaptNeon(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nOutput, m_nOrder);
 
-    UPDATE_DELTA_FOR_INPUT(nInput)
+    // update delta
+    UPDATE_DELTA_NEW(nInput)
+
+    // convert the input to a short and store it
+    m_rbInput[0] = GetSaturatedShortFromInt(nInput);
 
     // increment and roll if necessary
     m_rbInput.IncrementSafe();
@@ -224,6 +225,7 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::C
 
     return nOutput;
 #else
+    (void) nInput;
     return 0;
 #endif
 }
@@ -237,20 +239,24 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::D
     // figure a dot product
     INTTYPE nDotProduct = CalculateDotProductNeon(&m_rbInput[-m_nOrder], &m_paryM[0], m_nOrder);
 
-    // adapt
-    AdaptNeon(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nInput, m_nOrder);
-
-    // store the output value
+    // calculate the output
     INTTYPE nOutput;
     if (m_bInterimMode)
         nOutput = static_cast<INTTYPE>(nInput + ((static_cast<int64>(nDotProduct) + m_nOneShiftedByShift) >> m_nShift));
     else
         nOutput = static_cast<INTTYPE>(nInput + ((nDotProduct + m_nOneShiftedByShift) >> m_nShift));
 
+    // adapt
+    AdaptNeon(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nInput, m_nOrder);
+
+    // update delta
+    if ((m_nVersion == -1) || (m_nVersion >= 3980))
+        UPDATE_DELTA_NEW(nOutput)
+    else
+        UPDATE_DELTA_OLD(nOutput)
+
     // update the input buffer
     m_rbInput[0] = GetSaturatedShortFromInt(nOutput);
-
-    UPDATE_DELTA_FOR_OUTPUT(nOutput)
 
     // increment and roll if necessary
     m_rbInput.IncrementSafe();
@@ -258,6 +264,7 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::D
 
     return nOutput;
 #else
+    (void) nInput;
     return 0;
 #endif
 }

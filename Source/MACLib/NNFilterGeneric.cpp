@@ -26,9 +26,6 @@ static int64 CalculateDotProductGeneric(const int * pA, const int * pB, int nOrd
 
 template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::CompressGeneric(INTTYPE nInput)
 {
-    // convert the input to a short and store it
-    m_rbInput[0] = GetSaturatedShortFromInt(nInput);
-
     // figure a dot product
     INTTYPE nDotProduct = CalculateDotProductGeneric(&m_rbInput[-m_nOrder], &m_paryM[0], m_nOrder);
 
@@ -38,7 +35,11 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::C
     // adapt
     AdaptGeneric(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nOutput, m_nOrder);
 
-    UPDATE_DELTA_FOR_INPUT(nInput)
+    // update delta
+    UPDATE_DELTA_NEW(nInput)
+
+    // convert the input to a short and store it
+    m_rbInput[0] = GetSaturatedShortFromInt(nInput);
 
     // increment and roll if necessary
     m_rbInput.IncrementSafe();
@@ -55,20 +56,24 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::D
     // figure a dot product
     INTTYPE nDotProduct = CalculateDotProductGeneric(&m_rbInput[-m_nOrder], &m_paryM[0], m_nOrder);
 
-    // adapt
-    AdaptGeneric(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nInput, m_nOrder);
-
-    // store the output value
+    // calculate the output
     INTTYPE nOutput;
     if (m_bInterimMode)
         nOutput = static_cast<INTTYPE>(nInput + ((static_cast<int64>(nDotProduct) + m_nOneShiftedByShift) >> m_nShift));
     else
         nOutput = static_cast<INTTYPE>(nInput + ((nDotProduct + m_nOneShiftedByShift) >> m_nShift));
 
+    // adapt
+    AdaptGeneric(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nInput, m_nOrder);
+
+    // update delta
+    if ((m_nVersion == -1) || (m_nVersion >= 3980))
+        UPDATE_DELTA_NEW(nOutput)
+    else
+        UPDATE_DELTA_OLD(nOutput)
+
     // update the input buffer
     m_rbInput[0] = GetSaturatedShortFromInt(nOutput);
-
-    UPDATE_DELTA_FOR_OUTPUT(nOutput)
 
     // increment and roll if necessary
     m_rbInput.IncrementSafe();

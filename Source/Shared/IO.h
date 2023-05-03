@@ -3,17 +3,19 @@
 namespace APE
 {
 
-#define APE_FILE_BEGIN 0
-#define APE_FILE_CURRENT 1
-#define APE_FILE_END 2
+enum SeekMethod
+{
+    SeekFileBegin = 0,
+    SeekFileCurrent = 1,
+    SeekFileEnd = 2
+};
 
 #pragma pack(push, 1)
 
 class CIO
 {
 public:
-    // construction / destruction
-    CIO();
+    // destruction
     virtual ~CIO() { };
 
     // open / close
@@ -25,9 +27,7 @@ public:
     virtual int Write(const void * pBuffer, unsigned int nBytesToWrite, unsigned int * pBytesWritten) = 0;
 
     // seek
-    void SetSeekPosition(int64 nPosition);
-    void SetSeekMethod(unsigned int nMethod);
-    virtual int64 PerformSeek() = 0;
+    virtual int Seek(int64 nPosition, SeekMethod nMethod) = 0;
 
     // creation / destruction
     virtual int Create(const wchar_t * pName) = 0;
@@ -41,10 +41,6 @@ public:
     virtual int64 GetPosition() = 0;
     virtual int64 GetSize() = 0;
     virtual int GetName(wchar_t * pBuffer) = 0;
-
-protected:
-    int64 m_nSeekPosition;
-    unsigned int m_nSeekMethod;
 };
 
 CIO * CreateCIO();

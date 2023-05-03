@@ -196,24 +196,24 @@ int CStdLibFileIO::Write(const void * pBuffer, unsigned  int nBytesToWrite, unsi
     return (ferror(m_pFile) || (*pBytesWritten != nBytesToWrite)) ? ERROR_IO_WRITE : ERROR_SUCCESS;
 }
 
-int64 CStdLibFileIO::PerformSeek()
+int CStdLibFileIO::Seek(int64 nPosition, SeekMethod nMethod)
 {
     int nOrigin = 0;
-    if (m_nSeekMethod == APE_FILE_BEGIN)
+    if (nMethod == SeekFileBegin)
         nOrigin = SEEK_SET;
-    else if (m_nSeekMethod == APE_FILE_END)
+    else if (nMethod == SeekFileEnd)
     {
         nOrigin = SEEK_END;
-        m_nSeekPosition = -abs(m_nSeekPosition);
+        nPosition = -abs(nPosition);
     }
-    else if (m_nSeekMethod == APE_FILE_CURRENT)
+    else if (nMethod == SeekFileCurrent)
         nOrigin = SEEK_CUR;
 #ifdef PLATFORM_ANDROID
-    return fseek(m_pFile, m_nSeekPosition, nOrigin);
+    return fseek(m_pFile, nPosition, nOrigin);
 #elif !defined(PLATFORM_WINDOWS)
-    return fseeko(m_pFile, m_nSeekPosition, nOrigin);
+    return fseeko(m_pFile, nPosition, nOrigin);
 #else
-    return _fseeki64(m_pFile, m_nSeekPosition, nOrigin);
+    return _fseeki64(m_pFile, nPosition, nOrigin);
 #endif
 }
 
@@ -236,13 +236,9 @@ int64 CStdLibFileIO::GetPosition()
 int64 CStdLibFileIO::GetSize()
 {
     int64 nCurrentPosition = GetPosition();
-    SetSeekPosition(0);
-    SetSeekMethod(APE_FILE_END);
-    PerformSeek();
+    Seek(0, SeekFileEnd);
     int64 nLength = GetPosition();
-    SetSeekPosition(nCurrentPosition);
-    SetSeekMethod(APE_FILE_BEGIN);
-    PerformSeek();
+    Seek(nCurrentPosition, SeekFileBegin);
     return nLength;
 }
 

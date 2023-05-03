@@ -28,6 +28,7 @@ MAC_FILE::MAC_FILE()
     nTotalStages = 0;
     pFormat = NULL;
     bEmptyExtension = FALSE;
+    bOverwriteInput = FALSE;
 }
 
 BOOL MAC_FILE::PrepareForProcessing(CMACProcessFiles * pProcessFiles)
@@ -49,6 +50,14 @@ BOOL MAC_FILE::PrepareForProcessing(CMACProcessFiles * pProcessFiles)
     nCurrentStage = 1;
     nTotalStages = 1;
     bEmptyExtension = FALSE;
+
+    // get the size again if we overwrote our input file so doing conversion from APE to APE at different levels updates the size
+    if (bOverwriteInput)
+    {
+        dInputFileBytes = GetFileBytes(strInputFilename);
+        bOverwriteInput = FALSE;
+    }
+    dOutputFileBytes = 0;
 
     return TRUE;
 }
@@ -105,6 +114,9 @@ void MAC_FILE::CalculateFilenames()
     CString strName; strName.Format(_T("MAC Temp File (%d - %d)"), GetCurrentThreadId(), g_nWorkingFilenameIndex++);
     strWorkingFilename = fnOutput.BuildFilename(NULL, NULL, strName, strOutputExtension);
     strWorkingFilename = GetUniqueFilename(strWorkingFilename);
+
+    // check if the output filename is the same as the input
+    bOverwriteInput = (strOutputFilename.CompareNoCase(fnOriginal.GetFilename()) == 0);
 }
 
 double MAC_FILE::GetProgress() const

@@ -95,13 +95,39 @@ __declspec(dllexport) DWORD FAR PASCAL ReadFilterInput(HANDLE hInput, unsigned c
             p32Bit--;
         }
     }
+    else if ((pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BYTES_PER_SAMPLE) == 4) && (pAPEDecompress->GetInfo(APE::IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_FLOATING_POINT))
+    {
+        ///////////////////////////////////////////////////////////////////////////////
+        // 32 bit float decode (convert to 32 bit in Cool Edit format)
+        //////////////////////
+
+        IAPEDecompress::APE_GET_DATA_PROCESSING GetDataProcessing;
+        APE_CLEAR(GetDataProcessing);
+        GetDataProcessing.bApplyFloatProcessing = true;
+
+        if (pAPEDecompress->GetData(reinterpret_cast<unsigned char*>(buf), nBlocksToDecode, &nBlocksDecoded, &GetDataProcessing) != ERROR_SUCCESS)
+            return 0;
+
+        // expand to 32 bit
+        float* p32Bit = reinterpret_cast<float*>(&buf[(nBlocksDecoded * pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS) * 4) - 4]);
+        float* p32BitFloat = reinterpret_cast<float*>(p32Bit);
+
+        const float fDivisor = float(256 * 128);
+        while (p32Bit >= reinterpret_cast<float*>(&buf[0]))
+        {
+            float fValue = static_cast<float>(float(*p32BitFloat) * fDivisor);
+            *p32Bit = fValue;
+
+            p32BitFloat--;
+            p32Bit--;
+        }
+    }
     else if (pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BYTES_PER_SAMPLE) == 4)
     {
         ///////////////////////////////////////////////////////////////////////////////
         // 32 bit decode (convert to 32 bit in Cool Edit format)
         //////////////////////
 
-        nBlocksToDecode = (nBlocksToDecode * 3) / 4;
         if (pAPEDecompress->GetData(reinterpret_cast<unsigned char *>(buf), nBlocksToDecode, &nBlocksDecoded) != ERROR_SUCCESS)
             return 0;
 

@@ -185,9 +185,7 @@ BOOL CAPLHelper::GenerateLinkFiles(const CString & strImage, const CString & str
         CSmartPtr<CIO> spFileIO(CreateCIO());
         if (spFileIO->Create(strAPL) == 0)
         {
-            spFileIO->SetSeekMethod(APE_FILE_END);
-            spFileIO->SetSeekPosition(0);
-            spFileIO->PerformSeek();
+            spFileIO->Seek(0, SeekFileEnd);
 
             CString strHeader;
             strHeader.Format(_T("[Monkey's Audio Image Link File]\r\n")

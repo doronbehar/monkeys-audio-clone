@@ -9,7 +9,7 @@ CWinampSettingsDlg::CWinampSettingsDlg(CWnd * pParent)
 {
     m_hwndParent = NULL;
 
-    GetModuleFileName(AfxGetInstanceHandle(), m_strSettingsFilename.GetBuffer(MAX_PATH), MAX_PATH);
+    GetModuleFileName(AfxGetInstanceHandle(), m_strSettingsFilename.GetBuffer(APE_MAX_PATH), APE_MAX_PATH);
     m_strSettingsFilename.ReleaseBuffer();
     m_strSettingsFilename = m_strSettingsFilename.Left(m_strSettingsFilename.GetLength() - 3) + _T("ini");
 

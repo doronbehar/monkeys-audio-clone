@@ -34,6 +34,7 @@ public:
     int nTotalStages;
     IFormat * pFormat;
     BOOL bEmptyExtension;
+    BOOL bOverwriteInput;
 
     // helpers
     BOOL PrepareForProcessing(CMACProcessFiles * pProcessFiles);

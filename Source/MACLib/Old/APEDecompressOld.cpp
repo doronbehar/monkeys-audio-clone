@@ -71,7 +71,7 @@ int CAPEDecompressOld::InitializeDecompressor()
     return Seek(0);
 }
 
-int CAPEDecompressOld::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlocksRetrieved)
+int CAPEDecompressOld::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlocksRetrieved, APE_GET_DATA_PROCESSING *)
 {
     if (pBlocksRetrieved) *pBlocksRetrieved = 0;
 

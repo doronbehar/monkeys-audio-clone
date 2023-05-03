@@ -59,7 +59,7 @@ protected:
 
 private:
     // silence warning about implicitly deleted assignment operator
-    CRollBuffer<TYPE, WINDOW_ELEMENTS> & operator=(const CRollBuffer<TYPE, WINDOW_ELEMENTS> & Copy) {}
+    CRollBuffer<TYPE, WINDOW_ELEMENTS> & operator=(const CRollBuffer<TYPE, WINDOW_ELEMENTS> & Copy) { }
 };
 
 template <class TYPE, int WINDOW_ELEMENTS, int HISTORY_ELEMENTS> class CRollBufferFast

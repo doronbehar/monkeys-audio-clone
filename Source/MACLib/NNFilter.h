@@ -46,7 +46,9 @@ private:
 
     INTTYPE CompressAVX512(INTTYPE nInput);
     INTTYPE DecompressAVX512(INTTYPE nInput);
-#elif defined(__arm__) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64)
+#endif
+
+#if defined(__arm__) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64) || defined(_M_ARM64EC)
     INTTYPE CompressNeon(INTTYPE nInput);
     INTTYPE DecompressNeon(INTTYPE nInput);
 #endif

@@ -2,7 +2,7 @@
 #include "NNFilterCommon.h"
 #include "CPUFeatures.h"
 
-#if (defined(__AVX512DQ__) && defined(__AVX512BW__)) || (defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64)))
+#if (defined(__AVX512DQ__) && defined(__AVX512BW__)) || (defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64)) && !defined(_M_ARM64EC))
     #define APE_USE_AVX512_INTRINSICS
 #endif
 
@@ -16,7 +16,11 @@ namespace APE
 bool GetAVX512Available()
 {
 #ifdef APE_USE_AVX512_INTRINSICS
-    return true;
+    #ifdef PLATFORM_WINDOWS
+        return IsProcessorFeaturePresent(PF_AVX512F_INSTRUCTIONS_AVAILABLE);
+    #else
+        return true;
+    #endif
 #else
     return false;
 #endif
@@ -190,9 +194,6 @@ static int64 CalculateDotProductAVX512(const int * pA, const int * pB, int nOrde
 template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::CompressAVX512(INTTYPE nInput)
 {
 #ifdef APE_USE_AVX512_INTRINSICS
-    // convert the input to a short and store it
-    m_rbInput[0] = GetSaturatedShortFromInt(nInput);
-
     // figure a dot product
     INTTYPE nDotProduct = CalculateDotProductAVX512(&m_rbInput[-m_nOrder], &m_paryM[0], m_nOrder);
 
@@ -202,7 +203,11 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::C
     // adapt
     AdaptAVX512(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nOutput, m_nOrder);
 
-    UPDATE_DELTA_FOR_INPUT(nInput)
+    // update delta
+    UPDATE_DELTA_NEW(nInput)
+
+    // convert the input to a short and store it
+    m_rbInput[0] = GetSaturatedShortFromInt(nInput);
 
     // increment and roll if necessary
     m_rbInput.IncrementSafe();
@@ -212,6 +217,7 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::C
 
     return nOutput;
 #else
+    (void) nInput;
     return 0;
 #endif
 }
@@ -225,20 +231,24 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::D
     // figure a dot product
     INTTYPE nDotProduct = CalculateDotProductAVX512(&m_rbInput[-m_nOrder], &m_paryM[0], m_nOrder);
 
-    // adapt
-    AdaptAVX512(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nInput, m_nOrder);
-
-    // store the output value
+    // calculate the output
     INTTYPE nOutput;
     if (m_bInterimMode)
         nOutput = static_cast<INTTYPE>(nInput + ((static_cast<int64>(nDotProduct) + m_nOneShiftedByShift) >> m_nShift));
     else
         nOutput = static_cast<INTTYPE>(nInput + ((nDotProduct + m_nOneShiftedByShift) >> m_nShift));
 
+    // adapt
+    AdaptAVX512(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nInput, m_nOrder);
+
+    // update delta
+    if ((m_nVersion == -1) || (m_nVersion >= 3980))
+        UPDATE_DELTA_NEW(nOutput)
+    else
+        UPDATE_DELTA_OLD(nOutput)
+
     // update the input buffer
     m_rbInput[0] = GetSaturatedShortFromInt(nOutput);
-
-    UPDATE_DELTA_FOR_OUTPUT(nOutput)
 
     // increment and roll if necessary
     m_rbInput.IncrementSafe();
@@ -248,6 +258,7 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::D
 
     return nOutput;
 #else
+    (void) nInput;
     return 0;
 #endif
 }

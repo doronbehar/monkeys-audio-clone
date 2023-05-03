@@ -46,6 +46,8 @@ intn WriteSafe(CIO * pIO, void * pBuffer, intn nBytes)
 
 bool FileExists(const wchar_t * pFilename)
 {
+    if (pFilename == NULL)
+        return false;
     if (0 == wcscmp(pFilename, L"-")  ||  0 == wcscmp(pFilename, L"/dev/stdin"))
         return true;
 

@@ -5,6 +5,7 @@
 #include "APECompress.h"
 #include "APECompressCreate.h"
 #include "WAVInputSource.h"
+#include "FloatTransform.h"
 
 namespace APE
 {
@@ -113,10 +114,20 @@ unsigned char * CAPECompress::LockBuffer(int64 * pBytesAvailable)
 
 int64 CAPECompress::AddData(unsigned char * pData, int64 nBytes)
 {
+    // the input size should be block aligned or else the processing functions will fall apart
+    ASSERT((nBytes % m_wfeInput.nBlockAlign) == 0);
+
+    // check the buffer
     if (m_spBuffer == APE_NULL) return ERROR_INSUFFICIENT_MEMORY;
 
-    int64 nBytesDone = 0;
+    // process float data
+    if (m_wfeInput.wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
+    {
+        CFloatTransform::Process(reinterpret_cast<uint32 *>(pData), nBytes / static_cast<int64>(sizeof(float)));
+    }
 
+    // loop
+    int64 nBytesDone = 0;
     while (nBytesDone < nBytes)
     {
         // lock the buffer
@@ -240,6 +251,9 @@ int64 CAPECompress::AddDataFromInputSource(CInputSource * pInputSource, int64 nM
             return nResult;
         else
             nBytesRead = static_cast<int64>(nBlocksAdded) * static_cast<int64>(m_wfeInput.nBlockAlign);
+
+        if (m_wfeInput.wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
+            CFloatTransform::Process(reinterpret_cast<uint32 *>(pBuffer), static_cast<int64>(nBlocksAdded) * static_cast<int64>(m_wfeInput.nChannels));
 
         // store the bytes read
         if (pBytesAdded)

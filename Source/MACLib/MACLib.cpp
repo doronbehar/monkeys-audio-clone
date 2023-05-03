@@ -41,15 +41,15 @@ IAPEDecompress * CreateIAPEDecompressCore(CAPEInfo * pAPEInfo, int nStartBlock, 
             try
             {
                 // create
-                if (pAPEInfo->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION) >= 3930)
+                int nVersion = static_cast<int>(pAPEInfo->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION));
+                if ((nVersion >= 3930) && (nVersion <= MAC_FILE_VERSION_NUMBER))
                     spAPEDecompress.Assign(new CAPEDecompress(pErrorCode, pAPEInfo, nStartBlock, nFinishBlock));
 #ifdef APE_BACKWARDS_COMPATIBILITY
-                else
+                else if (nVersion < 3930)
                     spAPEDecompress.Assign(new CAPEDecompressOld(pErrorCode, pAPEInfo, nStartBlock, nFinishBlock));
-#else
+#endif
                 else
                     *pErrorCode = ERROR_UNSUPPORTED_FILE_VERSION;
-#endif
 
                 // error check
                 if (spAPEDecompress == APE_NULL || *pErrorCode != ERROR_SUCCESS)
@@ -590,9 +590,7 @@ int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, IAPEProgressCal
 
             // read APE header
             CSmartPtr<unsigned char> spAPEHeader(new unsigned char[pInfo->spAPEDescriptor->nHeaderBytes], true);
-            pIO->SetSeekMethod(APE_FILE_BEGIN);
-            pIO->SetSeekPosition(static_cast<int64>(pInfo->nJunkHeaderBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nDescriptorBytes));
-            pIO->PerformSeek();
+            pIO->Seek(static_cast<int64>(pInfo->nJunkHeaderBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nDescriptorBytes), SeekFileBegin);
             pIO->Read(spAPEHeader, pInfo->spAPEDescriptor->nHeaderBytes, &nBytesRead);
 
             // read seek table
@@ -758,10 +756,18 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
                 throw(static_cast<intn>(ERROR_SKIPPED));
             }
 
+            // flags
+            int nSourceFlags = static_cast<int>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS));
+            int nFlags = nSourceFlags;
+
+            // originally just some flags were passed, but it seems like simply passing all of them is correct so that was changed on 3/6/2023
+            //int nFlags = (nSourceFlags & MAC_FORMAT_FLAG_CAF) | (nSourceFlags & MAC_FORMAT_FLAG_SND) | (nSourceFlags & MAC_FORMAT_FLAG_W64) | (nSourceFlags & MAC_FORMAT_FLAG_AIFF);
+            //nFlags |= (nSourceFlags & MAC_FORMAT_FLAG_SIGNED_8_BIT) | (nSourceFlags & MAC_FORMAT_FLAG_FLOATING_POINT);
+
             // create and start the compressor
             spAPECompress.Assign(CreateIAPECompress());
             THROW_ON_ERROR(spAPECompress->Start(pOutputFilename, &wfeInput, (spAPEDecompress->GetInfo(IAPEDecompress::APE_DECOMPRESS_TOTAL_BLOCKS) * spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BLOCK_ALIGN)),
-                nCompressionLevel, spTempBuffer, spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_HEADER_BYTES)))
+                nCompressionLevel, spTempBuffer, spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_HEADER_BYTES), nFlags))
         }
 #endif
 
@@ -777,59 +783,21 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
         // main decoding loop
         while (nBlocksLeft > 0)
         {
+            // processing flags
+            IAPEDecompress::APE_GET_DATA_PROCESSING Processing;
+            Processing.bApplyFloatProcessing = (nOutputMode != UNMAC_DECODER_OUTPUT_APE);
+            Processing.bApplySigned8BitProcessing = (nOutputMode != UNMAC_DECODER_OUTPUT_APE);
+            Processing.bApplyBigEndianProcessing = (nOutputMode != UNMAC_DECODER_OUTPUT_APE);
+
             // decode data
             int64 nBlocksDecoded = -1;
-            const int nResult = spAPEDecompress->GetData(spTempBuffer, BLOCKS_PER_DECODE, &nBlocksDecoded);
+            const int nResult = spAPEDecompress->GetData(spTempBuffer, BLOCKS_PER_DECODE, &nBlocksDecoded, &Processing);
             if (nResult != ERROR_SUCCESS)
-                throw(static_cast<intn>(ERROR_INVALID_CHECKSUM));
+                throw(static_cast<intn>(nResult));
 
             // handle the output
             if (nOutputMode == UNMAC_DECODER_OUTPUT_WAV)
             {
-                if (spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_SIGNED_8_BIT)
-                {
-                    const int64 nChannels = spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS);
-                    for (int nSample = 0; nSample < nBlocksDecoded * nChannels; nSample++)
-                    {
-                        const unsigned char cTemp = spTempBuffer[nSample];
-                        const char cTemp2 = static_cast<char>(cTemp + 128);
-                        spTempBuffer[nSample] = static_cast<unsigned char>(cTemp2);
-                    }
-                }
-                else if (spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_BIG_ENDIAN)
-                {
-                    const int64 nChannels = spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS);
-                    const int64 nBitdepth = spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BITS_PER_SAMPLE);
-                    if (nBitdepth == 16)
-                    {
-                        for (int nSample = 0; nSample < nBlocksDecoded * nChannels; nSample++)
-                        {
-                            const unsigned char cTemp = spTempBuffer[(nChannels * nSample) + 0];
-                            spTempBuffer[(nChannels * nSample) + 0] = spTempBuffer[(nChannels * nSample) + 1];
-                            spTempBuffer[(nChannels * nSample) + 1] = cTemp;
-                        }
-                    }
-                    else if (nBitdepth == 24)
-                    {
-                        for (int nSample = 0; nSample < nBlocksDecoded * nChannels; nSample++)
-                        {
-                            const unsigned char cTemp = spTempBuffer[(3 * nSample) + 0];
-                            spTempBuffer[(3 * nSample) + 0] = spTempBuffer[(3 * nSample) + 2];
-                            spTempBuffer[(3 * nSample) + 2] = cTemp;
-                        }
-                    }
-                    else if (nBitdepth == 32)
-                    {
-                        uint32 * pBuffer32 = reinterpret_cast<uint32 *>(&spTempBuffer[0]);
-                        for (int nSample = 0; nSample < nBlocksDecoded * nChannels; nSample++)
-                        {
-                            const uint32 nValue = pBuffer32[nSample];
-                            const uint32 nFlippedValue = (((nValue >> 0) & 0xFF) << 24) | (((nValue >> 8) & 0xFF) << 16) | (((nValue >> 16) & 0xFF) << 8) | (((nValue >> 24) & 0xFF) << 0);
-                            pBuffer32[nSample] = nFlippedValue;
-                        }
-                    }
-                }
-
                 const unsigned int nBytesToWrite = static_cast<unsigned int>(nBlocksDecoded * spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BLOCK_ALIGN));
                 unsigned int nBytesWritten = 0;
                 const int nWriteResult = spioOutput->Write(spTempBuffer, nBytesToWrite, &nBytesWritten);
@@ -869,7 +837,7 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
         }
         else if (nOutputMode == UNMAC_DECODER_OUTPUT_APE)
         {
-            // write the WAV data and ayn tag
+            // write the WAV data and any tag
             IAPETag * pAPETag = GET_TAG(spAPEDecompress);
             const int64 nTagBytes = (pAPETag != APE_NULL) ? pAPETag->GetTagBytes() : 0;
             const bool bHasTag = (nTagBytes > 0);
@@ -886,9 +854,7 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
                 if (bHasTag)
                 {
                     unsigned int nBytesRead = 0;
-                    GET_IO(spAPEDecompress)->SetSeekMethod(APE_FILE_END);
-                    GET_IO(spAPEDecompress)->SetSeekPosition(-(nTagBytes));
-                    THROW_ON_ERROR(GET_IO(spAPEDecompress)->PerformSeek())
+                    THROW_ON_ERROR(GET_IO(spAPEDecompress)->Seek(-(nTagBytes), SeekFileEnd))
                     THROW_ON_ERROR(GET_IO(spAPEDecompress)->Read(&spTempBuffer[spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES)], static_cast<unsigned int>(nTagBytes), &nBytesRead))
                 }
 

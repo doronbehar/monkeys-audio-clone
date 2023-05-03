@@ -50,7 +50,7 @@ __declspec(dllexport) BOOL FAR PASCAL FilterUnderstandsFormat(LPSTR filename)
 {
     BOOL bValid = FALSE;
 
-    CATCH_ERRORS
+    APE_CATCH_ERRORS
     (
         CSmartPtr<wchar_t> spFilenameUTF16(CAPECharacterHelper::GetUTF16FromANSI(filename), TRUE);
         int nErrorCode = ERROR_SUCCESS;

@@ -168,10 +168,10 @@ void COptionsOutputDlg::OnOutputLocationDirectoryBrowse()
     CString strPath;
     m_ctrlOutputLocationDirectoryCombo.GetWindowText(strPath);
 
-    CFolderDialog FolderDialog(strPath);
-    if (FolderDialog.DoModal() == IDOK)
+    APE::CSmartPtr<CFolderDialog> spFolderDialog(new CFolderDialog(strPath));
+    if (spFolderDialog->DoModal() == IDOK)
     {
-        m_ctrlOutputLocationDirectoryCombo.SetWindowText(FolderDialog.GetPathName());
+        m_ctrlOutputLocationDirectoryCombo.SetWindowText(spFolderDialog->GetPathName());
     }
 }
 

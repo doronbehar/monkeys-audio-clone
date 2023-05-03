@@ -4,35 +4,61 @@
 namespace APE
 {
 
-CWholeFileIO::CWholeFileIO(CIO * pSource)
+CWholeFileIO * CreateWholeFileIO(CIO * pSource, int64 nSize)
+{
+    // the size should be correct
+    ASSERT(nSize == pSource->GetSize());
+
+    int nResult = ERROR_SUCCESS;
+
+    // make sure we're at the head of the file
+    pSource->Seek(0, SeekFileBegin);
+
+    // the the size as 32-bit
+    const uint32 n32BitSize = static_cast<uint32>(nSize); // we established it will fit above
+
+    unsigned char * pWholeFile = NULL;
+    if (nSize == n32BitSize)
+    {
+        // create a buffer
+        try
+        {
+            pWholeFile = new unsigned char [n32BitSize];
+            //pWholeFile = new unsigned char[0x7FFFFFFF]; // test for allocating a huge size
+        }
+        catch (...)
+        {
+        }
+    }
+
+    CWholeFileIO * pIO = NULL;
+    if (pWholeFile != NULL)
+    {
+        // read
+        unsigned int nBytesRead = 0;
+        nResult = pSource->Read(pWholeFile, n32BitSize, &nBytesRead);
+        if (nBytesRead < n32BitSize)
+            nResult = ERROR_IO_READ;
+
+        if (nResult == ERROR_SUCCESS)
+        {
+            // create IO object
+            pIO = new CWholeFileIO(pSource, pWholeFile, nBytesRead);
+        }
+    }
+
+    return pIO;
+}
+
+CWholeFileIO::CWholeFileIO(CIO * pSource, unsigned char * pBuffer, int64 nFileBytes)
 {
     // store source
     m_spSource.Assign(pSource);
 
-    // get size
-    const int64 nSize = m_spSource->GetSize();
-
-    // make sure we're at the head of the file
-    m_spSource->SetSeekPosition(0);
-    m_spSource->SetSeekMethod(APE_FILE_BEGIN);
-    m_spSource->PerformSeek();
-
-    // the the size as 32-bit
-    const uint32 n32BitSize = static_cast<uint32> (nSize); // we established it will fit above
-
     // create a buffer
-    m_spWholeFile.Assign(new unsigned char [n32BitSize], true);
-
-    // read
-    unsigned int nBytesRead = 0;
-    int nResult = m_spSource->Read(m_spWholeFile, n32BitSize, &nBytesRead);
-    if (nBytesRead < n32BitSize)
-        nResult = ERROR_IO_READ;
+    m_spWholeFile.Assign(pBuffer, true);
     m_nWholeFilePointer = 0;
-    m_nWholeFileSize = n32BitSize;
-
-    // store the result
-    m_nOpenResult = nResult;
+    m_nWholeFileSize = nFileBytes;
 }
 
 CWholeFileIO::~CWholeFileIO()
@@ -43,7 +69,7 @@ CWholeFileIO::~CWholeFileIO()
 
 int CWholeFileIO::Open(const wchar_t *, bool)
 {
-    return m_nOpenResult;
+    return ERROR_SUCCESS;
 }
 
 int CWholeFileIO::Close()
@@ -75,19 +101,19 @@ int CWholeFileIO::Write(const void * , unsigned int , unsigned int *)
     return ERROR_IO_WRITE;
 }
 
-int64 CWholeFileIO::PerformSeek()
+int CWholeFileIO::Seek(int64 nPosition, SeekMethod nMethod)
 {
-    if (m_nSeekMethod == APE_FILE_BEGIN)
+    if (nMethod == SeekFileBegin)
     {
-        m_nWholeFilePointer = m_nSeekPosition;
+        m_nWholeFilePointer = nPosition;
     }
-    else if (m_nSeekMethod == APE_FILE_CURRENT)
+    else if (nMethod == SeekFileCurrent)
     {
-        m_nWholeFilePointer += m_nSeekPosition;
+        m_nWholeFilePointer += nPosition;
     }
-    else if (m_nSeekMethod == APE_FILE_END)
+    else if (nMethod == SeekFileEnd)
     {
-        m_nWholeFilePointer = GetSize() - abs(m_nSeekPosition);
+        m_nWholeFilePointer = GetSize() - abs(nPosition);
     }
 
     return ERROR_SUCCESS;
@@ -99,9 +125,7 @@ int CWholeFileIO::SetEOF()
     m_nWholeFileSize = m_nWholeFilePointer;
 
     // seek in the actual file to where we're at
-    m_spSource->SetSeekMethod(APE_FILE_BEGIN);
-    m_spSource->SetSeekPosition(m_nWholeFilePointer);
-    m_spSource->PerformSeek();
+    m_spSource->Seek(m_nWholeFilePointer, SeekFileBegin);
 
     // set the EOF in the actual file
     return m_spSource->SetEOF();

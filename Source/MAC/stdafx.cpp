@@ -18,8 +18,8 @@ CString GetInstallPath()
         reg.Open(HKEY_LOCAL_MACHINE, _T("Software\\Monkey's Audio"), KEY_READ);
     #endif
     CString strInstallDirectory;
-    ULONG nChars = MAX_PATH;
-    reg.QueryStringValue(_T("Install_Dir"), strInstallDirectory.GetBuffer(static_cast<int>(nChars)), &nChars);
+    ULONG nChars = APE_MAX_PATH;
+    reg.QueryStringValue(_T("Install_Dir"), strInstallDirectory.GetBuffer(static_cast<int>(APE_MAX_PATH)), &nChars);
     strInstallDirectory.ReleaseBuffer();
     FixDirectory(strInstallDirectory);
     return strInstallDirectory;
@@ -343,6 +343,7 @@ BOOL ExecuteProgramBlocking(CString strApplication, CString strParameters, int *
     if (pstrReturnOutput != NULL)
     {
         SECURITY_ATTRIBUTES saAttr;
+        APE_CLEAR(saAttr);
         saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
         saAttr.bInheritHandle = TRUE;
         saAttr.lpSecurityDescriptor = NULL;

@@ -130,9 +130,7 @@ int CUnBitArrayBase::FillAndResetBitArray(int64 nFileLocation, int64 nNewBitInde
     // seek if necessary
     if (nFileLocation != -1)
     {
-        m_pIO->SetSeekMethod(APE_FILE_BEGIN);
-        m_pIO->SetSeekPosition(nFileLocation);
-        RETURN_ON_ERROR(m_pIO->PerformSeek())
+        RETURN_ON_ERROR(m_pIO->Seek(nFileLocation, SeekFileBegin))
     }
 
     // fill

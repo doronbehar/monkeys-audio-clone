@@ -23,6 +23,9 @@ Declares
 #define SHIFT_BITS (CODE_BITS - 9)
 #define BOTTOM_VALUE (TOP_VALUE >> 8)
 
+#define OVERFLOW_SIGNAL 1
+#define OVERFLOW_PIVOT_VALUE 32768
+
 /**************************************************************************************************
 Lookup tables
 **************************************************************************************************/
@@ -216,8 +219,20 @@ int CBitArray::EncodeValue(int64 nEncode, BIT_ARRAY_STATE & BitArrayState)
     nEncode = (nEncode > 0) ? nEncode * 2 - 1 : -nEncode * 2;
 
     // figure the pivot value
-    const uint32 nPivotValue = ape_max(BitArrayState.nKSum / 32, static_cast<uint32>(1));
-    const uint32 nOverflow = static_cast<uint32>(nEncode / nPivotValue);
+    uint32 nPivotValue = ape_max(BitArrayState.nKSum / 32, static_cast<uint32>(1));
+    uint64 nOverflow64 = static_cast<uint64>(nEncode / nPivotValue);
+    uint32 nOverflow = static_cast<uint32>(nOverflow64);
+    if (nOverflow != nOverflow64)
+    {
+        // overflow happened; increase the pivot value and signal the situation in the bitstream
+        nPivotValue = OVERFLOW_PIVOT_VALUE;
+        nOverflow = static_cast<uint32>(nEncode / nPivotValue);
+
+        // signal overflow using a low overflow value that can never occur as a "special" overflow value otherwise
+        ENCODE_FAST(RANGE_WIDTH[MODEL_ELEMENTS - 1], RANGE_TOTAL[MODEL_ELEMENTS - 1], RANGE_OVERFLOW_SHIFT)
+        ENCODE_DIRECT((OVERFLOW_SIGNAL >> 16) & 0xFFFF, 16)
+        ENCODE_DIRECT(OVERFLOW_SIGNAL & 0xFFFF, 16)
+    }
     const uint32 nBase = static_cast<uint32>(nEncode - (static_cast<int64>(nOverflow) * static_cast<int64>(nPivotValue)));
 
     // update nKSum
@@ -250,48 +265,46 @@ int CBitArray::EncodeValue(int64 nEncode, BIT_ARRAY_STATE & BitArrayState)
     }
 
     // code the base
+    if (nPivotValue >= (1 << 16))
     {
-        if (nPivotValue >= (1 << 16))
-        {
-            uint32 nPivotValueBits = 0;
-            while ((nPivotValue >> nPivotValueBits) > 0) { nPivotValueBits++; }
-            const uint32 nShift = (nPivotValueBits >= 16) ? nPivotValueBits - 16 : 0;
-            const uint32 nSplitFactor = static_cast<uint32>(1) << nShift;
+        uint32 nPivotValueBits = 0;
+        while ((nPivotValue >> nPivotValueBits) > 0) { nPivotValueBits++; }
+        const uint32 nShift = (nPivotValueBits >= 16) ? nPivotValueBits - 16 : 0;
+        const uint32 nSplitFactor = static_cast<uint32>(1) << nShift;
 
-            // we know that base is smaller than pivot coming into this
-            // however, after we divide both by an integer, they could be the same
-            // we account by adding one to the pivot, but this hurts compression
-            // by (1 / nSplitFactor) -- therefore we maximize the split factor
-            // that gets one added to it
+        // we know that base is smaller than pivot coming into this
+        // however, after we divide both by an integer, they could be the same
+        // we account by adding one to the pivot, but this hurts compression
+        // by (1 / nSplitFactor) -- therefore we maximize the split factor
+        // that gets one added to it
 
-            // encode the pivot as two pieces
-            const uint32 nPivotValueA = (nPivotValue / nSplitFactor) + 1;
-            const uint32 nPivotValueB = nSplitFactor;
+        // encode the pivot as two pieces
+        const uint32 nPivotValueA = (nPivotValue / nSplitFactor) + 1;
+        const uint32 nPivotValueB = nSplitFactor;
 
-            const uint32 nBaseA = nBase / nSplitFactor;
-            const uint32 nBaseB = nBase % nSplitFactor;
+        const uint32 nBaseA = nBase / nSplitFactor;
+        const uint32 nBaseB = nBase % nSplitFactor;
 
-            {
-                NORMALIZE_RANGE_CODER
-                const uint32 nTemp = m_RangeCoderInfo.range / nPivotValueA;
-                m_RangeCoderInfo.range = nTemp;
-                m_RangeCoderInfo.low += nTemp * nBaseA;
-            }
-
-            {
-                NORMALIZE_RANGE_CODER
-                const uint32 nTemp = m_RangeCoderInfo.range / nPivotValueB;
-                m_RangeCoderInfo.range = nTemp;
-                m_RangeCoderInfo.low += nTemp * nBaseB;
-            }
-        }
-        else
         {
             NORMALIZE_RANGE_CODER
-            const uint32 nTemp = m_RangeCoderInfo.range / nPivotValue;
+            const uint32 nTemp = m_RangeCoderInfo.range / nPivotValueA;
             m_RangeCoderInfo.range = nTemp;
-            m_RangeCoderInfo.low += nTemp * nBase;
+            m_RangeCoderInfo.low += nTemp * nBaseA;
         }
+
+        {
+            NORMALIZE_RANGE_CODER
+            const uint32 nTemp = m_RangeCoderInfo.range / nPivotValueB;
+            m_RangeCoderInfo.range = nTemp;
+            m_RangeCoderInfo.low += nTemp * nBaseB;
+        }
+    }
+    else
+    {
+        NORMALIZE_RANGE_CODER
+        const uint32 nTemp = m_RangeCoderInfo.range / nPivotValue;
+        m_RangeCoderInfo.range = nTemp;
+        m_RangeCoderInfo.low += nTemp * nBase;
     }
 
     return ERROR_SUCCESS;
@@ -401,22 +414,22 @@ void CBitArray::OutputRangeTable()
 
     TCHAR buf[1024];
     _stprintf(buf, _T("const uint32 RANGE_TOTAL[%d] = {"), MODEL_ELEMENTS);
-    ODS(buf);
+    APE_ODS(buf);
     for (z = 0; z < MODEL_ELEMENTS; z++)
     {
         _stprintf(buf, _T("%d,"), aryTotal[z]);
         OutputDebugString(buf);
     }
-    ODS(_T("};\n"));
+    APE_ODS(_T("};\n"));
 
     _stprintf(buf, _T("const uint32 RANGE_WIDTH[%d] = {"), MODEL_ELEMENTS);
-    ODS(buf);
+    APE_ODS(buf);
     for (z = 0; z < MODEL_ELEMENTS; z++)
     {
         _stprintf(buf, _T("%d,"), aryWidth[z]);
         OutputDebugString(buf);
     }
-    ODS(_T("};\n\n"));
+    APE_ODS(_T("};\n\n"));
 }
 #endif // #ifdef BUILD_RANGE_TABLE
 

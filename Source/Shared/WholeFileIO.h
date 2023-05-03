@@ -11,7 +11,7 @@ class CWholeFileIO : public CIO
 {
 public:
     // construction / destruction
-    CWholeFileIO(CIO * pSource);
+    CWholeFileIO(CIO * pSource, unsigned char * pBuffer, int64 nFileBytes);
     ~CWholeFileIO();
 
     // open / close
@@ -23,7 +23,7 @@ public:
     int Write(const void * pBuffer, unsigned int nBytesToWrite, unsigned int * pBytesWritten) APE_OVERRIDE;
 
     // seek
-    int64 PerformSeek() APE_OVERRIDE;
+    int Seek(int64 nPosition, SeekMethod nMethod) APE_OVERRIDE;
 
     // other functions
     int SetEOF() APE_OVERRIDE;
@@ -42,10 +42,11 @@ private:
     CSmartPtr<CIO> m_spSource;
     CSmartPtr<unsigned char> m_spWholeFile;
     CSmartPtr<unsigned char> m_spBuffer;
-    int m_nOpenResult;
     int64 m_nWholeFilePointer;
     int64 m_nWholeFileSize;
 };
+
+CWholeFileIO * CreateWholeFileIO(CIO * pSource, int64 nSize);
 
 #pragma pack(pop)
 

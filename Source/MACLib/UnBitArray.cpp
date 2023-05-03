@@ -12,45 +12,48 @@ const uint32 RANGE_WIDTH_1[64] = {14824,13400,11124,8507,6139,4177,2755,1756,110
 const uint32 RANGE_TOTAL_2[65] = {0,19578,36160,48417,56323,60899,63265,64435,64971,65232,65351,65416,65447,65466,65476,65482,65485,65488,65490,65491,65492,65493,65494,65495,65496,65497,65498,65499,65500,65501,65502,65503,65504,65505,65506,65507,65508,65509,65510,65511,65512,65513,65514,65515,65516,65517,65518,65519,65520,65521,65522,65523,65524,65525,65526,65527,65528,65529,65530,65531,65532,65533,65534,65535,65536};
 const uint32 RANGE_WIDTH_2[64] = {19578,16582,12257,7906,4576,2366,1170,536,261,119,65,31,19,10,6,3,3,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,};
 
-class RangeOverflowTable
+/**************************************************************************************************
+RangeOverflowTable
+**************************************************************************************************/
+RangeOverflowTable::RangeOverflowTable(const uint32 * RANGE_TOTAL)
 {
-public:
-    RangeOverflowTable()
+    m_pTable = new uint8 [65536];
+
+    uint8 nOverflow = 0;
+    for (uint32 z = 0; z < 65536; z++)
     {
-        m_pTable = new uint8 [65536];
+        if (z >= RANGE_TOTAL[nOverflow + 1])
+            nOverflow++;
 
-        uint8 nOverflow = 0;
-        for (uint32 z = 0; z < 65536; z++)
-        {
-            if (z >= RANGE_TOTAL_2[nOverflow + 1])
-                nOverflow++;
-
-            m_pTable[z] = nOverflow;
-        }
+        m_pTable[z] = nOverflow;
     }
+}
 
-    ~RangeOverflowTable()
-    {
-        delete [] m_pTable;
-    }
+RangeOverflowTable::~RangeOverflowTable()
+{
+    delete [] m_pTable;
+}
 
-    uint8 operator[](uint32 nIndex) const
-    {
-        return m_pTable[nIndex];
-    }
+uint8 RangeOverflowTable::operator[](uint32 nIndex) const
+{
+    return m_pTable[nIndex];
+}
 
-private:
-    uint8 * m_pTable;
-};
+static const RangeOverflowTable RANGE_OVERFLOW_TABLE_1(RANGE_TOTAL_1);
+static const RangeOverflowTable RANGE_OVERFLOW_TABLE_2(RANGE_TOTAL_2);
 
-static const RangeOverflowTable RANGE_OVERFLOW_TABLE;
-
+/**************************************************************************************************
+CUnBitArray
+**************************************************************************************************/
 #define RANGE_OVERFLOW_SHIFT 16
 
 #define CODE_BITS 32
 #define TOP_VALUE (static_cast<unsigned int> (static_cast<unsigned int>(1) << (CODE_BITS - 1)))
 #define EXTRA_BITS ((CODE_BITS - 2) % 8 + 1)
 #define BOTTOM_VALUE static_cast<unsigned int>(TOP_VALUE >> 8)
+
+#define OVERFLOW_SIGNAL 1
+#define OVERFLOW_PIVOT_VALUE 32768
 
 #define MODEL_ELEMENTS 64
 
@@ -148,6 +151,39 @@ uint32 CUnBitArray::RangeDecodeFastWithUpdate(int nShift)
     return nResult;
 }
 
+uint32 CUnBitArray::DecodeOverflow(uint32 & nPivotValue)
+{
+    // decode
+    const uint32 nRangeTotal = RangeDecodeFast(RANGE_OVERFLOW_SHIFT);
+    if (nRangeTotal >= 65536)
+        throw(ERROR_INVALID_INPUT_FILE);
+
+    // lookup the symbol from lookup table
+    uint32 nOverflow = RANGE_OVERFLOW_TABLE_2[nRangeTotal];
+
+    // update
+    m_RangeCoderInfo.low -= m_RangeCoderInfo.range * RANGE_TOTAL_2[nOverflow];
+    m_RangeCoderInfo.range = m_RangeCoderInfo.range * RANGE_WIDTH_2[nOverflow];
+
+    // get the working k
+    if (nOverflow == (MODEL_ELEMENTS - 1))
+    {
+        nOverflow = RangeDecodeFastWithUpdate(16);
+        nOverflow <<= 16;
+        nOverflow |= RangeDecodeFastWithUpdate(16);
+
+        // detect overflow signaling here, adjust the pivot value and try again
+        if (nOverflow == OVERFLOW_SIGNAL)
+        {
+            nPivotValue = OVERFLOW_PIVOT_VALUE;
+
+            return DecodeOverflow(nPivotValue);
+        }
+    }
+
+    return nOverflow;
+}
+
 int64 CUnBitArray::DecodeValueRange(UNBIT_ARRAY_STATE & BitArrayState)
 {
     int64 nValue = 0;
@@ -155,31 +191,10 @@ int64 CUnBitArray::DecodeValueRange(UNBIT_ARRAY_STATE & BitArrayState)
     if (m_nVersion >= 3990)
     {
         // figure the pivot value
-        const uint32 nPivotValue = ape_max(BitArrayState.nKSum / 32, static_cast<uint32>(1));
+        uint32 nPivotValue = ape_max(BitArrayState.nKSum / 32, static_cast<uint32>(1));
 
         // get the overflow
-        uint32 nOverflow = 0;
-        {
-            // decode
-            const uint32 nRangeTotal = RangeDecodeFast(RANGE_OVERFLOW_SHIFT);
-            if (nRangeTotal >= 65536)
-                throw(ERROR_INVALID_INPUT_FILE);
-
-            // lookup the symbol from lookup table
-            nOverflow = RANGE_OVERFLOW_TABLE[nRangeTotal];
-
-            // update
-            m_RangeCoderInfo.low -= m_RangeCoderInfo.range * RANGE_TOTAL_2[nOverflow];
-            m_RangeCoderInfo.range = m_RangeCoderInfo.range * RANGE_WIDTH_2[nOverflow];
-
-            // get the working k
-            if (nOverflow == (MODEL_ELEMENTS - 1))
-            {
-                nOverflow = RangeDecodeFastWithUpdate(16);
-                nOverflow <<= 16;
-                nOverflow |= RangeDecodeFastWithUpdate(16);
-            }
-        }
+        uint32 nOverflow = DecodeOverflow(nPivotValue);
 
         // get the value
         uint32 nBase = 0;
@@ -250,7 +265,7 @@ int64 CUnBitArray::DecodeValueRange(UNBIT_ARRAY_STATE & BitArrayState)
             throw(ERROR_INVALID_INPUT_FILE);
 
         // lookup the symbol from lookup table
-        uint32 nOverflow = RANGE_OVERFLOW_TABLE[nRangeTotal];
+        uint32 nOverflow = RANGE_OVERFLOW_TABLE_1[nRangeTotal];
 
         // update
         m_RangeCoderInfo.low -= m_RangeCoderInfo.range * RANGE_TOTAL_1[nOverflow];

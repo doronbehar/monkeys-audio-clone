@@ -81,7 +81,7 @@ In_Module g_APEWinampPluginModule =
 /**************************************************************************************************
 Global variables -- shoot me now
 **************************************************************************************************/
-TCHAR CAPEWinampPlugin::m_cCurrentFilename[MAX_PATH] = { 0 };
+TCHAR CAPEWinampPlugin::m_cCurrentFilename[APE_MAX_PATH] = { 0 };
 int CAPEWinampPlugin::m_nDecodePositionMS = -1;
 int CAPEWinampPlugin::m_nPaused = 0;
 int CAPEWinampPlugin::m_nSeekNeeded = -1;
@@ -100,7 +100,7 @@ int CAPEWinampPlugin::Play(char * pFilename)
 {
     // reset or initialize any public variables
     CSmartPtr<str_utfn> spFilename(CAPECharacterHelper::GetUTF16FromANSI(pFilename), TRUE);
-    _tcscpy_s(m_cCurrentFilename, MAX_PATH, spFilename);
+    _tcscpy_s(m_cCurrentFilename, APE_MAX_PATH, spFilename);
 
     m_nPaused = 0;
     m_nDecodePositionMS = 0;
@@ -277,10 +277,28 @@ long CAPEWinampPlugin::ScaleBuffer(IAPEDecompress * pAPEDecompress, unsigned cha
     return 0;
 }
 
+long CAPEWinampPlugin::ScaleFloatBuffer(IAPEDecompress * pAPEDecompress, unsigned char * pBuffer, long nBlocks)
+{
+    if (pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BITS_PER_SAMPLE) == 32)
+    {
+        float * pBufferFloat = reinterpret_cast<float *>(pBuffer);
+        __int32 * pBuffer32 = reinterpret_cast<__int32 *>(pBuffer);
+        long nElements = nBlocks * long(pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS));
+        for (long z = 0; z < nElements; z++, pBuffer32++, pBufferFloat++)
+        {
+            float fValue = *pBufferFloat;
+            fValue *= 2147483647.0f;
+            *pBuffer32 = static_cast<__int32>(fValue);
+        }
+    }
+
+    return 0;
+}
+
 /**************************************************************************************************
 The decode thread
 **************************************************************************************************/
-DWORD WINAPI __stdcall CAPEWinampPlugin::DecodeThread(void *bKillSwitch)
+DWORD WINAPI __stdcall CAPEWinampPlugin::DecodeThread(void * pbKillSwitch)
 {
     // variable declares
     BOOL bDone = FALSE;
@@ -290,7 +308,7 @@ DWORD WINAPI __stdcall CAPEWinampPlugin::DecodeThread(void *bKillSwitch)
     CSmartPtr<unsigned char> spSampleBuffer(new unsigned char [static_cast<unsigned int>(1152 * 2 * m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS) * m_nScaledBytesPerSample)], TRUE);
 
     // start the decoding loop
-    while (!*(reinterpret_cast<int *>(bKillSwitch)))
+    while (!*(reinterpret_cast<int *>(pbKillSwitch)))
     {
         // seek if necessary
         if (m_nSeekNeeded != -1)
@@ -379,6 +397,10 @@ DWORD WINAPI __stdcall CAPEWinampPlugin::DecodeThread(void *bKillSwitch)
             if (GetSettings()->m_bScaleOutput == TRUE)
             {
                 ScaleBuffer(m_spAPEDecompress, spSampleBuffer, long(nBlocksDecoded));
+            }
+            else if (m_spAPEDecompress->GetInfo(APE::IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_FLOATING_POINT)
+            {
+                ScaleFloatBuffer(m_spAPEDecompress, spSampleBuffer, long(nBlocksDecoded));
             }
 
             int64 nBytesDecodedN = nBlocksDecoded * m_nScaledBytesPerSample * m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS);

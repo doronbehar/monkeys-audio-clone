@@ -55,16 +55,12 @@ int CBufferIO::Write(const void * pBuffer, unsigned int nBytesToWrite, unsigned 
     return m_spSource->Write(pBuffer, nBytesToWrite, pBytesWritten);
 }
 
-int64 CBufferIO::PerformSeek()
+int CBufferIO::Seek(int64 nPosition, SeekMethod nMethod)
 {
     m_bReadToBuffer = false; // we seeked, so stop buffering
 
-    // copy our seek parameters into the source
-    m_spSource->SetSeekMethod(m_nSeekMethod);
-    m_spSource->SetSeekPosition(m_nSeekPosition);
-
     // perform the seek on the underlying source
-    return m_spSource->PerformSeek();
+    return m_spSource->Seek(nPosition, nMethod);
 }
 
 int CBufferIO::SetEOF()

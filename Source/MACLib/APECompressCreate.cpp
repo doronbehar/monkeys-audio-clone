@@ -33,14 +33,39 @@ int CAPECompressCreate::Start(CIO * pioOutput, const WAVEFORMATEX * pwfeInput, i
     if (pioOutput == APE_NULL || pwfeInput == APE_NULL)
         return ERROR_BAD_PARAMETER;
 
-    // verify the wave format
+    // verify channels
     if ((pwfeInput->nChannels < APE_MINIMUM_CHANNELS) || (pwfeInput->nChannels > APE_MAXIMUM_CHANNELS))
     {
         return ERROR_INPUT_FILE_UNSUPPORTED_CHANNEL_COUNT;
     }
+
+    // verify bitdepth
     if ((pwfeInput->wBitsPerSample != 8) && (pwfeInput->wBitsPerSample != 16) && (pwfeInput->wBitsPerSample != 24) && (pwfeInput->wBitsPerSample != 32))
     {
         return ERROR_INPUT_FILE_UNSUPPORTED_BIT_DEPTH;
+    }
+
+    // verify format tag
+    if (pwfeInput->wFormatTag == WAVE_FORMAT_PCM)
+    {
+        // supported
+    }
+    else if (pwfeInput->wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
+    {
+        // supported only if we have float compression enabled
+        #ifndef APE_SUPPORT_FLOAT_COMPRESSION
+            return ERROR_INVALID_INPUT_FILE;
+        #endif
+        nFlags |= MAC_FORMAT_FLAG_FLOATING_POINT;
+    }
+    else if (pwfeInput->wFormatTag == WAVE_FORMAT_EXTENSIBLE)
+    {
+        // supported (in most cases)
+    }
+    else
+    {
+        // unsupported file
+        return ERROR_INVALID_INPUT_FILE;
     }
 
     // initialize (creates the base classes)
@@ -142,7 +167,8 @@ int CAPECompressCreate::InitializeFile(CIO * pIO, const WAVEFORMATEX * pwfeInput
     APEDescriptor.cID[0] = 'M';
     APEDescriptor.cID[1] = 'A';
     APEDescriptor.cID[2] = 'C';
-    APEDescriptor.cID[3] = ' ';
+    APEDescriptor.cID[3] = (nFlags & MAC_FORMAT_FLAG_FLOATING_POINT) ? 'F' : ' ';
+
     APEDescriptor.nVersion = MAC_FILE_VERSION_NUMBER;
     APEDescriptor.nPadding = 0; // set to zero even though we memset above to be clean
 
@@ -216,9 +242,7 @@ int CAPECompressCreate::FinalizeFile(CIO * pIO, int nNumberOfFrames, int nFinalF
     }
 
     // go to the beginning and update the information
-    pIO->SetSeekPosition(0);
-    pIO->SetSeekMethod(APE_FILE_BEGIN);
-    pIO->PerformSeek();
+    pIO->Seek(0, SeekFileBegin);
 
     // get the descriptor
     APE_DESCRIPTOR APEDescriptor;
@@ -247,9 +271,7 @@ int CAPECompressCreate::FinalizeFile(CIO * pIO, int nNumberOfFrames, int nFinalF
     MD5.GetResult(APEDescriptor.cFileMD5);
 
     // set the pointer and re-write the updated header and peak level
-    pIO->SetSeekMethod(APE_FILE_BEGIN);
-    pIO->SetSeekPosition(0);
-    pIO->PerformSeek();
+    pIO->Seek(0, SeekFileBegin);
     if (pIO->Write(&APEDescriptor, sizeof(APEDescriptor), &nBytesWritten) != 0) { return ERROR_IO_WRITE; }
     if (pIO->Write(&APEHeader, sizeof(APEHeader), &nBytesWritten) != 0) { return ERROR_IO_WRITE; }
 
