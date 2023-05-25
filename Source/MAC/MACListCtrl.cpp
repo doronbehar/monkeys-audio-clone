@@ -47,16 +47,10 @@ CMACListCtrl::CMACListCtrl()
 {
     m_pParent = NULL;
     m_paryFiles = NULL;
-    m_nSortColumn = 0;
-    m_bSortAscending = FALSE;
-    m_bSortEnabled = TRUE;
 }
 
 CMACListCtrl::~CMACListCtrl()
 {
-    // this requires a NOLINT on 11/20/2022 because deleting complains about using memory after it has been freed, but obviously we're not doing anything like that
-    // it could be the GDI framework somehow, but just calling the regular delete is the most logical thing so we'll just NOLINT
-    m_spBitmap.Delete(); // NOLINT
 }
 
 BEGIN_MESSAGE_MAP(CMACListCtrl, CListCtrl)
@@ -106,11 +100,6 @@ BOOL CMACListCtrl::Initialize(CMACDlg * pParent, MAC_FILE_ARRAY * paryFiles)
         OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
         DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, ncm.lfMessageFont.lfFaceName);
     SetFont(&m_Font);
-
-    // load settings
-    m_nSortColumn = theApp.GetSettings()->LoadSetting(_T("List Sort Column"), 0);
-    m_bSortAscending = theApp.GetSettings()->LoadSetting(_T("List Sort Ascending"), TRUE);
-    m_bSortEnabled = theApp.GetSettings()->LoadSetting(_T("List Sort Enabled"), TRUE);
 
     return TRUE;
 }
@@ -350,9 +339,6 @@ BOOL CMACListCtrl::RemoveSelectedFiles()
 {
     SetRedraw(FALSE);
 
-    BOOL bOriginalSortEnabled = m_bSortEnabled;
-    m_bSortEnabled = FALSE;
-
     // build a list of indexes
     POSITION Pos = GetFirstSelectedItemPosition();
     CUIntArray aryIndex;
@@ -367,8 +353,6 @@ BOOL CMACListCtrl::RemoveSelectedFiles()
     SetItemCount(static_cast<int>(m_paryFiles->GetSize()));
     SelectNone();
     m_pParent->m_ctrlStatusBar.UpdateFiles(m_paryFiles);
-
-    m_bSortEnabled = bOriginalSortEnabled;
 
     SetRedraw(TRUE);
 
@@ -392,10 +376,6 @@ void CMACListCtrl::OnDestroy()
     CSmartPtr<int> spOrderArray(new int [COLUMN_COUNT], TRUE);
     GetColumnOrderArray(spOrderArray, -1);
     theApp.GetSettings()->SaveSetting(_T("List Column Order"), spOrderArray, (sizeof(int) * COLUMN_COUNT));
-
-    theApp.GetSettings()->SaveSetting(_T("List Sort Column"), m_nSortColumn);
-    theApp.GetSettings()->SaveSetting(_T("List Sort Ascending"), m_bSortAscending);
-    theApp.GetSettings()->SaveSetting(_T("List Sort Enabled"), m_bSortEnabled);
 
     // save the file list
     CString strFileListsFolder = GetUserDataPath() + _T("File Lists\\");
@@ -871,32 +851,6 @@ BOOL CMACListCtrl::OnEraseBkgnd(CDC * pDC)
     if ((m_pParent == NULL) || (m_pParent->GetInitialized() == FALSE))
         return TRUE;
 
-    // load bitmap
-    if (m_spBitmap == NULL)
-    {
-        // load image
-        CString strImage = GetProgramPath() + _T("Monkey.png");
-        if (FileExists(strImage) == false)
-            strImage = GetInstallPath() + _T("Monkey.png");
-        m_spBitmap.Assign(Gdiplus::Bitmap::FromFile(strImage));
-
-        if (m_spBitmap != NULL)
-        {
-            // lock bits and scale alpha
-            Gdiplus::BitmapData bitmapData;
-            Gdiplus::Rect rectLock(0, 0, static_cast<INT>(m_spBitmap->GetWidth()), static_cast<INT>(m_spBitmap->GetHeight()));
-            m_spBitmap->LockBits(&rectLock, Gdiplus::ImageLockModeWrite, PixelFormat32bppARGB, &bitmapData);
-            uint32 * pPixel = static_cast<uint32 *>(bitmapData.Scan0);
-            for (int nPixel = 0; nPixel < int(bitmapData.Width * bitmapData.Height); nPixel++)
-            {
-                uint32 nAlpha = pPixel[nPixel] >> 24;
-                nAlpha /= 8; // scale alpha down so the image is faded
-                pPixel[nPixel] = (nAlpha << 24) | (pPixel[nPixel] & 0x00FFFFFF);
-            }
-            m_spBitmap->UnlockBits(&bitmapData);
-        }
-    }
-
     // get rectangle
     CRect rectClient;
     GetClientRect(&rectClient);
@@ -926,7 +880,7 @@ BOOL CMACListCtrl::OnEraseBkgnd(CDC * pDC)
     Gdiplus::Graphics graphics(Buffer.GetSafeHdc());
     graphics.SetInterpolationMode(Gdiplus::InterpolationMode::InterpolationModeHighQualityBicubic);
     graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-    graphics.DrawImage(m_spBitmap, rectLayout.left, rectLayout.top, rectLayout.Width(), rectLayout.Height());
+    graphics.DrawImage(theApp.GetMonkeyImage(), rectLayout.left, rectLayout.top, rectLayout.Width(), rectLayout.Height());
 
     // painting from the memory buffer to the screen happens when the memory DC unwinds
 

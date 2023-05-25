@@ -150,11 +150,11 @@
     <_ProjectFileVersion>11.0.50727.1</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>C:\Applications\Cool Edit Pro\</OutDir>
+    <OutDir>C:\Applications\Winamp\Plugins\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>APE</TargetName>
-    <TargetExt>.flt</TargetExt>
+    <TargetName>in_APE</TargetName>
+    <TargetExt>.dll</TargetExt>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <ClangTidyChecks>-clang-diagnostic-c++98-compat,-clang-diagnostic-zero-as-null-pointer-constant,-clang-diagnostic-language-extension-token,-clang-diagnostic-global-constructors,-clang-diagnostic-exit-time-destructors</ClangTidyChecks>
   </PropertyGroup>
@@ -301,8 +301,9 @@
     </ResourceCompile>
     <Link>
       <ModuleDefinitionFile>..\..\..\MACDll\MACDll.def</ModuleDefinitionFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <ImportLibrary>$(OutDir)MACDll.lib</ImportLibrary>
+      <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
@@ -421,8 +422,9 @@
     </ResourceCompile>
     <Link>
       <ModuleDefinitionFile>..\..\..\MACDll\MACDll.def</ModuleDefinitionFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <ImportLibrary>$(OutDir)MACDll64.lib</ImportLibrary>
+      <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64EC'">

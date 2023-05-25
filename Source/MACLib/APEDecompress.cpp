@@ -35,6 +35,7 @@ CAPEDecompress::CAPEDecompress(int * pErrorCode, CAPEInfo * pAPEInfo, int64 nSta
     m_nSpecialCodes = 0;
     m_nCRC = 0;
     m_nStoredCRC = 0;
+    APE_CLEAR(m_aryBitArrayStates);
 
     // set the "real" start and finish blocks
     m_nStartBlock = (nStartBlock < 0) ? 0 : ape_min(nStartBlock, m_spAPEInfo->GetInfo(APE_INFO_TOTAL_BLOCKS));
@@ -161,7 +162,7 @@ int CAPEDecompress::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlo
     if (pBlocksRetrieved) *pBlocksRetrieved = nBlocksRetrieved;
 
     // process data
-    int64 nBlocksDecoded = nBlocksRetrieved;
+    const int64 nBlocksDecoded = nBlocksRetrieved;
     if ((pProcessing == NULL) || (pProcessing->bApplyFloatProcessing == true))
     {
         if (GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_FLOATING_POINT)

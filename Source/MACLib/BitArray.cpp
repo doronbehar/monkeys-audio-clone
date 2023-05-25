@@ -220,7 +220,7 @@ int CBitArray::EncodeValue(int64 nEncode, BIT_ARRAY_STATE & BitArrayState)
 
     // figure the pivot value
     uint32 nPivotValue = ape_max(BitArrayState.nKSum / 32, static_cast<uint32>(1));
-    uint64 nOverflow64 = static_cast<uint64>(nEncode / nPivotValue);
+    const uint64 nOverflow64 = static_cast<uint64>(nEncode / nPivotValue);
     uint32 nOverflow = static_cast<uint32>(nOverflow64);
     if (nOverflow != nOverflow64)
     {

@@ -16,11 +16,7 @@ namespace APE
 bool GetAVX512Available()
 {
 #ifdef APE_USE_AVX512_INTRINSICS
-    #ifdef PLATFORM_WINDOWS
-        return IsProcessorFeaturePresent(PF_AVX512F_INSTRUCTIONS_AVAILABLE);
-    #else
-        return true;
-    #endif
+    return true;
 #else
     return false;
 #endif

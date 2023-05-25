@@ -161,6 +161,9 @@ CPredictorDecompressNormal3930to3950::CPredictorDecompressNormal3930to3950(int n
 {
     // initialize (to avoid warnings)
     APE_CLEAR(m_aryM);
+    m_pInputBuffer = NULL;
+    m_nLastValue = 0;
+    m_nCurrentIndex = 0;
 
     m_spBuffer.Assign(new int [HISTORY_ELEMENTS + WINDOW_BLOCKS], true);
 
@@ -274,6 +277,9 @@ template <class INTTYPE, class DATATYPE> CPredictorDecompress3950toCurrent<INTTY
     m_nVersion = nVersion;
     m_nBitsPerSample = nBitsPerSample;
     m_bInterimMode = false;
+    m_nCurrentIndex = 0;
+    m_nPadding = 0;
+    m_nLastValueA = 0;
 
     // initialize (to avoid warnings)
     APE_CLEAR(m_aryMA);

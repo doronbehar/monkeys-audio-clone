@@ -11,10 +11,6 @@
 
 #include "MACFileArray.h"
 
-#pragma warning(push)
-#include <gdiplus.h> // NOLINT
-#pragma warning(pop)
-
 class CMACDlg;
 
 class CMACListCtrl : public CListCtrl
@@ -64,19 +60,11 @@ protected:
     BOOL SaveFileList(const CString & strPath);
     CString GetFilename(int nIndex);
 
-    // sorting
-    int m_nSortColumn;
-    BOOL m_bSortAscending;
-    BOOL m_bSortEnabled;
-
     // the actual files
     MAC_FILE_ARRAY * m_paryFiles;
 
     // supported extensions
     CStringArrayEx m_arySupportedExtensions;
-
-    // image
-    APE::CSmartPtr<Gdiplus::Bitmap> m_spBitmap;
 
     // font
     CFont m_Font;

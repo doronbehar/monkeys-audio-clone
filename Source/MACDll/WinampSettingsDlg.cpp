@@ -9,7 +9,7 @@ CWinampSettingsDlg::CWinampSettingsDlg(CWnd * pParent)
 {
     m_hwndParent = NULL;
 
-    GetModuleFileName(AfxGetInstanceHandle(), m_strSettingsFilename.GetBuffer(APE_MAX_PATH), APE_MAX_PATH);
+    GetModuleFileName(NULL, m_strSettingsFilename.GetBuffer(APE_MAX_PATH), APE_MAX_PATH);
     m_strSettingsFilename.ReleaseBuffer();
     m_strSettingsFilename = m_strSettingsFilename.Left(m_strSettingsFilename.GetLength() - 3) + _T("ini");
 
@@ -35,12 +35,12 @@ END_MESSAGE_MAP()
 
 BOOL CWinampSettingsDlg::LoadSettings()
 {
-    GetPrivateProfileString(_T("Plugin Settings"), _T("File Display Method"), _T("%1 - %2"), m_strFileDisplayMethod.GetBuffer(1024), 1023, m_strSettingsFilename);
+    GetPrivateProfileString(_T("APE Plugin Settings"), _T("File Display Method"), _T("%1 - %2"), m_strFileDisplayMethod.GetBuffer(1024), 1023, m_strSettingsFilename);
     m_strFileDisplayMethod.ReleaseBuffer();
-    m_nThreadPriority = GetPrivateProfileInt(_T("Plugin Settings"), _T("Thread Priority)"), THREAD_PRIORITY_HIGHEST, m_strSettingsFilename);
-    m_bScaleOutput = GetPrivateProfileInt(_T("Plugin Settings"), _T("Scale Output"), FALSE, m_strSettingsFilename);
-    m_bIgnoreBitstreamErrors = GetPrivateProfileInt(_T("Plugin Settings"), _T("Ignore Bitstream Errors"), FALSE, m_strSettingsFilename);
-    m_bSuppressSilence = GetPrivateProfileInt(_T("Plugin Settings"), _T("Suppress Silence"), FALSE, m_strSettingsFilename);
+    m_nThreadPriority = GetPrivateProfileInt(_T("APE Plugin Settings"), _T("Thread Priority)"), THREAD_PRIORITY_HIGHEST, m_strSettingsFilename);
+    m_bScaleOutput = GetPrivateProfileInt(_T("APE Plugin Settings"), _T("Scale Output"), FALSE, m_strSettingsFilename);
+    m_bIgnoreBitstreamErrors = GetPrivateProfileInt(_T("APE Plugin Settings"), _T("Ignore Bitstream Errors"), FALSE, m_strSettingsFilename);
+    m_bSuppressSilence = GetPrivateProfileInt(_T("APE Plugin Settings"), _T("Suppress Silence"), FALSE, m_strSettingsFilename);
 
     return TRUE;
 }
@@ -49,19 +49,19 @@ BOOL CWinampSettingsDlg::SaveSettings()
 {
     CString strTemp;
 
-    WritePrivateProfileString(_T("Plugin Settings"), _T("File Display Method"), m_strFileDisplayMethod, m_strSettingsFilename);
+    WritePrivateProfileString(_T("APE Plugin Settings"), _T("File Display Method"), m_strFileDisplayMethod, m_strSettingsFilename);
 
     strTemp.Format(_T("%d"), m_nThreadPriority);
-    WritePrivateProfileString(_T("Plugin Settings"), _T("Thread Priority"), strTemp, m_strSettingsFilename);
+    WritePrivateProfileString(_T("APE Plugin Settings"), _T("Thread Priority"), strTemp, m_strSettingsFilename);
 
     strTemp.Format(_T("%d"), m_bScaleOutput);
-    WritePrivateProfileString(_T("Plugin Settings"), _T("Scale Output"), strTemp, m_strSettingsFilename);
+    WritePrivateProfileString(_T("APE Plugin Settings"), _T("Scale Output"), strTemp, m_strSettingsFilename);
 
     strTemp.Format(_T("%d"), m_bIgnoreBitstreamErrors);
-    WritePrivateProfileString(_T("Plugin Settings"), _T("Ignore Bitstream Errors"), strTemp, m_strSettingsFilename);
+    WritePrivateProfileString(_T("APE Plugin Settings"), _T("Ignore Bitstream Errors"), strTemp, m_strSettingsFilename);
 
     strTemp.Format(_T("%d"), m_bSuppressSilence);
-    WritePrivateProfileString(_T("Plugin Settings"), _T("Suppress Silence"), strTemp, m_strSettingsFilename);
+    WritePrivateProfileString(_T("APE Plugin Settings"), _T("Suppress Silence"), strTemp, m_strSettingsFilename);
 
     return TRUE;
 }

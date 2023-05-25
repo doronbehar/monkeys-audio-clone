@@ -12,6 +12,7 @@ namespace APE
 CAPECompressCore::CAPECompressCore(CIO * pIO, const WAVEFORMATEX * pwfeInput, int nMaxFrameBlocks, int nCompressionLevel)
 {
     APE_CLEAR(m_wfeInput);
+    APE_CLEAR(m_aryBitArrayStates);
     m_nMaxFrameBlocks = nMaxFrameBlocks;
     m_spBitArray.Assign(new CBitArray(pIO));
     const intn nChannels = ape_max(pwfeInput->nChannels, 2);

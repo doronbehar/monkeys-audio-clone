@@ -69,7 +69,7 @@ static int64 CalculateDotProductSSE41(const int * pA, const int * pB, int nOrder
 
     // build output
     __m128i sseSum = _mm_add_epi64(_mm_add_epi64(sseSum1Lo, sseSum1Hi), _mm_add_epi64(sseSum2Lo, sseSum2Hi));
-    __m128i sseShift = _mm_srli_si128(sseSum, 0x8);
+    const __m128i sseShift = _mm_srli_si128(sseSum, 0x8);
 
     sseSum = _mm_add_epi64(sseSum, sseShift);
 

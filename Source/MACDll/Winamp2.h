@@ -41,7 +41,7 @@ protected:
     static long m_nScaledBitsPerSample;
     static long m_nScaledBytesPerSample;
     static long m_nLengthMS;
-    static APE::CSmartPtr<CWinampSettingsDlg> m_spWinampSettingsDlg;
+    static CWinampSettingsDlg m_WinampSettingsDlg;
 };
 
 //extern int APE_GetAlbumArt(const wchar_t * filename, const wchar_t * type, void ** bits, size_t * len, wchar_t ** mime_type);

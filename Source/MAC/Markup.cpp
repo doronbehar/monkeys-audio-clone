@@ -12,6 +12,7 @@
 #pragma warning(disable: 26495)
 #pragma warning(disable: 6001)
 #pragma warning(disable: 28183)
+#pragma warning(disable: 26451)
 #include <stdio.h>
 #include "Markup.h"
 

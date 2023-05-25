@@ -17,13 +17,11 @@ namespace APE
 ((((val) >> 24) & 0x000000FF) | (((val) >> 8) & 0x0000FF00) | \
 (((val) << 8) & 0x00FF0000) | (((val) << 24) & 0xFF000000))
 
-// NOLINTBEGIN
 #define Swap8Bytes(val) \
 ((((val) >> 56) & 0x00000000000000FFULL) | (((val) >> 40) & 0x000000000000FF00ULL) | \
 (((val) >> 24) & 0x0000000000FF0000ULL) | (((val) >> 8) & 0x00000000FF000000ULL) | \
 (((val) << 8) & 0x000000FF00000000ULL) | (((val) << 24) & 0x0000FF0000000000ULL) | \
 (((val) << 40) & 0x00FF000000000000ULL) | (((val) << 56) & 0xFF00000000000000ULL))
-// NOLINTEND
 
 struct RIFF_HEADER
 {
@@ -221,7 +219,7 @@ void CInputSource::FlipEndian(unsigned char * pBuffer, int nBitsPerSample, int n
         for (int nSample = 0; nSample < nBlocks * nChannels; nSample++)
         {
             const uint32_t nValue = pBufferUINT32[nSample];
-            uint32_t nFlippedValue = (((nValue >> 0) & 0xFF) << 24) | (((nValue >> 8) & 0xFF) << 16) | (((nValue >> 16) & 0xFF) << 8) | (((nValue >> 24) & 0xFF) << 0);
+            const uint32_t nFlippedValue = (((nValue >> 0) & 0xFF) << 24) | (((nValue >> 8) & 0xFF) << 16) | (((nValue >> 16) & 0xFF) << 8) | (((nValue >> 24) & 0xFF) << 0);
             pBufferUINT32[nSample] = nFlippedValue;
         }
     }
@@ -284,14 +282,14 @@ int CWAVInputSource::AnalyzeSource()
     // see if we're a pipe
     bool bPipe = false;
     {
-        wchar_t * pName = new wchar_t [APE_MAX_PATH]; 
+        wchar_t * pName = new wchar_t [APE_MAX_PATH];
         pName[0] = 0;
         m_spIO->GetName(pName);
         if (_wcsicmp(pName, L"-") == 0)
             bPipe = true;
         APE_SAFE_ARRAY_DELETE(pName)
     }
-    
+
     // get the file size
     m_nFileBytes = m_spIO->GetSize();
 
@@ -512,6 +510,7 @@ CAIFFInputSource::CAIFFInputSource(const wchar_t * pSourceName, WAVEFORMATEX * p
     m_nFileBytes = 0;
     m_nHeaderBytes = 0;
     m_nTerminatingBytes = 0;
+    m_bLittleEndian = false;
     APE_CLEAR(m_wfeSource);
 
     if (pSourceName == APE_NULL || pwfeSource == APE_NULL)
@@ -642,7 +641,7 @@ int CAIFFInputSource::AnalyzeSource()
             Common.nSampleSize = static_cast<int16>(Swap2Bytes(Common.nSampleSize));
             Common.nSampleRateExponent = static_cast<uint16>(Swap2Bytes(Common.nSampleRateExponent));
             Common.nSampleRateMantissa = Swap8Bytes(Common.nSampleRateMantissa);
-            double dSampleRate = GetExtendedDouble(Common.nSampleRateExponent, Common.nSampleRateMantissa);
+            const double dSampleRate = GetExtendedDouble(Common.nSampleRateExponent, Common.nSampleRateMantissa);
             const uint32_t nSampleRate = static_cast<uint32_t>(dSampleRate);
 
             // copy the format information to the WAVEFORMATEX passed in
@@ -768,9 +767,9 @@ double CAIFFInputSource::GetExtendedDouble(uint16_t exponent, uint64_t mantissa)
     // there's also code here:
     // https://stackoverflow.com/questions/2963055/convert-extended-precision-float-80-bit-to-double-64-bit-in-msvc
 
-    double sign = (exponent & 0x8000) ? -1.0 : 1.0, value = static_cast<double>(mantissa);
-    double scaler = pow(2.0, static_cast<double>(exponent & 0x7fff) - 16446);
-    double result = value * scaler * sign;
+    const double sign = (exponent & 0x8000) ? -1.0 : 1.0, value = static_cast<double>(mantissa);
+    const double scaler = pow(2.0, static_cast<double>(exponent & 0x7fff) - 16446);
+    const double result = value * scaler * sign;
     return result;
 }
 

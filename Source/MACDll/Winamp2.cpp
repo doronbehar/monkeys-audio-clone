@@ -91,7 +91,7 @@ long CAPEWinampPlugin::m_nScaledBitsPerSample = 0;
 long CAPEWinampPlugin::m_nScaledBytesPerSample = 0;
 CSmartPtr<IAPEDecompress> CAPEWinampPlugin::m_spAPEDecompress;
 long CAPEWinampPlugin::m_nLengthMS = 0;
-CSmartPtr<CWinampSettingsDlg> CAPEWinampPlugin::m_spWinampSettingsDlg;
+CWinampSettingsDlg CAPEWinampPlugin::m_WinampSettingsDlg;
 
 /**************************************************************************************************
 Plays a file (called once on the start of a file)
@@ -657,11 +657,6 @@ Uninitialize the plugin (called once on the close of Winamp)
 **************************************************************************************************/
 void CAPEWinampPlugin::UninitializePlugin()
 {
-    // delete the dialog
-    // we need the NOLINT on 11/20/2022 or else it complains about using memory after it has been freed during Clang analysis
-    // simply doing CDialog * p = new CDialog; delete p; gives the same thing
-    m_spWinampSettingsDlg.Delete(); // NOLINT
-
     // delete the decompress object
     CAPEWinampPlugin::m_spAPEDecompress.Delete();
 }
@@ -676,10 +671,7 @@ Get the settings
 **************************************************************************************************/
 CWinampSettingsDlg * CAPEWinampPlugin::GetSettings()
 {
-    if (CAPEWinampPlugin::m_spWinampSettingsDlg == NULL)
-        CAPEWinampPlugin::m_spWinampSettingsDlg.Assign(new CWinampSettingsDlg);
-
-    return CAPEWinampPlugin::m_spWinampSettingsDlg;
+    return &CAPEWinampPlugin::m_WinampSettingsDlg;
 }
 
 /**************************************************************************************************

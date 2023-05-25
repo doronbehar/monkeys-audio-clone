@@ -202,7 +202,7 @@ static int64 CalculateDotProductAVX2(const int * pA, const int * pB, int nOrder)
     const __m128i hi128 = _mm256_extracti128_si256(avxSum, 0x1);
 
     __m128i sseSum = _mm_add_epi64(lo128, hi128);
-    __m128i sseShift = _mm_srli_si128(sseSum, 0x8);
+    const __m128i sseShift = _mm_srli_si128(sseSum, 0x8);
 
     sseSum = _mm_add_epi64(sseSum, sseShift);
 

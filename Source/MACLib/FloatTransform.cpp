@@ -10,7 +10,7 @@ CFloatTransform
 {
     for (int64 n = 0; n < nSamples; n++)
     {
-        uint32 sampleIn = pBuffer[n];
+        const uint32 sampleIn = pBuffer[n];
         uint32 sampleOut = 0;
 
         sampleOut |= sampleIn & 0xC3FFFFFF;

@@ -57,7 +57,6 @@ public:
 
 protected:
     MD5_CTX m_MD5Context;
-    bool m_bStopped;
     int64 m_nTotalBytes;
 };
 

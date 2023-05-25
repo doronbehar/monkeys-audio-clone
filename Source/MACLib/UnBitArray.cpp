@@ -194,7 +194,7 @@ int64 CUnBitArray::DecodeValueRange(UNBIT_ARRAY_STATE & BitArrayState)
         uint32 nPivotValue = ape_max(BitArrayState.nKSum / 32, static_cast<uint32>(1));
 
         // get the overflow
-        uint32 nOverflow = DecodeOverflow(nPivotValue);
+        const uint32 nOverflow = DecodeOverflow(nPivotValue);
 
         // get the value
         uint32 nBase = 0;

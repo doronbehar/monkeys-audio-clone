@@ -41,7 +41,7 @@ IAPEDecompress * CreateIAPEDecompressCore(CAPEInfo * pAPEInfo, int nStartBlock, 
             try
             {
                 // create
-                int nVersion = static_cast<int>(pAPEInfo->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION));
+                const int nVersion = static_cast<int>(pAPEInfo->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION));
                 if ((nVersion >= 3930) && (nVersion <= MAC_FILE_VERSION_NUMBER))
                     spAPEDecompress.Assign(new CAPEDecompress(pErrorCode, pAPEInfo, nStartBlock, nFinishBlock));
 #ifdef APE_BACKWARDS_COMPATIBILITY
@@ -757,8 +757,8 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
             }
 
             // flags
-            int nSourceFlags = static_cast<int>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS));
-            int nFlags = nSourceFlags;
+            const int nSourceFlags = static_cast<int>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS));
+            const int nFlags = nSourceFlags;
 
             // originally just some flags were passed, but it seems like simply passing all of them is correct so that was changed on 3/6/2023
             //int nFlags = (nSourceFlags & MAC_FORMAT_FLAG_CAF) | (nSourceFlags & MAC_FORMAT_FLAG_SND) | (nSourceFlags & MAC_FORMAT_FLAG_W64) | (nSourceFlags & MAC_FORMAT_FLAG_AIFF);

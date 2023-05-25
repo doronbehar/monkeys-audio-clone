@@ -197,7 +197,7 @@ MD5Update ( MD5_CTX*        context,
     byteIndex = static_cast<int>((context -> count[0] >> 3) & 0x3F);
 
     /* Update number of bits: count += 8 * inputBytes */
-    uint32 s = static_cast<uint32>(inputBytes << 3);
+    const uint32 s = static_cast<uint32>(inputBytes << 3);
     if ( (context -> count [0] += s) < s )
         context -> count [1]++;
     context -> count [1] += static_cast<uint32>(inputBytes >> (32 - 3));
