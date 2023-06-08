@@ -29,6 +29,7 @@ CAPEDecompress::CAPEDecompress(int * pErrorCode, CAPEInfo * pAPEInfo, int64 nSta
     m_nCurrentFrameBufferBlock = 0;
     m_nFrameBufferFinishedBlocks = 0;
     m_bErrorDecodingCurrentFrame = false;
+    m_bErrorDecodingLastFrame = false;
     m_nErrorDecodingCurrentFrameOutputSilenceBlocks = 0;
     m_bInterimMode = false;
     m_nLastX = 0;
@@ -334,6 +335,10 @@ int CAPEDecompress::FillFrameBuffer()
 
                 // assume that the frame buffer contains the correct number of blocks for the entire frame
                 nFrameBlocksDecoded = static_cast<int>(GetInfo(APE_INFO_FRAME_BLOCKS, m_nCurrentFrame - 1));
+
+                // restart the current frame (unless we're coming already from an error condition)
+                if (m_bErrorDecodingLastFrame == false)
+                    m_nCurrentFrame--;
             }
             else
             {
@@ -349,7 +354,6 @@ int CAPEDecompress::FillFrameBuffer()
             m_cbFrameBuffer.RemoveTail(static_cast<uint32>(nFrameBytesDecoded));
 
             // seek to try to synchronize after an error
-            m_nCurrentFrame--;
             if (m_nCurrentFrame < GetInfo(APE_INFO_TOTAL_FRAMES))
                 SeekToFrame(m_nCurrentFrame);
 
@@ -381,6 +385,9 @@ int CAPEDecompress::FillFrameBuffer()
 
         // update the number of blocks that still fit in the buffer
         nBlocksLeft = static_cast<int64>(m_cbFrameBuffer.MaxAdd()) / m_nBlockAlign;
+
+        // store the last state
+        m_bErrorDecodingLastFrame = m_bErrorDecodingCurrentFrame;
     }
 
     return nResult;

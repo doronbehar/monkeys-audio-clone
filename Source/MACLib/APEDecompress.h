@@ -66,6 +66,7 @@ protected:
     int64 m_nFrameBufferFinishedBlocks;
     CCircleBuffer m_cbFrameBuffer;
     bool m_bErrorDecodingCurrentFrame;
+    bool m_bErrorDecodingLastFrame;
     bool m_bInterimMode;
 };
 
