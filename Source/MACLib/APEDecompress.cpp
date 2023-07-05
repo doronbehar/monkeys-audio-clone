@@ -335,10 +335,6 @@ int CAPEDecompress::FillFrameBuffer()
 
                 // assume that the frame buffer contains the correct number of blocks for the entire frame
                 nFrameBlocksDecoded = static_cast<int>(GetInfo(APE_INFO_FRAME_BLOCKS, m_nCurrentFrame - 1));
-
-                // restart the current frame (unless we're coming already from an error condition)
-                if (m_bErrorDecodingLastFrame == false)
-                    m_nCurrentFrame--;
             }
             else
             {
@@ -348,6 +344,10 @@ int CAPEDecompress::FillFrameBuffer()
                 // calculate how many blocks were output before we errored
                 nFrameBlocksDecoded = static_cast<int>((m_nCurrentFrameBufferBlock - (GetInfo(APE_INFO_BLOCKS_PER_FRAME) * (m_nCurrentFrame - 1))));
             }
+
+            // restart the current frame (unless we're coming already from an error condition)
+            if (m_bErrorDecodingLastFrame == false)
+                m_nCurrentFrame--;
 
             // remove any decoded data for this frame from the buffer
             const int nFrameBytesDecoded = nFrameBlocksDecoded * m_nBlockAlign;
@@ -385,9 +385,6 @@ int CAPEDecompress::FillFrameBuffer()
 
         // update the number of blocks that still fit in the buffer
         nBlocksLeft = static_cast<int64>(m_cbFrameBuffer.MaxAdd()) / m_nBlockAlign;
-
-        // store the last state
-        m_bErrorDecodingLastFrame = m_bErrorDecodingCurrentFrame;
     }
 
     return nResult;
@@ -515,6 +512,7 @@ void CAPEDecompress::StartFrame()
 
     // get the frame header
     m_nStoredCRC = static_cast<unsigned int>(m_spUnBitArray->DecodeValue(CUnBitArrayBase::DECODE_VALUE_METHOD_UNSIGNED_INT));
+    m_bErrorDecodingLastFrame = m_bErrorDecodingCurrentFrame;
     m_bErrorDecodingCurrentFrame = false;
     m_nErrorDecodingCurrentFrameOutputSilenceBlocks = 0;
 

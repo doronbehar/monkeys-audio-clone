@@ -168,10 +168,10 @@
     <ClangTidyChecks>-clang-diagnostic-c++98-compat,-clang-diagnostic-zero-as-null-pointer-constant,-clang-diagnostic-language-extension-token,-clang-diagnostic-global-constructors,-clang-diagnostic-exit-time-destructors</ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(Configuration)\</OutDir>
+    <OutDir>C:\Applications\Winamp\Plugins</OutDir>
     <IntDir>$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>MACDll</TargetName>
+    <TargetName>in_APE</TargetName>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <ClangTidyChecks>-clang-diagnostic-c++98-compat,-clang-diagnostic-zero-as-null-pointer-constant,-clang-diagnostic-language-extension-token,-clang-diagnostic-global-constructors,-clang-diagnostic-exit-time-destructors</ClangTidyChecks>
   </PropertyGroup>

@@ -477,7 +477,7 @@ int CAPETag::GetFieldString(const str_utfn * pFieldName, str_utfn * pBuffer, int
                 {
                     // we'll fail here, because it's not clear what would get returned (null termination, size, etc.)
                     // and we really don't want to cause buffer overruns on the client side
-                    *pBufferCharacters = (pAPETagField->GetFieldValueSize() + 1) + ((nListDelimiterCharacters - 1) * 64); // worst-case scenario
+                    *pBufferCharacters = (pAPETagField->GetFieldValueSize() + 1) + (nListDelimiterCharacters * 64); // worst-case scenario
                     nResult = ERROR_BAD_PARAMETER;
                     break;
                 }
