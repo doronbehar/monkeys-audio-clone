@@ -3,8 +3,8 @@
 /* build batch file */
 /*
 #ifdef APE_BATCH_FILE_VERSION
-Set _MA=1016
-Set _MAV=10.16
+Set _MA=1017
+Set _MAV=10.17
 #endif
 */
 
@@ -12,8 +12,8 @@ Set _MAV=10.16
 #define MAC_VERSION_MAJOR 10
 
 /* build version number */
-#define MAC_VERSION_REVISION 16
-#define MAC_VERSION_REVISION_NUMBER 16
+#define MAC_VERSION_REVISION 17
+#define MAC_VERSION_REVISION_NUMBER 17
 
 /* library interface version, update this whenever the signature of an exported function changes */
 #define MAC_INTERFACE_VERSION 10

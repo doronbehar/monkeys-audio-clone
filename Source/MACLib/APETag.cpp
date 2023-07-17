@@ -473,11 +473,17 @@ int CAPETag::GetFieldString(const str_utfn * pFieldName, str_utfn * pBuffer, int
 
                 // get the number of characters
                 const int nCharacters = (static_cast<int>(wcslen(spUTF16)) + 1);
-                if ((nOutputCharacters + nCharacters + nListDelimiterCharacters) > *pBufferCharacters)
+
+                int nNeededCharacters = nOutputCharacters + nCharacters;
+                if (pBuffer[0] != 0)
+                    nNeededCharacters += nListDelimiterCharacters;
+
+                if (nNeededCharacters > *pBufferCharacters)
                 {
                     // we'll fail here, because it's not clear what would get returned (null termination, size, etc.)
                     // and we really don't want to cause buffer overruns on the client side
-                    *pBufferCharacters = (pAPETagField->GetFieldValueSize() + 1) + (nListDelimiterCharacters * 64); // worst-case scenario
+                    // we use (nListDelimiterCharacters - 1) since there's already a NULL delimiter in the field
+                    *pBufferCharacters = (pAPETagField->GetFieldValueSize() + 1) + ((nListDelimiterCharacters - 1) * 64); // worst-case scenario
                     nResult = ERROR_BAD_PARAMETER;
                     break;
                 }

@@ -238,7 +238,7 @@ BEGIN
             VALUE "Comments", "Windows program for Monkey's Audio"
             VALUE "CompanyName", "Matthew T. Ashland"
             VALUE "FileVersion", MAC_RESOURCE_VERSION_STRING
-            VALUE "FileDescription", "Monkey's Audio windows program"
+            VALUE "FileDescription", "Monkey's Audio"
             VALUE "InternalName", "Monkey's Audio"
             VALUE "LegalCopyright", MAC_RESOURCE_COPYRIGHT
             VALUE "OriginalFilename", "Monkey's Audio.exe"
