@@ -159,7 +159,7 @@ IFormat * CFormatArray::GetFormat(const CString & strName)
     return NULL;
 }
 
-CString CFormatArray::GetOutputExtension(MAC_MODES Mode, const CString & strInputFilename, int nLevel, IFormat * pFormat)
+CString CFormatArray::GetOutputExtension(APE_MODES Mode, const CString & strInputFilename, int nLevel, IFormat * pFormat)
 {
     CString strExtension;
 

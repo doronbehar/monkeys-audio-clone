@@ -25,7 +25,7 @@ public:
 
     void LayoutControlTop(CWnd * pwndLayout, CRect & rectLayout, bool bOnlyControlWidth = false, bool bCombobox = false, CWnd * pwndRight = NULL);
     void LayoutControlTopWithDivider(CWnd * pwndLayout, CWnd * pwndDivider, CWnd * pwndImage, CRect & rectLayout);
-    BOOL SetMode(APE::MAC_MODES Mode);
+    BOOL SetMode(APE::APE_MODES Mode);
 
 protected:
     virtual void DoDataExchange(CDataExchange * pDX);

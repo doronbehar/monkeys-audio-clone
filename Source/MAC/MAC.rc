@@ -219,8 +219,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION MAC_VERSION_MAJOR,MAC_VERSION_REVISION
- PRODUCTVERSION MAC_VERSION_MAJOR,MAC_VERSION_REVISION,0,0
+ FILEVERSION APE_VERSION_MAJOR,APE_VERSION_REVISION
+ PRODUCTVERSION APE_VERSION_MAJOR,APE_VERSION_REVISION,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -237,13 +237,13 @@ BEGIN
         BEGIN
             VALUE "Comments", "Windows program for Monkey's Audio"
             VALUE "CompanyName", "Matthew T. Ashland"
-            VALUE "FileVersion", MAC_RESOURCE_VERSION_STRING
+            VALUE "FileVersion", APE_RESOURCE_VERSION_STRING
             VALUE "FileDescription", "Monkey's Audio"
             VALUE "InternalName", "Monkey's Audio"
-            VALUE "LegalCopyright", MAC_RESOURCE_COPYRIGHT
+            VALUE "LegalCopyright", APE_RESOURCE_COPYRIGHT
             VALUE "OriginalFilename", "Monkey's Audio.exe"
             VALUE "ProductName", "Monkey's Audio"
-            VALUE "ProductVersion", MAC_RESOURCE_VERSION_STRING
+            VALUE "ProductVersion", APE_RESOURCE_VERSION_STRING
         END
     END
     BLOCK "VarFileInfo"

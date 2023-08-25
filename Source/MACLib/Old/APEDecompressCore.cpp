@@ -91,7 +91,7 @@ void CAPEDecompressCore::GenerateDecodedArray(int * Input_Array, int Number_of_E
     switch (m_pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_COMPRESSION_LEVEL))
     {
 #ifdef ENABLE_COMPRESSION_MODE_FAST
-        case MAC_COMPRESSION_LEVEL_FAST:
+        case APE_COMPRESSION_LEVEL_FAST:
             if (m_pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION) < 3320)
             {
                 m_spUnBitArray->GenerateArray(m_spTempData, Number_of_Elements, nFrameBytes);
@@ -107,7 +107,7 @@ void CAPEDecompressCore::GenerateDecodedArray(int * Input_Array, int Number_of_E
 #endif // #ifdef ENABLE_COMPRESSION_MODE_FAST
 
 #ifdef ENABLE_COMPRESSION_MODE_NORMAL
-        case MAC_COMPRESSION_LEVEL_NORMAL:
+        case APE_COMPRESSION_LEVEL_NORMAL:
         {
             // get the array from the bitstream
             m_spUnBitArray->GenerateArray(m_spTempData, Number_of_Elements, nFrameBytes);
@@ -117,7 +117,7 @@ void CAPEDecompressCore::GenerateDecodedArray(int * Input_Array, int Number_of_E
 #endif // #ifdef ENABLE_COMPRESSION_MODE_NORMAL
 
 #ifdef ENABLE_COMPRESSION_MODE_HIGH
-        case MAC_COMPRESSION_LEVEL_HIGH:
+        case APE_COMPRESSION_LEVEL_HIGH:
             // get the array from the bitstream
             m_spUnBitArray->GenerateArray(m_spTempData, Number_of_Elements, nFrameBytes);
             pAntiPredictor->AntiPredict(m_spTempData, Input_Array, Number_of_Elements);
@@ -125,7 +125,7 @@ void CAPEDecompressCore::GenerateDecodedArray(int * Input_Array, int Number_of_E
 #endif // #ifdef ENABLE_COMPRESSION_MODE_HIGH
 
 #ifdef ENABLE_COMPRESSION_MODE_EXTRA_HIGH
-        case MAC_COMPRESSION_LEVEL_EXTRA_HIGH:
+        case APE_COMPRESSION_LEVEL_EXTRA_HIGH:
 
             int64 aryCoefficientsA[64], aryCoefficientsB[64];
             uint32 nNumberOfCoefficients;

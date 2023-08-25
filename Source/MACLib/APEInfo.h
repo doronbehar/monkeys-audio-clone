@@ -60,7 +60,7 @@ public:
 /**************************************************************************************************
 Helper macros (sort of hacky)
 **************************************************************************************************/
-#define GET_USES_CRC(APE_INFO) (((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_CRC) ? true : false)
+#define GET_USES_CRC(APE_INFO) (((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_CRC) ? true : false)
 #define GET_FRAMES_START_ON_BYTES_BOUNDARIES(APE_INFO) (((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION) > 3800) ? true : false)
 #define GET_USES_SPECIAL_FRAMES(APE_INFO) (((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION) > 3820) ? true : false)
 #define GET_IO(APE_INFO) (reinterpret_cast<CIO *> ((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_IO_SOURCE)))

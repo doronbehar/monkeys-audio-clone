@@ -95,7 +95,7 @@ __declspec(dllexport) DWORD FAR PASCAL ReadFilterInput(HANDLE hInput, unsigned c
             p32Bit--;
         }
     }
-    else if ((pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BYTES_PER_SAMPLE) == 4) && (pAPEDecompress->GetInfo(APE::IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_FLOATING_POINT))
+    else if ((pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BYTES_PER_SAMPLE) == 4) && (pAPEDecompress->GetInfo(APE::IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_FLOATING_POINT))
     {
         ///////////////////////////////////////////////////////////////////////////////
         // 32 bit float decode (convert to 32 bit in Cool Edit format)
@@ -183,11 +183,11 @@ __declspec(dllexport) DWORD FAR PASCAL FilterOptions(HANDLE hInput)
     {
         switch (pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_COMPRESSION_LEVEL))
         {
-        case MAC_COMPRESSION_LEVEL_FAST: nCompressionLevel = 1; break;
-        case MAC_COMPRESSION_LEVEL_NORMAL: nCompressionLevel = 2; break;
-        case MAC_COMPRESSION_LEVEL_HIGH: nCompressionLevel = 3; break;
-        case MAC_COMPRESSION_LEVEL_EXTRA_HIGH: nCompressionLevel = 4; break;
-        case MAC_COMPRESSION_LEVEL_INSANE: nCompressionLevel = 5; break;
+        case APE_COMPRESSION_LEVEL_FAST: nCompressionLevel = 1; break;
+        case APE_COMPRESSION_LEVEL_NORMAL: nCompressionLevel = 2; break;
+        case APE_COMPRESSION_LEVEL_HIGH: nCompressionLevel = 3; break;
+        case APE_COMPRESSION_LEVEL_EXTRA_HIGH: nCompressionLevel = 4; break;
+        case APE_COMPRESSION_LEVEL_INSANE: nCompressionLevel = 5; break;
         }
     }
 

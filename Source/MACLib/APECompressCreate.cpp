@@ -56,7 +56,7 @@ int CAPECompressCreate::Start(CIO * pioOutput, const WAVEFORMATEX * pwfeInput, i
         #ifndef APE_SUPPORT_FLOAT_COMPRESSION
             return ERROR_INVALID_INPUT_FILE;
         #endif
-        nFlags |= MAC_FORMAT_FLAG_FLOATING_POINT;
+        nFlags |= APE_FORMAT_FLAG_FLOATING_POINT;
     }
     else if (pwfeInput->wFormatTag == WAVE_FORMAT_EXTENSIBLE)
     {
@@ -70,9 +70,9 @@ int CAPECompressCreate::Start(CIO * pioOutput, const WAVEFORMATEX * pwfeInput, i
 
     // initialize (creates the base classes)
     m_nBlocksPerFrame = 73728;
-    if (nCompressionLevel == MAC_COMPRESSION_LEVEL_EXTRA_HIGH)
+    if (nCompressionLevel == APE_COMPRESSION_LEVEL_EXTRA_HIGH)
         m_nBlocksPerFrame *= 4;
-    else if (nCompressionLevel == MAC_COMPRESSION_LEVEL_INSANE)
+    else if (nCompressionLevel == APE_COMPRESSION_LEVEL_INSANE)
         m_nBlocksPerFrame *= 16;
 
     m_spIO.Assign(pioOutput, false, false);
@@ -167,9 +167,9 @@ int CAPECompressCreate::InitializeFile(CIO * pIO, const WAVEFORMATEX * pwfeInput
     APEDescriptor.cID[0] = 'M';
     APEDescriptor.cID[1] = 'A';
     APEDescriptor.cID[2] = 'C';
-    APEDescriptor.cID[3] = (nFlags & MAC_FORMAT_FLAG_FLOATING_POINT) ? 'F' : ' ';
+    APEDescriptor.cID[3] = (nFlags & APE_FORMAT_FLAG_FLOATING_POINT) ? 'F' : ' ';
 
-    APEDescriptor.nVersion = MAC_FILE_VERSION_NUMBER;
+    APEDescriptor.nVersion = APE_FILE_VERSION_NUMBER;
     APEDescriptor.nPadding = 0; // set to zero even though we memset above to be clean
 
     APEDescriptor.nDescriptorBytes = sizeof(APEDescriptor);
@@ -184,7 +184,7 @@ int CAPECompressCreate::InitializeFile(CIO * pIO, const WAVEFORMATEX * pwfeInput
 
     APEHeader.nCompressionLevel = static_cast<uint16>(nCompressionLevel);
     APEHeader.nFormatFlags = static_cast<uint16>(nFlags);
-    APEHeader.nFormatFlags |= static_cast<uint16>((nHeaderBytes == CREATE_WAV_HEADER_ON_DECOMPRESSION) ? MAC_FORMAT_FLAG_CREATE_WAV_HEADER : 0);
+    APEHeader.nFormatFlags |= static_cast<uint16>((nHeaderBytes == CREATE_WAV_HEADER_ON_DECOMPRESSION) ? APE_FORMAT_FLAG_CREATE_WAV_HEADER : 0);
 
     APEHeader.nBlocksPerFrame = static_cast<uint32>(m_nBlocksPerFrame);
 

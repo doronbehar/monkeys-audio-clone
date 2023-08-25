@@ -109,7 +109,7 @@ BOOL CFormatPlugin::Load(const CString & strAPXFilename)
     return bRetVal;
 }
 
-void CFormatPlugin::ParseModeInfo(CMarkup & XML, MAC_MODES Mode, const CString & strKeyword)
+void CFormatPlugin::ParseModeInfo(CMarkup & XML, APE_MODES Mode, const CString & strKeyword)
 {
     m_aryModeInfo[Mode].RemoveAll();
 
@@ -191,7 +191,7 @@ BOOL CFormatPlugin::ProcessMenuCommand(int nCommand)
     return TRUE;
 }
 
-CString CFormatPlugin::GetOutputExtension(MAC_MODES Mode, const CString & strInputFilename, int nLevel)
+CString CFormatPlugin::GetOutputExtension(APE_MODES Mode, const CString & strInputFilename, int nLevel)
 {
     CString strExtension;
 
@@ -272,7 +272,7 @@ int CFormatPlugin::Process(MAC_FILE * pInfo)
     return nRetVal;
 }
 
-CString CFormatPlugin::GetInputExtensions(MAC_MODES Mode)
+CString CFormatPlugin::GetInputExtensions(APE_MODES Mode)
 {
     CStringArrayEx aryExtensions;
     for (int z = 0; z < m_aryModeInfo[Mode].GetSize(); z++)
@@ -288,7 +288,7 @@ CString CFormatPlugin::GetInputExtensions(MAC_MODES Mode)
     return aryExtensions.GetList(_T(";"));
 }
 
-CFormatPluginLevelInfo * CFormatPlugin::GetLevelInfo(MAC_MODES Mode, const CString & strInputFilename, int nLevel)
+CFormatPluginLevelInfo * CFormatPlugin::GetLevelInfo(APE_MODES Mode, const CString & strInputFilename, int nLevel)
 {
     // start with NULL
     CFormatPluginLevelInfo * pLevelInfo = NULL;

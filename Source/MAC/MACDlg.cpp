@@ -118,7 +118,7 @@ BOOL CMACDlg::OnInitDialog()
     theApp.GetFormatArray()->Load();
 
     // window properties
-    SetWindowText(MAC_NAME);
+    SetWindowText(APE_NAME);
     //SetWindowText(_T("Monkey's Audio")); // useful for screenshots
 
     // set the mode to the list
@@ -528,11 +528,11 @@ void CMACDlg::UpdateWindow()
         {
             switch (theApp.GetSettings()->GetLevel())
             {
-                case MAC_COMPRESSION_LEVEL_FAST: nCompressionBitmap = TBB_COMPRESSION_APE_FAST; break;
-                case MAC_COMPRESSION_LEVEL_NORMAL: nCompressionBitmap = TBB_COMPRESSION_APE_NORMAL; break;
-                case MAC_COMPRESSION_LEVEL_HIGH: nCompressionBitmap = TBB_COMPRESSION_APE_HIGH; break;
-                case MAC_COMPRESSION_LEVEL_EXTRA_HIGH: nCompressionBitmap = TBB_COMPRESSION_APE_EXTRA_HIGH; break;
-                case MAC_COMPRESSION_LEVEL_INSANE: nCompressionBitmap = TBB_COMPRESSION_APE_INSANE; break;
+                case APE_COMPRESSION_LEVEL_FAST: nCompressionBitmap = TBB_COMPRESSION_APE_FAST; break;
+                case APE_COMPRESSION_LEVEL_NORMAL: nCompressionBitmap = TBB_COMPRESSION_APE_NORMAL; break;
+                case APE_COMPRESSION_LEVEL_HIGH: nCompressionBitmap = TBB_COMPRESSION_APE_HIGH; break;
+                case APE_COMPRESSION_LEVEL_EXTRA_HIGH: nCompressionBitmap = TBB_COMPRESSION_APE_EXTRA_HIGH; break;
+                case APE_COMPRESSION_LEVEL_INSANE: nCompressionBitmap = TBB_COMPRESSION_APE_INSANE; break;
             }
         }
         SetToolbarButtonBitmap(ID_COMPRESSION, nCompressionBitmap);
@@ -631,14 +631,14 @@ void CMACDlg::OnTimer(UINT_PTR nIDEvent)
     CDialog::OnTimer(nIDEvent);
 }
 
-BOOL CMACDlg::SetMode(MAC_MODES Mode)
+BOOL CMACDlg::SetMode(APE_MODES Mode)
 {
     BOOL bRetVal = FALSE;
 
     if (Mode != theApp.GetSettings()->GetMode())
     {
         // set the mode
-        MAC_MODES OriginalMode = theApp.GetSettings()->GetMode();
+        APE_MODES OriginalMode = theApp.GetSettings()->GetMode();
         theApp.GetSettings()->SetMode(Mode);
 
         // get the supported extensions
@@ -740,27 +740,27 @@ void CMACDlg::OnStop()
 
 void CMACDlg::OnCompressionAPEFast()
 {
-    SetAPECompressionLevel(MAC_COMPRESSION_LEVEL_FAST);
+    SetAPECompressionLevel(APE_COMPRESSION_LEVEL_FAST);
 }
 
 void CMACDlg::OnCompressionAPENormal()
 {
-    SetAPECompressionLevel(MAC_COMPRESSION_LEVEL_NORMAL);
+    SetAPECompressionLevel(APE_COMPRESSION_LEVEL_NORMAL);
 }
 
 void CMACDlg::OnCompressionAPEHigh()
 {
-    SetAPECompressionLevel(MAC_COMPRESSION_LEVEL_HIGH);
+    SetAPECompressionLevel(APE_COMPRESSION_LEVEL_HIGH);
 }
 
 void CMACDlg::OnCompressionAPEExtraHigh()
 {
-    SetAPECompressionLevel(MAC_COMPRESSION_LEVEL_EXTRA_HIGH);
+    SetAPECompressionLevel(APE_COMPRESSION_LEVEL_EXTRA_HIGH);
 }
 
 void CMACDlg::OnCompressionAPEInsane()
 {
-    SetAPECompressionLevel(MAC_COMPRESSION_LEVEL_INSANE);
+    SetAPECompressionLevel(APE_COMPRESSION_LEVEL_INSANE);
 }
 
 void CMACDlg::OnSetCompressionMenu(UINT nID)
@@ -911,11 +911,11 @@ void CMACDlg::OnInitMenuPopup(CMenu * pPopupMenu, UINT nIndex, BOOL bSysMenu)
     {
         switch (theApp.GetSettings()->GetLevel())
         {
-            case MAC_COMPRESSION_LEVEL_FAST: nCompressionID = ID_COMPRESSION_APE_FAST; break;
-            case MAC_COMPRESSION_LEVEL_NORMAL: nCompressionID = ID_COMPRESSION_APE_NORMAL; break;
-            case MAC_COMPRESSION_LEVEL_HIGH: nCompressionID = ID_COMPRESSION_APE_HIGH; break;
-            case MAC_COMPRESSION_LEVEL_EXTRA_HIGH: nCompressionID = ID_COMPRESSION_APE_EXTRA_HIGH; break;
-            case MAC_COMPRESSION_LEVEL_INSANE: nCompressionID = ID_COMPRESSION_APE_INSANE; break;
+            case APE_COMPRESSION_LEVEL_FAST: nCompressionID = ID_COMPRESSION_APE_FAST; break;
+            case APE_COMPRESSION_LEVEL_NORMAL: nCompressionID = ID_COMPRESSION_APE_NORMAL; break;
+            case APE_COMPRESSION_LEVEL_HIGH: nCompressionID = ID_COMPRESSION_APE_HIGH; break;
+            case APE_COMPRESSION_LEVEL_EXTRA_HIGH: nCompressionID = ID_COMPRESSION_APE_EXTRA_HIGH; break;
+            case APE_COMPRESSION_LEVEL_INSANE: nCompressionID = ID_COMPRESSION_APE_INSANE; break;
         }
     }
     if (nCompressionID >= 0)

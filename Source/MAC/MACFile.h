@@ -19,7 +19,7 @@ public:
     // processing info
     BOOL bProcessing;
     CMACProcessFiles * pMACProcessFiles;
-    APE::MAC_MODES Mode;
+    APE::APE_MODES Mode;
     int nStageProgress;
     BOOL bDone;
     BOOL nRetVal;

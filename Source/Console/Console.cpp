@@ -21,6 +21,7 @@ using namespace APE;
 #define TAG_MODE               4
 #define VERIFY_FULL_MODE       5
 #define REMOVE_TAG_MODE        6
+#define CONVERT_TAG_TO_LEGACY  7
 #define UNDEFINED_MODE        -1
 
 // global variables
@@ -80,7 +81,8 @@ static void DisplayProperUsage(FILE * pFile)
     fwprintf(pFile, L"    Full Verify: '-V'\n");
     fwprintf(pFile, L"    Convert: '-nXXXX'\n");
     fwprintf(pFile, L"    Tag: '-t'\n");
-    fwprintf(pFile, L"    Remove Tag: '-r'\n\n");
+    fwprintf(pFile, L"    Remove Tag: '-r'\n");
+    fwprintf(pFile, L"    Convert to ID3v1 (needed by some players, etc.): '-L'\n\n");
 
     fwprintf(pFile, L"Examples:\n");
     fwprintf(pFile, L"    Compress: mac.exe \"Metallica - One.wav\" \"Metallica - One.ape\" -c2000\n");
@@ -241,6 +243,40 @@ int RemoveTags(const str_utfn * pFilename)
 }
 
 /**************************************************************************************************
+Convert to legacy
+**************************************************************************************************/
+int ConvertTagsToLegacy(const str_utfn * pFilename)
+{
+    int nRetVal = ERROR_UNDEFINED;
+
+    // create the decoder
+    int nFunctionRetVal = ERROR_SUCCESS;
+    CSmartPtr<IAPEDecompress> spAPEDecompress;
+    try
+    {
+        spAPEDecompress.Assign(CreateIAPEDecompress(pFilename, &nFunctionRetVal, false, true, false));
+        if (spAPEDecompress == APE_NULL || nFunctionRetVal != ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
+
+        // get the input format
+        APE::IAPETag * pTag = GET_TAG(spAPEDecompress);
+        if (pTag == APE_NULL)
+            throw(ERROR_UNDEFINED);
+
+        // remove the tag
+        if (pTag->Save(true) == ERROR_SUCCESS)
+        {
+            nRetVal = ERROR_SUCCESS;
+        }
+    }
+    catch (...)
+    {
+        nRetVal = ERROR_UNDEFINED;
+    }
+
+    return nRetVal;
+}
+
+/**************************************************************************************************
 Main (the main function)
 **************************************************************************************************/
 #ifndef PLATFORM_WINDOWS
@@ -313,7 +349,8 @@ int _tmain(int argc, TCHAR * argv[])
 
     if ((_wcsicmp(cMode, L"-v") != 0) &&
         (_wcsicmp(cMode, L"-t") != 0) &&
-        (_wcsicmp(cMode, L"-r") != 0))
+        (_wcsicmp(cMode, L"-r") != 0) &&
+        (_wcsicmp(cMode, L"-L") != 0))
     {
         // verify, tag, and remove tag don't use at least the third argument
         if (argc < 4)
@@ -353,6 +390,8 @@ int _tmain(int argc, TCHAR * argv[])
         nMode = REMOVE_TAG_MODE;
     else if (_wcsicmp(cMode, L"-t") == 0)
         nMode = TAG_MODE;
+    else if (_wcsicmp(cMode, L"-L") == 0)
+        nMode = CONVERT_TAG_TO_LEGACY;
 
     // error check the mode
     if (nMode == UNDEFINED_MODE)
@@ -477,9 +516,14 @@ int _tmain(int argc, TCHAR * argv[])
         fwprintf(stderr, L"Removing tags...\n");
         nRetVal = RemoveTags(spInputFilename);
     }
+    else if (nMode == CONVERT_TAG_TO_LEGACY)
+    {
+        fwprintf(stderr, L"Converting tag to ID3v1...\n");
+        nRetVal = ConvertTagsToLegacy(spInputFilename);
+    }
 
     if (nRetVal == ERROR_SUCCESS)
-        fwprintf(stderr, L"\nSuccess...\n");
+        fwprintf(stderr, L"\nSuccess\n");
     else
         fwprintf(stderr, L"\nError: %i\n", nRetVal);
 

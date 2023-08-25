@@ -42,7 +42,7 @@ public:
     BOOL SelectAll();
 
     CString GetStatus(const MAC_FILE & File);
-    BOOL SetMode(APE::MAC_MODES Mode);
+    BOOL SetMode(APE::APE_MODES Mode);
     BOOL LoadFileList(const CString & strPath, CStringArrayEx * paryFiles);
 
 protected:

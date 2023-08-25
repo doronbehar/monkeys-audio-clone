@@ -72,14 +72,14 @@ __declspec(dllexport) HANDLE FAR PASCAL OpenFilterOutput(LPSTR lpstrFilename,lon
 
     FillWaveFormatEx(&wfeAudioFormat, WAVE_FORMAT_PCM, lSamprate, wBitsPerSample, wChannels);
 
-    long nCompressLevel = MAC_COMPRESSION_LEVEL_NORMAL;
+    long nCompressLevel = APE_COMPRESSION_LEVEL_NORMAL;
     switch (dwOptions)
     {
-        case 1: nCompressLevel = MAC_COMPRESSION_LEVEL_FAST; break;
-        case 2: nCompressLevel = MAC_COMPRESSION_LEVEL_NORMAL; break;
-        case 3: nCompressLevel = MAC_COMPRESSION_LEVEL_HIGH; break;
-        case 4: nCompressLevel = MAC_COMPRESSION_LEVEL_EXTRA_HIGH; break;
-        case 5: nCompressLevel = MAC_COMPRESSION_LEVEL_INSANE; break;
+        case 1: nCompressLevel = APE_COMPRESSION_LEVEL_FAST; break;
+        case 2: nCompressLevel = APE_COMPRESSION_LEVEL_NORMAL; break;
+        case 3: nCompressLevel = APE_COMPRESSION_LEVEL_HIGH; break;
+        case 4: nCompressLevel = APE_COMPRESSION_LEVEL_EXTRA_HIGH; break;
+        case 5: nCompressLevel = APE_COMPRESSION_LEVEL_INSANE; break;
     }
 
     // we should try to optimize this for speed, because MACLib.lib doesn't care

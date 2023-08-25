@@ -21,7 +21,7 @@ public:
 
     int SetSeekByte(int nFrame, int64 nByteOffset);
 
-    int Start(CIO * pioOutput, const WAVEFORMATEX * pwfeInput, int64 nMaxAudioBytes, int nCompressionLevel = MAC_COMPRESSION_LEVEL_NORMAL, const void * pHeaderData = APE_NULL, int64 nHeaderBytes = CREATE_WAV_HEADER_ON_DECOMPRESSION, int32 nFlags = 0);
+    int Start(CIO * pioOutput, const WAVEFORMATEX * pwfeInput, int64 nMaxAudioBytes, int nCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL, const void * pHeaderData = APE_NULL, int64 nHeaderBytes = CREATE_WAV_HEADER_ON_DECOMPRESSION, int32 nFlags = 0);
 
     intn GetFullFrameBytes();
     int EncodeFrame(const void * pInputData, int nInputBytes);

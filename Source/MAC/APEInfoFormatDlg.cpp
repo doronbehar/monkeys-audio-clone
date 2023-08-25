@@ -94,7 +94,7 @@ CString CAPEInfoFormatDlg::GetSummary(const CString & strFilename)
             static_cast<double>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_SAMPLE_RATE)) / static_cast<double>(1000),
             static_cast<int>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BITS_PER_SAMPLE)),
             static_cast<int>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS)));
-        if (spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_AIFF)
+        if (spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_AIFF)
             strLine += _T(", AIFF");
         strSummary += strLine + _T("\r\n");
 
@@ -157,9 +157,9 @@ CString CAPEInfoFormatDlg::GetSummary(const CString & strFilename)
         if (nErrorCode == ERROR_SUCCESS)
         {
             strFormat.Format(_T("%d samples per second\r\n%d channels\r\n%d bits per sample\r\n%I64d header bytes\r\n%I64d terminating bytes\r\n%I64d total blocks"), static_cast<int>(wfeInput.nSamplesPerSec), static_cast<int>(wfeInput.nChannels), static_cast<int>(wfeInput.wBitsPerSample), nHeaderBytes, nTerminatingBytes, nTotalBlocks);
-            if (nFlags & MAC_FORMAT_FLAG_BIG_ENDIAN)
+            if (nFlags & APE_FORMAT_FLAG_BIG_ENDIAN)
                 strFormat += _T("\r\nBig endian");
-            if (nFlags & MAC_FORMAT_FLAG_SIGNED_8_BIT)
+            if (nFlags & APE_FORMAT_FLAG_SIGNED_8_BIT)
                 strFormat += _T("\r\nSigned 8-bit");
             if (wfeInput.wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
                 strFormat += _T("\r\nFloating point");

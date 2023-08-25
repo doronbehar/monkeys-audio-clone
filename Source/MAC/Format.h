@@ -17,6 +17,6 @@ public:
     virtual BOOL BuildMenu(CMenu * pMenu, int nBaseID) = 0;
     virtual BOOL ProcessMenuCommand(int nCommand) = 0;
 
-    virtual CString GetInputExtensions(APE::MAC_MODES Mode) = 0;
-    virtual CString GetOutputExtension(APE::MAC_MODES Mode, const CString & strInputFilename, int nLevel) = 0;
+    virtual CString GetInputExtensions(APE::APE_MODES Mode) = 0;
+    virtual CString GetOutputExtension(APE::APE_MODES Mode, const CString & strInputFilename, int nLevel) = 0;
 };

@@ -223,7 +223,7 @@ int CAPEHeader::AnalyzeCurrent(APE_FILE_INFO * pInfo)
     int nWAVHeaderSize = sizeof(WAVE_HEADER);
     if (pInfo->nWAVDataBytes >= (APE_BYTES_IN_GIGABYTE * 4))
         nWAVHeaderSize = sizeof(RF64_HEADER);
-    pInfo->nWAVHeaderBytes        = (APEHeader.nFormatFlags & MAC_FORMAT_FLAG_CREATE_WAV_HEADER) ? nWAVHeaderSize : pInfo->spAPEDescriptor->nHeaderDataBytes;
+    pInfo->nWAVHeaderBytes        = (APEHeader.nFormatFlags & APE_FORMAT_FLAG_CREATE_WAV_HEADER) ? nWAVHeaderSize : pInfo->spAPEDescriptor->nHeaderDataBytes;
     pInfo->nWAVTerminatingBytes   = pInfo->spAPEDescriptor->nTerminatingDataBytes;
     pInfo->nLengthMS              = static_cast<int>((static_cast<double>(pInfo->nTotalBlocks) * static_cast<double>(1000)) / static_cast<double>(pInfo->nSampleRate));
     pInfo->nAverageBitrate        = (pInfo->nLengthMS <= 0) ? 0 : static_cast<int>((static_cast<double>(pInfo->nAPETotalBytes) * static_cast<double>(8)) / static_cast<double>(pInfo->nLengthMS));
@@ -250,7 +250,7 @@ int CAPEHeader::AnalyzeCurrent(APE_FILE_INFO * pInfo)
     Convert32BitSeekTable(pInfo, spSeekByteTable32, pInfo->nSeekTableElements);
 
     // get the wave header
-    if (!(APEHeader.nFormatFlags & MAC_FORMAT_FLAG_CREATE_WAV_HEADER))
+    if (!(APEHeader.nFormatFlags & APE_FORMAT_FLAG_CREATE_WAV_HEADER))
     {
         if (pInfo->nWAVHeaderBytes < 0 || pInfo->nWAVHeaderBytes > WAV_HEADER_SANITY)
         {
@@ -305,10 +305,10 @@ int CAPEHeader::AnalyzeOld(APE_FILE_INFO * pInfo)
         return ERROR_UNDEFINED;
 
     int nPeakLevel = -1;
-    if (APEHeader.nFormatFlags & MAC_FORMAT_FLAG_HAS_PEAK_LEVEL)
+    if (APEHeader.nFormatFlags & APE_FORMAT_FLAG_HAS_PEAK_LEVEL)
         m_pIO->Read(&nPeakLevel, 4, &nBytesRead);
 
-    if (APEHeader.nFormatFlags & MAC_FORMAT_FLAG_HAS_SEEK_ELEMENTS)
+    if (APEHeader.nFormatFlags & APE_FORMAT_FLAG_HAS_SEEK_ELEMENTS)
     {
         if (m_pIO->Read(&pInfo->nSeekTableElements, 4, &nBytesRead) || nBytesRead != 4)
             return ERROR_IO_READ;
@@ -322,15 +322,15 @@ int CAPEHeader::AnalyzeOld(APE_FILE_INFO * pInfo)
     pInfo->nFormatFlags           = static_cast<int>(APEHeader.nFormatFlags);
     pInfo->nTotalFrames           = static_cast<uint32>(APEHeader.nTotalFrames);
     pInfo->nFinalFrameBlocks      = static_cast<uint32>(APEHeader.nFinalFrameBlocks);
-    pInfo->nBlocksPerFrame        = static_cast<uint32>(((APEHeader.nVersion >= 3900) || ((APEHeader.nVersion >= 3800) && (APEHeader.nCompressionLevel == MAC_COMPRESSION_LEVEL_EXTRA_HIGH))) ? 73728 : 9216);
+    pInfo->nBlocksPerFrame        = static_cast<uint32>(((APEHeader.nVersion >= 3900) || ((APEHeader.nVersion >= 3800) && (APEHeader.nCompressionLevel == APE_COMPRESSION_LEVEL_EXTRA_HIGH))) ? 73728 : 9216);
     if ((APEHeader.nVersion >= 3950)) pInfo->nBlocksPerFrame = 73728 * 4;
     pInfo->nChannels              = static_cast<int>(APEHeader.nChannels);
     pInfo->nSampleRate            = static_cast<int>(APEHeader.nSampleRate);
-    pInfo->nBitsPerSample         = (pInfo->nFormatFlags & MAC_FORMAT_FLAG_8_BIT) ? 8 : ((pInfo->nFormatFlags & MAC_FORMAT_FLAG_24_BIT) ? 24 : 16);
+    pInfo->nBitsPerSample         = (pInfo->nFormatFlags & APE_FORMAT_FLAG_8_BIT) ? 8 : ((pInfo->nFormatFlags & APE_FORMAT_FLAG_24_BIT) ? 24 : 16);
     pInfo->nBytesPerSample        = pInfo->nBitsPerSample / 8;
     pInfo->nBlockAlign            = pInfo->nBytesPerSample * pInfo->nChannels;
     pInfo->nTotalBlocks           = (APEHeader.nTotalFrames == 0) ? 0 : (static_cast<int64>(APEHeader.nTotalFrames -  1) * static_cast<int64>(pInfo->nBlocksPerFrame)) + static_cast<int64>(APEHeader.nFinalFrameBlocks);
-    pInfo->nWAVHeaderBytes        = (APEHeader.nFormatFlags & MAC_FORMAT_FLAG_CREATE_WAV_HEADER) ? static_cast<int64>(sizeof(WAVE_HEADER)) : APEHeader.nHeaderBytes;
+    pInfo->nWAVHeaderBytes        = (APEHeader.nFormatFlags & APE_FORMAT_FLAG_CREATE_WAV_HEADER) ? static_cast<int64>(sizeof(WAVE_HEADER)) : APEHeader.nHeaderBytes;
     pInfo->nWAVTerminatingBytes   = static_cast<uint32>(APEHeader.nTerminatingBytes);
     pInfo->nWAVDataBytes          = pInfo->nTotalBlocks * pInfo->nBlockAlign;
     pInfo->nWAVTotalBytes         = pInfo->nWAVDataBytes + pInfo->nWAVHeaderBytes + pInfo->nWAVTerminatingBytes;
@@ -356,7 +356,7 @@ int CAPEHeader::AnalyzeOld(APE_FILE_INFO * pInfo)
     }
 
     // get the wave header
-    if (!(APEHeader.nFormatFlags & MAC_FORMAT_FLAG_CREATE_WAV_HEADER) && (APEHeader.nHeaderBytes > 0))
+    if (!(APEHeader.nFormatFlags & APE_FORMAT_FLAG_CREATE_WAV_HEADER) && (APEHeader.nHeaderBytes > 0))
     {
         if (APEHeader.nHeaderBytes > WAV_HEADER_SANITY) return ERROR_INVALID_INPUT_FILE;
         if (m_pIO->GetPosition() + APEHeader.nHeaderBytes > m_pIO->GetSize()) { return ERROR_UNDEFINED; }

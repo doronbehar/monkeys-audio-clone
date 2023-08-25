@@ -20,8 +20,8 @@ public:
     ~CAPECompress();
 
     // start encoding
-    int Start(const wchar_t * pOutputFilename, const WAVEFORMATEX * pwfeInput, int64 nMaxAudioBytes, int nCompressionLevel = MAC_COMPRESSION_LEVEL_NORMAL, const void * pHeaderData = APE_NULL, int64 nHeaderBytes = CREATE_WAV_HEADER_ON_DECOMPRESSION, int nFlags = 0) APE_OVERRIDE;
-    int StartEx(CIO * pioOutput, const WAVEFORMATEX * pwfeInput, int64 nMaxAudioBytes, int nCompressionLevel = MAC_COMPRESSION_LEVEL_NORMAL, const void * pHeaderData = APE_NULL, int64 nHeaderBytes = CREATE_WAV_HEADER_ON_DECOMPRESSION) APE_OVERRIDE;
+    int Start(const wchar_t * pOutputFilename, const WAVEFORMATEX * pwfeInput, int64 nMaxAudioBytes, int nCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL, const void * pHeaderData = APE_NULL, int64 nHeaderBytes = CREATE_WAV_HEADER_ON_DECOMPRESSION, int nFlags = 0) APE_OVERRIDE;
+    int StartEx(CIO * pioOutput, const WAVEFORMATEX * pwfeInput, int64 nMaxAudioBytes, int nCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL, const void * pHeaderData = APE_NULL, int64 nHeaderBytes = CREATE_WAV_HEADER_ON_DECOMPRESSION) APE_OVERRIDE;
 
     // add data / compress data
 

@@ -353,7 +353,7 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nPara
         char * pBuffer = reinterpret_cast<char *>(nParam1);
         const int64 nMaxBytes = nParam2;
 
-        if (m_APEFileInfo.nFormatFlags & MAC_FORMAT_FLAG_CREATE_WAV_HEADER)
+        if (m_APEFileInfo.nFormatFlags & APE_FORMAT_FLAG_CREATE_WAV_HEADER)
         {
             if (m_APEFileInfo.nWAVDataBytes >= (4 * APE_BYTES_IN_GIGABYTE))
             {

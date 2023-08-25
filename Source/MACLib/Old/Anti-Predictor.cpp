@@ -14,7 +14,7 @@ CAntiPredictor * CreateAntiPredictor(intn nCompressionLevel, intn nVersion)
     switch (nCompressionLevel)
     {
 #ifdef ENABLE_COMPRESSION_MODE_FAST
-        case MAC_COMPRESSION_LEVEL_FAST:
+        case APE_COMPRESSION_LEVEL_FAST:
             if (nVersion < 3320)
             {
                 pAntiPredictor = new CAntiPredictorFast0000To3320;
@@ -28,7 +28,7 @@ CAntiPredictor * CreateAntiPredictor(intn nCompressionLevel, intn nVersion)
 
 #ifdef ENABLE_COMPRESSION_MODE_NORMAL
 
-        case MAC_COMPRESSION_LEVEL_NORMAL:
+        case APE_COMPRESSION_LEVEL_NORMAL:
             if (nVersion < 3320)
             {
                 pAntiPredictor = new CAntiPredictorNormal0000To3320;
@@ -46,7 +46,7 @@ CAntiPredictor * CreateAntiPredictor(intn nCompressionLevel, intn nVersion)
 #endif //ENABLE_COMPRESSION_MODE_NORMAL
 
 #ifdef ENABLE_COMPRESSION_MODE_HIGH
-        case MAC_COMPRESSION_LEVEL_HIGH:
+        case APE_COMPRESSION_LEVEL_HIGH:
             if (nVersion < 3320)
             {
                 pAntiPredictor = new CAntiPredictorHigh0000To3320;
@@ -71,7 +71,7 @@ CAntiPredictor * CreateAntiPredictor(intn nCompressionLevel, intn nVersion)
 #endif //ENABLE_COMPRESSION_MODE_HIGH
 
 #ifdef ENABLE_COMPRESSION_MODE_EXTRA_HIGH
-        case MAC_COMPRESSION_LEVEL_EXTRA_HIGH:
+        case APE_COMPRESSION_LEVEL_EXTRA_HIGH:
             if (nVersion < 3320)
             {
                 pAntiPredictor = new CAntiPredictorExtraHigh0000To3320;

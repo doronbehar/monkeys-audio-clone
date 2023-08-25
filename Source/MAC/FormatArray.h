@@ -21,7 +21,7 @@ public:
 
     int Process(MAC_FILE * pInfo);
 
-    CString GetOutputExtension(APE::MAC_MODES Mode, const CString & strInputFilename, int nLevel, IFormat * pFormat);
+    CString GetOutputExtension(APE::APE_MODES Mode, const CString & strInputFilename, int nLevel, IFormat * pFormat);
     BOOL GetInputExtensions(CStringArrayEx & aryExtensions);
     CString GetOpenFilesFilter(BOOL bAddAllFiles = TRUE);
     IFormat * GetFormat(MAC_FILE * pInfo);

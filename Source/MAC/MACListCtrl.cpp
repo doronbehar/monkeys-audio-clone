@@ -310,7 +310,7 @@ BOOL CMACListCtrl::AddFileInternal(CString strInputFilename)
             // build file
             MAC_FILE File;
             File.strInputFilename = strInputFilename;
-            File.dInputFileBytes = static_cast<double>(WFD.nFileSizeLow) + (static_cast<double>(WFD.nFileSizeHigh) * static_cast<double>(4294967296));
+            File.dInputFileBytes = static_cast<double>(WFD.nFileSizeLow) + (static_cast<double>(WFD.nFileSizeHigh) * static_cast<double>(4294967296.0));
 
             // add
             m_paryFiles->Add(File);
@@ -436,7 +436,7 @@ CString CMACListCtrl::GetStatus(const MAC_FILE & File)
     return strValue;
 }
 
-BOOL CMACListCtrl::SetMode(MAC_MODES Mode)
+BOOL CMACListCtrl::SetMode(APE_MODES Mode)
 {
     LVCOLUMN lvCol;
     APE_CLEAR(lvCol);

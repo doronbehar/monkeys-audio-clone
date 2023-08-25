@@ -44,13 +44,13 @@ public:
     virtual BOOL BuildMenu(CMenu * pMenu, int nBaseID);
     virtual BOOL ProcessMenuCommand(int nCommand);
 
-    virtual CString GetInputExtensions(APE::MAC_MODES Mode);
-    virtual CString GetOutputExtension(APE::MAC_MODES Mode, const CString & strInputFilename, int nLevel);
+    virtual CString GetInputExtensions(APE::APE_MODES Mode);
+    virtual CString GetOutputExtension(APE::APE_MODES Mode, const CString & strInputFilename, int nLevel);
 
 protected:
     // helpers
-    void ParseModeInfo(CMarkup & XML, APE::MAC_MODES Mode, const CString & strKeyword);
-    CFormatPluginLevelInfo * GetLevelInfo(APE::MAC_MODES Mode, const CString & strInputFilename, int nLevel);
+    void ParseModeInfo(CMarkup & XML, APE::APE_MODES Mode, const CString & strKeyword);
+    CFormatPluginLevelInfo * GetLevelInfo(APE::APE_MODES Mode, const CString & strInputFilename, int nLevel);
 
     // parent
     CMACDlg * m_pMACDlg;

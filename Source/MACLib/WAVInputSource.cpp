@@ -70,29 +70,29 @@ CInputSource * CreateInputSource(const wchar_t * pSourceName, WAVEFORMATEX * pwf
         if (pErrorCode) *pErrorCode = ERROR_SUCCESS;
         CInputSource * pWAV =  new CWAVInputSource(pSourceName, pwfeSource, pTotalBlocks, pHeaderBytes, pTerminatingBytes, pErrorCode);
         if (pwfeSource->wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
-            *pFlags |= MAC_FORMAT_FLAG_FLOATING_POINT;
+            *pFlags |= APE_FORMAT_FLAG_FLOATING_POINT;
         return pWAV;
     }
     else if (StringIsEqual(pExtension, L".aiff", false) || StringIsEqual(pExtension, L".aif", false))
     {
         if (pErrorCode) *pErrorCode = ERROR_SUCCESS;
-        *pFlags |= MAC_FORMAT_FLAG_AIFF;
+        *pFlags |= APE_FORMAT_FLAG_AIFF;
         CAIFFInputSource * pAIFF = new CAIFFInputSource(pSourceName, pwfeSource, pTotalBlocks, pHeaderBytes, pTerminatingBytes, pErrorCode);
         if (pAIFF->GetIsBigEndian())
-            *pFlags |= MAC_FORMAT_FLAG_BIG_ENDIAN;
+            *pFlags |= APE_FORMAT_FLAG_BIG_ENDIAN;
         if (pwfeSource->wBitsPerSample == 8)
-            *pFlags |= MAC_FORMAT_FLAG_SIGNED_8_BIT;
+            *pFlags |= APE_FORMAT_FLAG_SIGNED_8_BIT;
         if (pwfeSource->wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
-            *pFlags |= MAC_FORMAT_FLAG_FLOATING_POINT;
+            *pFlags |= APE_FORMAT_FLAG_FLOATING_POINT;
         return pAIFF;
     }
     else if (StringIsEqual(pExtension, L".w64", false))
     {
         if (pErrorCode) *pErrorCode = ERROR_SUCCESS;
-        *pFlags |= MAC_FORMAT_FLAG_W64;
+        *pFlags |= APE_FORMAT_FLAG_W64;
         CW64InputSource * pW64 = new CW64InputSource(pSourceName, pwfeSource, pTotalBlocks, pHeaderBytes, pTerminatingBytes, pErrorCode);
         if (pwfeSource->wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
-            *pFlags |= MAC_FORMAT_FLAG_FLOATING_POINT;
+            *pFlags |= APE_FORMAT_FLAG_FLOATING_POINT;
         return pW64;
     }
     else if (StringIsEqual(pExtension, L".snd", false) || StringIsEqual(pExtension, L".au", false))
@@ -100,22 +100,22 @@ CInputSource * CreateInputSource(const wchar_t * pSourceName, WAVEFORMATEX * pwf
         if (pErrorCode) *pErrorCode = ERROR_SUCCESS;
         CSNDInputSource * pSND = new CSNDInputSource(pSourceName, pwfeSource, pTotalBlocks, pHeaderBytes, pTerminatingBytes, pErrorCode, pFlags);
         if (pwfeSource->wBitsPerSample == 8)
-            *pFlags |= MAC_FORMAT_FLAG_SIGNED_8_BIT;
+            *pFlags |= APE_FORMAT_FLAG_SIGNED_8_BIT;
         if (pwfeSource->wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
-            *pFlags |= MAC_FORMAT_FLAG_FLOATING_POINT;
+            *pFlags |= APE_FORMAT_FLAG_FLOATING_POINT;
         return pSND;
     }
     else if (StringIsEqual(pExtension, L".caf", false))
     {
         if (pErrorCode) *pErrorCode = ERROR_SUCCESS;
         CCAFInputSource * pInputSource = new CCAFInputSource(pSourceName, pwfeSource, pTotalBlocks, pHeaderBytes, pTerminatingBytes, pErrorCode);
-        *pFlags |= MAC_FORMAT_FLAG_CAF;
+        *pFlags |= APE_FORMAT_FLAG_CAF;
         if (pInputSource->GetIsBigEndian())
-            *pFlags |= MAC_FORMAT_FLAG_BIG_ENDIAN;
+            *pFlags |= APE_FORMAT_FLAG_BIG_ENDIAN;
         if (pwfeSource->wBitsPerSample == 8)
-            *pFlags |= MAC_FORMAT_FLAG_SIGNED_8_BIT;
+            *pFlags |= APE_FORMAT_FLAG_SIGNED_8_BIT;
         if (pwfeSource->wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
-            *pFlags |= MAC_FORMAT_FLAG_FLOATING_POINT;
+            *pFlags |= APE_FORMAT_FLAG_FLOATING_POINT;
         return pInputSource;
     }
     else
@@ -1143,9 +1143,9 @@ int CSNDInputSource::AnalyzeSource(int32 * pFlags)
     m_spIO->Seek(m_nHeaderBytes, SeekFileBegin);
 
     // update flags
-    *pFlags |= MAC_FORMAT_FLAG_SND;
+    *pFlags |= APE_FORMAT_FLAG_SND;
     if (m_bBigEndian)
-        *pFlags |= MAC_FORMAT_FLAG_BIG_ENDIAN;
+        *pFlags |= APE_FORMAT_FLAG_BIG_ENDIAN;
 
     // we made it this far, everything must be cool
     return bIsValid ? ERROR_SUCCESS : ERROR_INVALID_INPUT_FILE;

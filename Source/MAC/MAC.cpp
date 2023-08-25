@@ -43,7 +43,7 @@ BOOL CMACApp::InitInstance()
     // don't run if we're already running
     if (m_bAnotherInstanceRunning)
     {
-        HWND hwndMonkeysAudio = FindWindow(NULL, MAC_NAME);
+        HWND hwndMonkeysAudio = FindWindow(NULL, APE_NAME);
         if (hwndMonkeysAudio != NULL)
         {
             ShowWindow(hwndMonkeysAudio, SW_RESTORE);

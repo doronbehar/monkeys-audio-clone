@@ -179,7 +179,7 @@ double GetFileBytes(const CString & strFilename)
     HANDLE hFind = FindFirstFile(strFilename, &WFD);
     if (hFind != INVALID_HANDLE_VALUE)
     {
-        dFileBytes = WFD.nFileSizeLow + (static_cast<double>(WFD.nFileSizeHigh) * static_cast<double>(4294967296));
+        dFileBytes = WFD.nFileSizeLow + (static_cast<double>(WFD.nFileSizeHigh) * static_cast<double>(4294967296.0));
         FindClose(hFind);
     }
 

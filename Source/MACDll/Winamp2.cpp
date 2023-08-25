@@ -120,12 +120,13 @@ int CAPEWinampPlugin::Play(char * pFilename)
     }
 
     // version check
-    if (m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION) > MAC_FILE_VERSION_NUMBER)
+    if (m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION) > APE_FILE_VERSION_NUMBER)
     {
         TCHAR cAPEFileVersion[32]; _stprintf_s(cAPEFileVersion, 32, _T("%.2f"), static_cast<double>(m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION)) / static_cast<double>(1000));
 
         TCHAR cMessage[1024];
-        _stprintf_s(cMessage, 1024, _T("You are attempting to play an APE file that was encoded with a version of Monkey's Audio which is newer than the installed APE plug-in.  There is a very high likelyhood that this will not work properly.  Please download and install the newest Monkey's Audio plug-in to remedy this problem.\r\n\r\nPlug-in version: %s\r\nAPE file version: %s"), MAC_VERSION_STRING, cAPEFileVersion);
+        _stprintf_s(cMessage, 1024, _T("You are attempting to play an APE file that was encoded with a version of Monkey's Audio which is newer than the installed APE plug-in.  There is a very high likelyhood that this will not work properly.  Please download and install the newest Monkey's Audio plug-in to remedy this problem.\r\n\r\nPlug-in version: %s\r\nAPE file version: %s"), 
+            APE_VERSION_STRING, cAPEFileVersion);
         ::MessageBox(g_APEWinampPluginModule.hMainWindow, cMessage, _T("Update APE Plugin"), MB_OK | MB_ICONERROR);
     }
 
@@ -398,7 +399,7 @@ DWORD WINAPI __stdcall CAPEWinampPlugin::DecodeThread(void * pbKillSwitch)
             {
                 ScaleBuffer(m_spAPEDecompress, spSampleBuffer, long(nBlocksDecoded));
             }
-            else if (m_spAPEDecompress->GetInfo(APE::IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_FLOATING_POINT)
+            else if (m_spAPEDecompress->GetInfo(APE::IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_FLOATING_POINT)
             {
                 ScaleFloatBuffer(m_spAPEDecompress, spSampleBuffer, long(nBlocksDecoded));
             }
@@ -916,7 +917,7 @@ extern "C"
                     static_cast<double>(s_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_SAMPLE_RATE)) / static_cast<double>(1000),
                     static_cast<int>(s_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BITS_PER_SAMPLE)),
                     static_cast<int>(s_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS)));
-                if (s_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_AIFF)
+                if (s_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_AIFF)
                     strLine += _T(", AIFF");
                 strFormat += strLine + _T("\r\n");
 

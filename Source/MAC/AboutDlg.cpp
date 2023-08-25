@@ -26,9 +26,9 @@ BOOL CAboutDlg::OnInitDialog()
     CDialog::OnInitDialog();
 
     if (sizeof(intn) == 8)
-        SetWindowText(MAC_NAME _T(" (64-bit)"));
+        SetWindowText(APE_NAME _T(" (64-bit)"));
     else
-        SetWindowText(MAC_NAME _T(" (32-bit)"));
+        SetWindowText(APE_NAME _T(" (32-bit)"));
 
     return TRUE;  // return TRUE unless you set the focus to a control
                   // EXCEPTION: OCX Property Pages should return FALSE
@@ -88,13 +88,13 @@ void CAboutDlg::OnPaint()
     // size title
     dc.SelectObject(&m_fontLarge);
     CRect rectSizeName;
-    dc.DrawText(MAC_NAME, &rectSizeName, DT_CENTER | DT_NOPREFIX | DT_CALCRECT);
+    dc.DrawText(APE_NAME, &rectSizeName, DT_CENTER | DT_NOPREFIX | DT_CALCRECT);
     int nWindowWidth = rectSizeName.Width() + theApp.GetSize(64, 0).cx;
 
     // size copyright
     dc.SelectObject(&m_fontSmall);
     CRect rectSizeCopyright;
-    dc.DrawText(MAC_RESOURCE_COPYRIGHT, &rectSizeCopyright, DT_CENTER | DT_NOPREFIX | DT_CALCRECT);
+    dc.DrawText(APE_RESOURCE_COPYRIGHT, &rectSizeCopyright, DT_CENTER | DT_NOPREFIX | DT_CALCRECT);
     nWindowWidth = ape_max(nWindowWidth, rectSizeCopyright.Width() + theApp.GetSize(64, 0).cx);
 
     // size CPU
@@ -107,12 +107,12 @@ void CAboutDlg::OnPaint()
 
     // draw title
     dc.SelectObject(&m_fontLarge);
-    dc.DrawText(MAC_NAME, CRect(rectPaint.left, nTop, rectPaint.right, nTop + rectSizeName.Height()), DT_CENTER | DT_NOPREFIX);
+    dc.DrawText(APE_NAME, CRect(rectPaint.left, nTop, rectPaint.right, nTop + rectSizeName.Height()), DT_CENTER | DT_NOPREFIX);
     nTop += nFontLargeHeight + nLineSpacing;
 
     // draw copyright
     dc.SelectObject(&m_fontSmall);
-    dc.DrawText(MAC_RESOURCE_COPYRIGHT, CRect(rectPaint.left, nTop, rectPaint.right, nTop + rectSizeCopyright.Height()), DT_CENTER | DT_NOPREFIX);
+    dc.DrawText(APE_RESOURCE_COPYRIGHT, CRect(rectPaint.left, nTop, rectPaint.right, nTop + rectSizeCopyright.Height()), DT_CENTER | DT_NOPREFIX);
     nTop += nFontSmallHeight + nLineSpacing;
 
     dc.SelectObject(&m_fontSmall);

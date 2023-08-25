@@ -10,7 +10,7 @@ option(BUILD_UTIL "Build the mac command line tool" ON)
 # Determine interface version
 #
 file(READ Shared/Version.h VERSION_INFO)
-string(REGEX MATCH "MAC_INTERFACE_VERSION[ \t]+([0-9]+)" _ ${VERSION_INFO})
+string(REGEX MATCH "APE_INTERFACE_VERSION[ \t]+([0-9]+)" _ ${VERSION_INFO})
 set(MAC_SOVERSION ${CMAKE_MATCH_1})
 
 #

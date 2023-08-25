@@ -61,10 +61,10 @@ BOOL CMACSettings::Save()
 BOOL CMACSettings::Load()
 {
     // general
-    SetMode(static_cast<MAC_MODES>(LoadSetting(_T("Mode"), static_cast<int>(MODE_COMPRESS))));
+    SetMode(static_cast<APE_MODES>(LoadSetting(_T("Mode"), static_cast<int>(MODE_COMPRESS))));
 
     m_strFormat = LoadSetting(_T("Compression Main"), COMPRESSION_APE);
-    m_nLevel = LoadSetting(_T("Compression Sub"), MAC_COMPRESSION_LEVEL_NORMAL);
+    m_nLevel = LoadSetting(_T("Compression Sub"), APE_COMPRESSION_LEVEL_NORMAL);
     m_strAPLFilenameTemplate = LoadSetting(_T("APL Filename Template"), _T("ARTIST - ALBUM - TRACK# - TITLE"));
     m_aryAddFilesMRU.InitFromList(LoadSetting(_T("Add Files MRU List"), _T("")), _T("|"));
     m_aryAddFolderMRU.InitFromList(LoadSetting(_T("Add Folder MRU List"), _T("")), _T("|"));
@@ -151,7 +151,7 @@ void CMACSettings::SaveSetting(const CString & strName, void * pData, int nBytes
     RegSetValueEx(m_RegKey.m_hKey, strName, 0, REG_BINARY, static_cast<LPBYTE>(pData), nBytes);
 }
 
-void CMACSettings::SetMode(MAC_MODES Mode)
+void CMACSettings::SetMode(APE_MODES Mode)
 {
     // mode
     m_Mode = Mode;

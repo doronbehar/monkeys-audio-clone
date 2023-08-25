@@ -68,16 +68,16 @@ public:
     BOOL m_bProcessingAutoVerifyOnCreation;
 
     // helpers
-    inline APE::MAC_MODES GetMode() const { return m_Mode; }
+    inline APE::APE_MODES GetMode() const { return m_Mode; }
     inline CString GetFormat() const { return m_strFormat; }
     inline int GetLevel() const { return m_nLevel;}
-    void SetMode(APE::MAC_MODES Mode);
+    void SetMode(APE::APE_MODES Mode);
     void SetCompression(const CString & strFormat, int nLevel);
     CString GetModeName();
     CString GetCompressionName();
 
 protected:
-    APE::MAC_MODES m_Mode;
+    APE::APE_MODES m_Mode;
     CString m_strFormat;
     int m_nLevel;
 

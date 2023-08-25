@@ -166,13 +166,13 @@ int CAPEDecompress::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlo
     const int64 nBlocksDecoded = nBlocksRetrieved;
     if ((pProcessing == NULL) || (pProcessing->bApplyFloatProcessing == true))
     {
-        if (GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_FLOATING_POINT)
+        if (GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_FLOATING_POINT)
             CFloatTransform::Process(reinterpret_cast<uint32 *>(pBuffer), static_cast<int>(nBlocksDecoded * GetInfo(IAPEDecompress::APE_INFO_CHANNELS)));
     }
 
     if ((pProcessing == NULL) || (pProcessing->bApplySigned8BitProcessing == true))
     {
-        if (GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_SIGNED_8_BIT)
+        if (GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_SIGNED_8_BIT)
         {
             const int64 nChannels = GetInfo(IAPEDecompress::APE_INFO_CHANNELS);
             for (int nSample = 0; nSample < nBlocksDecoded * nChannels; nSample++)
@@ -186,7 +186,7 @@ int CAPEDecompress::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlo
 
     if ((pProcessing == NULL) || (pProcessing->bApplyBigEndianProcessing == true))
     {
-        if (GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_BIG_ENDIAN)
+        if (GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_BIG_ENDIAN)
         {
             const int64 nChannels = GetInfo(IAPEDecompress::APE_INFO_CHANNELS);
             const int64 nBitdepth = GetInfo(IAPEDecompress::APE_INFO_BITS_PER_SAMPLE);

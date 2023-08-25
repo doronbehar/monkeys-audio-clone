@@ -15,14 +15,14 @@ using namespace APE;
 
 int __stdcall GetVersionNumber()
 {
-    return MAC_FILE_VERSION_NUMBER;
+    return APE_FILE_VERSION_NUMBER;
 }
 
 #ifdef PLATFORM_WINDOWS
 int __stdcall GetInterfaceCompatibility(int nVersion, BOOL bDisplayWarningsOnFailure, HWND hwndParent)
 {
     int nRetVal = ERROR_SUCCESS;
-    if (nVersion > MAC_FILE_VERSION_NUMBER)
+    if (nVersion > APE_FILE_VERSION_NUMBER)
     {
         nRetVal = ERROR_UNDEFINED;
         if (bDisplayWarningsOnFailure)
@@ -43,7 +43,7 @@ int __stdcall GetInterfaceCompatibility(int nVersion, BOOL bDisplayWarningsOnFai
             _stprintf_s(cMessage, 1024, _T("This program is trying to use an old version of Monkey's Audio.\n")
                 _T("Please contact the author about updating their support for Monkey's Audio.\n\n")
                 _T("Monkey's Audio currently installed: %.2f\nProgram is searching for: %.2f"),
-                static_cast<double>(MAC_FILE_VERSION_NUMBER) / static_cast<double>(1000), static_cast<double>(nVersion) / static_cast<double>(1000));
+                static_cast<double>(APE_FILE_VERSION_NUMBER) / static_cast<double>(1000), static_cast<double>(nVersion) / static_cast<double>(1000));
             MessageBox(hwndParent, cMessage, _T("Program Requires Updating"), MB_OK | MB_ICONINFORMATION);
         }
     }
@@ -54,17 +54,17 @@ int __stdcall GetInterfaceCompatibility(int nVersion, BOOL bDisplayWarningsOnFai
 
 const char * __stdcall GetLibraryVersionString()
 {
-    return MAC_VER_FILE_VERSION_STR_NARROW;
+    return APE_VER_FILE_VERSION_STR_NARROW;
 }
 
 unsigned int __stdcall GetLibraryVersionNumber()
 {
-    return MAC_VERSION_MAJOR << 16 | MAC_VERSION_REVISION_NUMBER << 8;
+    return APE_VERSION_MAJOR << 16 | APE_VERSION_REVISION_NUMBER << 8;
 }
 
 unsigned int __stdcall GetLibraryInterfaceVersion()
 {
-    return MAC_INTERFACE_VERSION;
+    return APE_INTERFACE_VERSION;
 }
 
 int __stdcall TagFileSimple(const str_ansi * pFilename, const char * pArtist, const char * pAlbum, const char * pTitle, const char * pComment, const char * pGenre, const char * pYear, const char * pTrack, BOOL bClearFirst, BOOL bUseOldID3)

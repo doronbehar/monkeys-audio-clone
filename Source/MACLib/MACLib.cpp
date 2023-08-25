@@ -42,7 +42,7 @@ IAPEDecompress * CreateIAPEDecompressCore(CAPEInfo * pAPEInfo, int nStartBlock, 
             {
                 // create
                 const int nVersion = static_cast<int>(pAPEInfo->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION));
-                if ((nVersion >= 3930) && (nVersion <= MAC_FILE_VERSION_NUMBER))
+                if ((nVersion >= 3930) && (nVersion <= APE_FILE_VERSION_NUMBER))
                     spAPEDecompress.Assign(new CAPEDecompress(pErrorCode, pAPEInfo, nStartBlock, nFinishBlock));
 #ifdef APE_BACKWARDS_COMPATIBILITY
                 else if (nVersion < 3930)
@@ -263,19 +263,19 @@ int __stdcall GetAPEFileType(const APE::str_utfn * pInputFilename, APE::str_ansi
     CAPEInfo Info(&nErrorCode, pInputFilename, APE_NULL, false, true, false);
 
     // customize the type if we're AIFF, W64, etc.
-    if (Info.GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_AIFF)
+    if (Info.GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_AIFF)
     {
         strcpy_s(cFileType, 8, ".aiff");
     }
-    else if (Info.GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_W64)
+    else if (Info.GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_W64)
     {
         strcpy_s(cFileType, 8, ".w64");
     }
-    else if (Info.GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_SND)
+    else if (Info.GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_SND)
     {
         strcpy_s(cFileType, 8, ".snd");
     }
-    else if (Info.GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & MAC_FORMAT_FLAG_CAF)
+    else if (Info.GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_CAF)
     {
         strcpy_s(cFileType, 8, ".caf");
     }
@@ -749,7 +749,7 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
         {
             // quit if there is nothing to do
             // no longer check when processing an APL since converting an APL to APE should work no matter what
-            if ((spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION) == MAC_FILE_VERSION_NUMBER) &&
+            if ((spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION) == APE_FILE_VERSION_NUMBER) &&
                 (spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_COMPRESSION_LEVEL) == nCompressionLevel) &&
                 (spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_APL) == false))
             {
