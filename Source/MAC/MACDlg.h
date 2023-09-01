@@ -67,6 +67,7 @@ protected:
     afx_msg void OnHelpWebsiteJRiver();
     afx_msg void OnHelpWebsiteWinamp();
     afx_msg void OnHelpWebsiteEac();
+    afx_msg void OnHelpLicense();
     afx_msg void OnToolsOptions();
     afx_msg void OnInitMenu(CMenu * pMenu);
     afx_msg void OnInitMenuPopup(CMenu * pPopupMenu, UINT nIndex, BOOL bSysMenu);

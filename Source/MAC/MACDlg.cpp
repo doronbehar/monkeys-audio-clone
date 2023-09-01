@@ -74,6 +74,7 @@ BEGIN_MESSAGE_MAP(CMACDlg, CDialog)
     ON_COMMAND(ID_HELP_WEBSITE_MEDIA_JUKEBOX, &CMACDlg::OnHelpWebsiteJRiver)
     ON_COMMAND(ID_HELP_WEBSITE_WINAMP, &CMACDlg::OnHelpWebsiteWinamp)
     ON_COMMAND(ID_HELP_WEBSITE_EAC, &CMACDlg::OnHelpWebsiteEac)
+    ON_COMMAND(ID_HELP_LICENSE, &CMACDlg::OnHelpLicense)
     ON_COMMAND(ID_TOOLS_OPTIONS, &CMACDlg::OnToolsOptions)
     ON_WM_INITMENU()
     ON_WM_INITMENUPOPUP()
@@ -846,6 +847,11 @@ void CMACDlg::OnHelpWebsiteWinamp()
 void CMACDlg::OnHelpWebsiteEac()
 {
     ShellExecute(NULL, NULL, _T("https://www.exactaudiocopy.de/eac.html"), NULL, NULL, SW_MAXIMIZE);
+}
+
+void CMACDlg::OnHelpLicense()
+{
+    ShellExecute(NULL, NULL, _T("https://www.monkeysaudio.com/license.html"), NULL, NULL, SW_MAXIMIZE);
 }
 
 void CMACDlg::OnToolsOptions()

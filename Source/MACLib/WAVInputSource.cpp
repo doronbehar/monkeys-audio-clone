@@ -1238,12 +1238,12 @@ int CCAFInputSource::AnalyzeSource()
     m_nFileBytes = m_spIO->GetSize();
 
     // get the header
-    struct CAFFileHeader {
+    struct APE_CAFFileHeader {
         char cFileType[4]; // should equal 'caff'
         uint16 mFileVersion;
         uint16 mFileFlags;
     };
-    CAFFileHeader Header;
+    APE_CAFFileHeader Header;
     RETURN_ON_ERROR(ReadSafe(m_spIO, &Header, sizeof(Header)))
     Header.mFileVersion = static_cast<uint16>(Swap2Bytes(Header.mFileVersion));
     Header.mFileFlags = static_cast<uint16>(Swap2Bytes(Header.mFileFlags));
@@ -1264,11 +1264,11 @@ int CCAFInputSource::AnalyzeSource()
 
     // read chunks
     #pragma pack(push, 1)
-    struct CAFChunkHeader {
+    struct APE_CAFChunkHeader {
         char cChunkType[4];
         uint64 mChunkSize;
     };
-    struct CAFAudioFormat {
+    struct APE_CAFAudioFormat {
         uint64 mSampleRate;
         char cFormatID[4];
         uint32_t mFormatFlags;
@@ -1278,15 +1278,15 @@ int CCAFInputSource::AnalyzeSource()
         uint32_t mBitsPerChannel;
     };
     enum {
-        kCAFLinearPCMFormatFlagIsFloat = (1L << 0),
-        kCAFLinearPCMFormatFlagIsLittleEndian = (1L << 1)
+		APE_kCAFLinearPCMFormatFlagIsFloat = (1L << 0),
+		APE_kCAFLinearPCMFormatFlagIsLittleEndian = (1L << 1)
     };
     #pragma pack(pop)
 
     bool bFoundDesc = false;
     while (true)
     {
-        CAFChunkHeader Chunk;
+		APE_CAFChunkHeader Chunk;
         if (ReadSafe(m_spIO, &Chunk, sizeof(Chunk)) != ERROR_SUCCESS)
             return ERROR_INVALID_INPUT_FILE; // we read past the last chunk and didn't find the necessary chunks
 
@@ -1297,9 +1297,9 @@ int CCAFInputSource::AnalyzeSource()
             (Chunk.cChunkType[2] == 's') &&
             (Chunk.cChunkType[3] == 'c'))
         {
-            if (Chunk.mChunkSize == sizeof(CAFAudioFormat))
+            if (Chunk.mChunkSize == sizeof(APE_CAFAudioFormat))
             {
-                CAFAudioFormat AudioFormat;
+                APE_CAFAudioFormat AudioFormat;
                 RETURN_ON_ERROR(ReadSafe(m_spIO, &AudioFormat, sizeof(AudioFormat)))
 
                 if ((AudioFormat.cFormatID[0] != 'l') ||
@@ -1320,7 +1320,7 @@ int CCAFInputSource::AnalyzeSource()
                 bool bFloat = false;
                 if (AudioFormat.mBitsPerChannel == 32)
                 {
-                    if (AudioFormat.mFormatFlags & kCAFLinearPCMFormatFlagIsFloat)
+                    if (AudioFormat.mFormatFlags & APE_kCAFLinearPCMFormatFlagIsFloat)
                     {
                         #ifndef APE_SUPPORT_FLOAT_COMPRESSION
                             return ERROR_INVALID_INPUT_FILE;
@@ -1334,7 +1334,7 @@ int CCAFInputSource::AnalyzeSource()
                 }
 
                 // if we're little endian, mark that
-                if (AudioFormat.mFormatFlags & kCAFLinearPCMFormatFlagIsLittleEndian)
+                if (AudioFormat.mFormatFlags & APE_kCAFLinearPCMFormatFlagIsLittleEndian)
                     m_bLittleEndian = true;
 
                 FillWaveFormatEx(&m_wfeSource, bFloat ? WAVE_FORMAT_IEEE_FLOAT : WAVE_FORMAT_PCM, static_cast<int>(dSampleRate), static_cast<int>(AudioFormat.mBitsPerChannel), static_cast<int>(AudioFormat.mChannelsPerFrame));

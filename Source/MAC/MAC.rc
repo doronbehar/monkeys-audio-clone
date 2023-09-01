@@ -377,6 +377,8 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Monkey's Audio &Website...",  ID_HELP_WEBSITE_MONKEYS_AUDIO
         MENUITEM SEPARATOR
+        MENUITEM "Monkey's Audio &License...",   ID_HELP_LICENSE
+        MENUITEM SEPARATOR
         MENUITEM "&Media Center Website...",    ID_HELP_WEBSITE_MEDIA_JUKEBOX
         MENUITEM "&Winamp Website...",          ID_HELP_WEBSITE_WINAMP
         MENUITEM "&EAC Website...",             ID_HELP_WEBSITE_EAC
