@@ -100,7 +100,7 @@ Version
 #include "Version.h"
 
 // year in the copyright strings
-#define APE_YEAR 2023
+#define APE_YEAR 2024
 
 // build the version string
 #define STRINGIZE2(s) #s

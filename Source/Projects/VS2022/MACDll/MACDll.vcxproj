@@ -168,8 +168,8 @@
     <ClangTidyChecks>-clang-diagnostic-c++98-compat,-clang-diagnostic-zero-as-null-pointer-constant,-clang-diagnostic-language-extension-token,-clang-diagnostic-global-constructors,-clang-diagnostic-exit-time-destructors,-clang-diagnostic-unsafe-buffer-usage</ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>MACDll</TargetName>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>

@@ -593,13 +593,13 @@ int CAIFFInputSource::AnalyzeSource()
     #pragma pack(pop)
 
     // read AIFF header and only support AIFF
-    char cAIFF[4] = { 0 };
+    char cAIFF[4] = { 0, 0, 0, 0 };
     RETURN_ON_ERROR(ReadSafe(m_spIO, &cAIFF[0], sizeof(cAIFF)))
-    if ((cAIFF[0] != 'A') || (cAIFF[1] != 'I') || (cAIFF[2] != 'F') || (cAIFF[3] != 'F'))
+    if ((cAIFF[0] == 'A') && (cAIFF[1] == 'I') && (cAIFF[2] == 'F') && (cAIFF[3] == 'F'))
     {
         // AIFF
     }
-    else if ((cAIFF[0] != 'A') || (cAIFF[1] != 'I') || (cAIFF[2] != 'F') || (cAIFF[3] != 'C'))
+    else if ((cAIFF[0] == 'A') && (cAIFF[1] == 'I') && (cAIFF[2] == 'F') && (cAIFF[3] == 'C'))
     {
         // AIFC
     }
@@ -741,7 +741,7 @@ int CAIFFInputSource::GetData(unsigned char * pBuffer, int nBlocks, int * pBlock
 
     if (m_wfeSource.wBitsPerSample == 8)
         Convert8BitSignedToUnsigned(pBuffer, m_wfeSource.nChannels, nBlocks);
-    else
+    else if (!m_bLittleEndian)
         FlipEndian(pBuffer, m_wfeSource.wBitsPerSample, m_wfeSource.nChannels, nBlocks);
 
     if (pBlocksRetrieved) *pBlocksRetrieved = static_cast<int>(nBytesRead / m_wfeSource.nBlockAlign);
