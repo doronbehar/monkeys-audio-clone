@@ -9,17 +9,19 @@
 #ifdef APE_USE_NEON_INTRINSICS
     #include <arm_neon.h> // Neon
 
-    #if defined(__GNUC__) && !defined(__clang__)
+    #if defined( __clang__ )
+        #if defined( __aarch64__ )
+            #define APE_NEON_HAVE_LD1QX
+        #endif
+    #elif defined(__GNUC__)
         #define GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
         #if defined(__aarch64__) && GCC_VERSION > 801
             #define APE_NEON_HAVE_LD1QX
         #endif
-    #elif defined(_MSC_VER) && !defined(__clang__)
+    #elif defined(_MSC_VER)
         #if defined(_M_ARM64) || defined(_M_ARM64EC)
             #define APE_NEON_HAVE_LD1QX
         #endif
-    #else
-        #define APE_NEON_HAVE_LD1QX
     #endif
 #endif
 

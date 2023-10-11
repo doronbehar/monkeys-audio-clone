@@ -481,6 +481,14 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nPara
     case IAPEDecompress::APE_INFO_APL:
         nResult = static_cast<int64>(m_bAPL);
         break;
+    case IAPEDecompress::APE_INFO_MD5:
+        if (m_APEFileInfo.spAPEDescriptor != APE_NULL)
+        {
+            char * pBuffer = reinterpret_cast<char *>(nParam1);
+            memcpy(pBuffer, m_APEFileInfo.spAPEDescriptor->cFileMD5, sizeof(m_APEFileInfo.spAPEDescriptor->cFileMD5));
+            nResult = 0;
+        }
+        break;
     case IAPEDecompress::APE_INTERNAL_INFO:
         nResult = POINTER_TO_INT64(&m_APEFileInfo);
         break;
