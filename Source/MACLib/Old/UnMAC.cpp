@@ -83,7 +83,7 @@ int CUnMAC::Uninitialize()
     if (m_bInitialized)
     {
         APE_SAFE_DELETE(m_pAPEDecompressCore)
-            APE_SAFE_DELETE(m_pPrepare)
+        APE_SAFE_DELETE(m_pPrepare)
 
         // clear the APE info pointer
         m_pAPEDecompress = APE_NULL;

@@ -425,7 +425,6 @@
     <ClInclude Include="..\..\..\MACLib\Prepare.h" />
     <ClInclude Include="..\..\..\Shared\SmartPtr.h" />
     <ClInclude Include="..\..\..\Shared\StdLibFileIO.h" />
-    <ClInclude Include="..\..\..\Shared\Timer.h" />
     <ClInclude Include="..\..\..\Shared\WinFileIO.h" />
     <ClInclude Include="..\..\..\MACLib\NewPredictor.h" />
     <ClInclude Include="..\..\..\MACLib\NNFilter.h" />

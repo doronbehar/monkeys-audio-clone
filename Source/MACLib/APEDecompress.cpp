@@ -582,37 +582,55 @@ Get information from the decompressor
 int64 CAPEDecompress::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nParam1, int64 nParam2)
 {
     int64 nResult = 0;
-    bool bHandled = true;
+    bool bHandled = false;
 
-    if (Field == APE_DECOMPRESS_CURRENT_BLOCK)
+    switch (Field)
+    {
+    case APE_DECOMPRESS_CURRENT_BLOCK:
     {
         nResult = static_cast<int64>(m_nCurrentBlock - m_nStartBlock);
+        bHandled = true;
+        break;
     }
-    else if (Field == APE_DECOMPRESS_CURRENT_MS)
+    case APE_DECOMPRESS_CURRENT_MS:
     {
         const int64 nSampleRate = m_spAPEInfo->GetInfo(APE_INFO_SAMPLE_RATE, 0, 0);
         if (nSampleRate > 0)
+        {
             nResult = static_cast<int64>((static_cast<double>(m_nCurrentBlock) * static_cast<double>(1000)) / static_cast<double>(nSampleRate));
+            bHandled = true;
+        }
+        break;
     }
-    else if (Field == APE_DECOMPRESS_TOTAL_BLOCKS)
+    case APE_DECOMPRESS_TOTAL_BLOCKS:
     {
         nResult = static_cast<int64>(m_nFinishBlock - m_nStartBlock);
+        bHandled = true;
+        break;
     }
-    else if (Field == APE_DECOMPRESS_LENGTH_MS)
+    case APE_DECOMPRESS_LENGTH_MS:
     {
         const int64 nSampleRate = static_cast<int64>(m_spAPEInfo->GetInfo(APE_INFO_SAMPLE_RATE, 0, 0));
         if (nSampleRate > 0)
+        {
             nResult = static_cast<int64>((static_cast<double>(m_nFinishBlock - m_nStartBlock) * static_cast<double>(1000)) / static_cast<double>(nSampleRate));
+            bHandled = true;
+        }
+        break;
     }
-    else if (Field == APE_DECOMPRESS_CURRENT_BITRATE)
+    case APE_DECOMPRESS_CURRENT_BITRATE:
     {
         nResult = GetInfo(APE_INFO_FRAME_BITRATE, m_nCurrentFrame);
+        bHandled = true;
+        break;
     }
-    else if (Field == APE_DECOMPRESS_CURRENT_FRAME)
+    case APE_DECOMPRESS_CURRENT_FRAME:
     {
         nResult = m_nCurrentFrame;
+        bHandled = true;
+        break;
     }
-    else if (Field == APE_DECOMPRESS_AVERAGE_BITRATE)
+    case APE_DECOMPRESS_AVERAGE_BITRATE:
     {
         if (m_bIsRanged)
         {
@@ -640,15 +658,19 @@ int64 CAPEDecompress::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64
         {
             nResult = GetInfo(APE_INFO_AVERAGE_BITRATE);
         }
+        bHandled = true;
+        break;
     }
-    else if (Field == APE_INFO_WAV_HEADER_BYTES)
+    case APE_INFO_WAV_HEADER_BYTES:
     {
         if (m_bIsRanged)
+        {
             nResult = sizeof(WAVE_HEADER);
-        else
-            bHandled = false;
+            bHandled = true;
+        }
+        break;
     }
-    else if (Field == APE_INFO_WAV_HEADER_DATA)
+    case APE_INFO_WAV_HEADER_DATA:
     {
         if (m_bIsRanged)
         {
@@ -669,27 +691,64 @@ int64 CAPEDecompress::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64
                 memcpy(pBuffer, &WAVHeader, sizeof(WAVE_HEADER));
                 nResult = 0;
             }
+            bHandled = true;
         }
-        else
-            bHandled = false;
+
+        break;
     }
-    else if (Field == APE_INFO_WAV_TERMINATING_BYTES)
+    case APE_INFO_WAV_TERMINATING_BYTES:
     {
         if (m_bIsRanged)
+        {
             nResult = 0;
-        else
-            bHandled = false;
+            bHandled = true;
+        }
+        break;
     }
-    else if (Field == APE_INFO_WAV_TERMINATING_DATA)
+    case APE_INFO_WAV_TERMINATING_DATA:
     {
         if (m_bIsRanged)
+        {
             nResult = 0;
-        else
-            bHandled = false;
+            bHandled = true;
+        }
+        break;
     }
-    else
+    case APE_INFO_APE_TOTAL_BYTES:
+    case APE_INFO_APL:
+    case APE_INFO_AVERAGE_BITRATE:
+    case APE_INFO_BITS_PER_SAMPLE:
+    case APE_INFO_BLOCKS_PER_FRAME:
+    case APE_INFO_BLOCK_ALIGN:
+    case APE_INFO_BYTES_PER_SAMPLE:
+    case APE_INFO_CHANNELS:
+    case APE_INFO_COMPRESSION_LEVEL:
+    case APE_INFO_DECOMPRESSED_BITRATE:
+    case APE_INFO_FILE_VERSION:
+    case APE_INFO_FINAL_FRAME_BLOCKS:
+    case APE_INFO_FORMAT_FLAGS:
+    case APE_INFO_FRAME_BITRATE:
+    case APE_INFO_FRAME_BLOCKS:
+    case APE_INFO_FRAME_BYTES:
+    case APE_INFO_IO_SOURCE:
+    case APE_INFO_LENGTH_MS:
+    case APE_INFO_MD5:
+    case APE_INFO_MD5_MATCHES:
+    case APE_INFO_PEAK_LEVEL:
+    case APE_INFO_SAMPLE_RATE:
+    case APE_INFO_SEEK_BIT:
+    case APE_INFO_SEEK_BYTE:
+    case APE_INFO_TAG:
+    case APE_INFO_TOTAL_BLOCKS:
+    case APE_INFO_TOTAL_FRAMES:
+    case APE_INFO_WAVEFORMATEX:
+    case APE_INFO_WAV_DATA_BYTES:
+    case APE_INFO_WAV_TOTAL_BYTES:
+    case APE_INTERNAL_INFO:
     {
-        bHandled = false;
+        // all other conditions to prevent compiler warnings (4061 and Clang)
+        break;
+    }
     }
 
     if (!bHandled)

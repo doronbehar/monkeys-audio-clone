@@ -44,6 +44,8 @@ IAPEDecompress * CreateIAPEDecompressCore(CAPEInfo * pAPEInfo, int nStartBlock, 
                 const int nVersion = static_cast<int>(pAPEInfo->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION));
                 if ((nVersion >= 3930) && (nVersion <= APE_FILE_VERSION_NUMBER))
                     spAPEDecompress.Assign(new CAPEDecompress(pErrorCode, pAPEInfo, nStartBlock, nFinishBlock));
+                else if (nVersion == 4110)
+                    spAPEDecompress.Assign(new CAPEDecompress(pErrorCode, pAPEInfo, nStartBlock, nFinishBlock)); // a few users have mailed me files with this version -- I don't know where they came from but they verify fine using this code
 #ifdef APE_BACKWARDS_COMPATIBILITY
                 else if (nVersion < 3930)
                     spAPEDecompress.Assign(new CAPEDecompressOld(pErrorCode, pAPEInfo, nStartBlock, nFinishBlock));
@@ -263,19 +265,20 @@ int __stdcall GetAPEFileType(const APE::str_utfn * pInputFilename, APE::str_ansi
     CAPEInfo Info(&nErrorCode, pInputFilename, APE_NULL, false, true, false);
 
     // customize the type if we're AIFF, W64, etc.
-    if (Info.GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_AIFF)
+    int64 nFormat = Info.GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS);
+    if (nFormat & APE_FORMAT_FLAG_AIFF)
     {
         strcpy_s(cFileType, 8, ".aiff");
     }
-    else if (Info.GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_W64)
+    else if (nFormat & APE_FORMAT_FLAG_W64)
     {
         strcpy_s(cFileType, 8, ".w64");
     }
-    else if (Info.GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_SND)
+    else if (nFormat & APE_FORMAT_FLAG_SND)
     {
         strcpy_s(cFileType, 8, ".snd");
     }
-    else if (Info.GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_CAF)
+    else if (nFormat & APE_FORMAT_FLAG_CAF)
     {
         strcpy_s(cFileType, 8, ".caf");
     }
@@ -646,8 +649,7 @@ int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, IAPEProgressCal
             MD5Helper.GetResult(cResult);
 
             // compare to stored
-            if (memcmp(cResult, pInfo->spAPEDescriptor->cFileMD5, 16) != 0)
-                nFunctionRetVal = ERROR_INVALID_CHECKSUM;
+            nFunctionRetVal = static_cast<int>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_MD5_MATCHES, POINTER_TO_INT64(&cResult[0])));
 
             // update the progress to 100%
             spMACProgressHelper->UpdateProgressComplete();

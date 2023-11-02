@@ -273,6 +273,7 @@ public:
         APE_INFO_TAG = 1030,                        // point to tag (CAPETag *) [ignored, ignored]
         APE_INFO_APL = 1031,                        // whether it's an APL file
         APE_INFO_MD5 = 1032,                        // the MD5 checksum [buffer *, ignored]
+        APE_INFO_MD5_MATCHES = 1033,                // an MD5 checksum to test (returns ERROR_INVALID_CHECKSUM or ERROR_SUCCESS) [buffer *, ignored]
 
         APE_DECOMPRESS_CURRENT_BLOCK = 2000,        // current block location [ignored, ignored]
         APE_DECOMPRESS_CURRENT_MS = 2001,           // current millisecond location [ignored, ignored]
