@@ -449,10 +449,9 @@ int _tmain(int argc, TCHAR * argv[])
             #endif
         }
     }
-    else if (nMode == DECOMPRESS_MODE)
-#else
-    if (nMode == DECOMPRESS_MODE)
+    else 
 #endif
+    if (nMode == DECOMPRESS_MODE)
     {
         fwprintf(stderr, L"Decompressing...\n");
         if ((spOutputFilename == NULL) || (_wcsicmp(spOutputFilename, AUTO) == 0))

@@ -294,7 +294,7 @@ HRESULT CAPEStream::DecideBufferSize(IMemAllocator *pAlloc, ALLOCATOR_PROPERTIES
     if (m_pDecoder == NULL) return E_FAIL;
 
     // get the format
-    WAVEFORMATEX *pwf = (WAVEFORMATEX *)m_mtOut.Format();
+    WAVEFORMATEX *pwf = reinterpret_cast<WAVEFORMATEX *>(m_mtOut.Format());
     if (pwf == NULL) return E_FAIL;
 
     pRequest->cbBuffer    =    pwf->nChannels * WAVE_BUFFER_SIZE;
@@ -363,9 +363,9 @@ HRESULT CAPEStream::OpenAPEFile(LPWSTR pFileName)
     if ((m_pDecoder == NULL) || (nResult != ERROR_SUCCESS))
         return E_FAIL;
 
-    m_dDuration = (double) m_pDecoder->GetInfo(APE::IAPEDecompress::APE_DECOMPRESS_LENGTH_MS);
+    m_dDuration = static_cast<double>(m_pDecoder->GetInfo(APE::IAPEDecompress::APE_DECOMPRESS_LENGTH_MS));
 
-    m_rtDuration = (__int64) ((double) m_dDuration * (double) 10000 );
+    m_rtDuration = (__int64) (static_cast<double>(m_dDuration) * static_cast<double>(10000));
     m_iBlockSize = (unsigned int) (m_pDecoder->GetInfo(APE::IAPEDecompress::APE_INFO_CHANNELS) * (m_pDecoder->GetInfo(APE::IAPEDecompress::APE_INFO_BITS_PER_SAMPLE) >> 3));
     m_iTotalBlocks = (unsigned int) m_pDecoder->GetInfo(APE::IAPEDecompress::APE_DECOMPRESS_TOTAL_BLOCKS);
 
@@ -388,15 +388,15 @@ HRESULT CAPEStream::OpenAPEFile(LPWSTR pFileName)
     m_mtOut.SetType(&MEDIATYPE_Audio);
     m_mtOut.SetSubtype(&MEDIASUBTYPE_PCM);
 
-    WAVEFORMATEX * pwf = (WAVEFORMATEX *) m_mtOut.AllocFormatBuffer(sizeof(WAVEFORMATEX));
+    WAVEFORMATEX * pwf = reinterpret_cast<WAVEFORMATEX *>(m_mtOut.AllocFormatBuffer(sizeof(WAVEFORMATEX)));
 
     // build wave format
     ZeroMemory(pwf, sizeof(WAVEFORMATEX));
 
-    pwf->nChannels = (WORD) m_pDecoder->GetInfo(APE::IAPEDecompress::APE_INFO_CHANNELS);
-    pwf->wBitsPerSample = (WORD) m_pDecoder->GetInfo(APE::IAPEDecompress::APE_INFO_BITS_PER_SAMPLE);
-    pwf->nSamplesPerSec = m_lSampleRate = (long) m_pDecoder->GetInfo(APE::IAPEDecompress::APE_INFO_SAMPLE_RATE);
-    pwf->nBlockAlign = (WORD) m_pDecoder->GetInfo(APE::IAPEDecompress::APE_INFO_BLOCK_ALIGN);
+    pwf->nChannels = static_cast<WORD>(m_pDecoder->GetInfo(APE::IAPEDecompress::APE_INFO_CHANNELS));
+    pwf->wBitsPerSample = static_cast<WORD>(m_pDecoder->GetInfo(APE::IAPEDecompress::APE_INFO_BITS_PER_SAMPLE));
+    pwf->nSamplesPerSec = m_lSampleRate = static_cast<long>(m_pDecoder->GetInfo(APE::IAPEDecompress::APE_INFO_SAMPLE_RATE));
+    pwf->nBlockAlign = static_cast<WORD>(m_pDecoder->GetInfo(APE::IAPEDecompress::APE_INFO_BLOCK_ALIGN));
     pwf->wFormatTag = WAVE_FORMAT_PCM;
     pwf->nAvgBytesPerSec = pwf->nChannels * (pwf->wBitsPerSample>>3) * pwf->nSamplesPerSec;
 
@@ -427,7 +427,7 @@ HRESULT CAPEStream::FillBuffer(IMediaSample *pSample)
     {
         CAutoLock    Lck(&m_csDecoding);
 
-        m_pDecoder->GetData((unsigned char *)pData, lSize / m_iBlockSize, &iBlocksDecoded);
+        m_pDecoder->GetData(static_cast<unsigned char *>(pData), lSize / m_iBlockSize, &iBlocksDecoded);
 
         lSize = iBlocksDecoded * m_iBlockSize;
 
@@ -439,7 +439,7 @@ HRESULT CAPEStream::FillBuffer(IMediaSample *pSample)
         CRefTime    rtStart;
         CRefTime    rtStop;
 
-        rtStart = (__int64)( (double) m_iBlocksDecoded * ( (double)10000000 / (double)m_lSampleRate ) );
+        rtStart = (__int64)( static_cast<double>(m_iBlocksDecoded) * (static_cast<double>(10000000) / static_cast<double>(m_lSampleRate) ) );
         rtStart -= m_rtStart;
         rtStop = rtStart + 1;
         pSample->SetTime((REFERENCE_TIME *)&rtStart, (REFERENCE_TIME *)&rtStop);
@@ -482,7 +482,7 @@ HRESULT CAPEStream::ChangeStart()
 {
     if (m_pDecoder == NULL) return S_FALSE;
 
-    unsigned int iBlock = (unsigned int)(((double)m_rtStart / (double)m_rtDuration) * m_iTotalBlocks);
+    unsigned int iBlock = (unsigned int)((static_cast<double>(m_rtStart) / static_cast<double>(m_rtDuration)) * m_iTotalBlocks);
     {
         CAutoLock    lck(&m_csDecoding);
         m_pDecoder->Seek(iBlock);

@@ -23,6 +23,11 @@ int CALLBACK CFolderDialog::BrowseDirectoryCallback(
 
 CFolderDialog::CFolderDialog(LPCTSTR lpszFolderName, DWORD dwFlags, CWnd* pParentWnd)
 {
+    // initialize
+    m_hDialogBox = NULL;
+    APE_CLEAR(m_szDisplayName);
+    APE_CLEAR(m_szPath);
+
     // Use the supplied initial folder if non-null.
     if (lpszFolderName == NULL)
         m_strInitialFolderName = _T("");

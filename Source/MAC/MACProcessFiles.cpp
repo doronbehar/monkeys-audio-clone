@@ -4,6 +4,7 @@
 #include "MACProgressHelper.h"
 #include "APLHelper.h"
 #include "FormatArray.h"
+#include "APETag.h"
 
 using namespace APE;
 
@@ -270,6 +271,24 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
             // mirror time stamp if specified
             if ((nRetVal == ERROR_SUCCESS) && theApp.GetSettings()->m_bOutputMirrorTimeStamp)
                 CopyFileTime(pInfo->strInputFilename, pInfo->strOutputFilename);
+
+            // copy tags from WavPack to APE files
+            if ((nRetVal == ERROR_SUCCESS) && (pInfo->GetOutputExtension() == _T(".ape")) && (pInfo->strInputFilename.Right(3) == _T(".wv")))
+            {
+                CSmartPtr<APE::IAPETag> spAPETag(new CAPETag(pInfo->strInputFilename, true));
+                if (spAPETag->GetHasAPETag())
+                {
+                    CSmartPtr<APE::IAPETag> spAPETagNew(new CAPETag(pInfo->strOutputFilename, true));
+                    for (int z = 0; true; z++)
+                    {
+                        CAPETagField * pField = spAPETag->GetTagField(z);
+                        if (pField == NULL)
+                            break;
+                        spAPETagNew->SetFieldBinary(pField->GetFieldName(), pField->GetFieldValue(), pField->GetFieldValueSize(), pField->GetFieldFlags());
+                    }
+                    spAPETagNew->Save(false);
+                }
+            }
 
             // verify (if necessary)
             if (bVerifyWhenDone && (nRetVal == ERROR_SUCCESS))
