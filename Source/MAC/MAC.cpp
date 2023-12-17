@@ -216,7 +216,7 @@ CImageList * CMACApp::GetImageList(EImageList Image)
     return pImageList;
 }
 
-CSize CMACApp::GetSize(int x, int y, double dAdditional)
+CSize CMACApp::GetSize(int x, int y, double dAdditional) const
 {
     CSize sizeFinished(x, y);
     sizeFinished.cx = static_cast<int>(m_dScale * dAdditional * static_cast<double>(sizeFinished.cx));
@@ -224,7 +224,7 @@ CSize CMACApp::GetSize(int x, int y, double dAdditional)
     return sizeFinished;
 }
 
-int CMACApp::GetSizeReverse(int nSize)
+int CMACApp::GetSizeReverse(int nSize) const
 {
     int nNewSize = static_cast<int>(static_cast<double>(nSize) / m_dScale);
     return nNewSize;

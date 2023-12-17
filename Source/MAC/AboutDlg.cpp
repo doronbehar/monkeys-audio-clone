@@ -11,7 +11,7 @@ CAboutDlg::CAboutDlg(CWnd * pParent)
     m_bFontsCreated = false;
 }
 
-void CAboutDlg::DoDataExchange(CDataExchange* pDX)
+void CAboutDlg::DoDataExchange(CDataExchange * pDX)
 {
     CDialog::DoDataExchange(pDX);
 }
@@ -25,7 +25,7 @@ BOOL CAboutDlg::OnInitDialog()
 {
     CDialog::OnInitDialog();
 
-    if (sizeof(intn) == 8)
+    if (sizeof(intn) == sizeof(int64))
         SetWindowText(APE_NAME _T(" (64-bit)"));
     else
         SetWindowText(APE_NAME _T(" (32-bit)"));

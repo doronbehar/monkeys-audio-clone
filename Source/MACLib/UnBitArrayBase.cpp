@@ -201,7 +201,7 @@ int CUnBitArrayBase::CreateHelper(CIO * pIO, intn nBytes, intn nVersion)
     // create the bitarray (we allocate and empty a little extra as buffer insurance, although it should never be necessary)
     const size_t nAllocateElements = static_cast<size_t>(m_nElements) + 64;
     m_pBitArray = new uint32 [nAllocateElements];
-    memset(m_pBitArray, 0, nAllocateElements * sizeof(uint32));
+    memset(m_pBitArray, 0, nAllocateElements * sizeof(m_pBitArray[0]));
 
     return (m_pBitArray != APE_NULL) ? 0 : ERROR_INSUFFICIENT_MEMORY;
 }

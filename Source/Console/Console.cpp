@@ -38,7 +38,7 @@ str_utfn * GetParameterFromList(const str_utfn * pList, const str_utfn * pDelimi
     {
         int nBufferSize = static_cast<int>(pTail - pHead);
         str_utfn * pBuffer = new str_utfn [static_cast<size_t>(nBufferSize) + 1];
-        memcpy(pBuffer, pHead, static_cast<size_t>(nBufferSize) * sizeof(str_utfn));
+        memcpy(pBuffer, pHead, static_cast<size_t>(nBufferSize) * sizeof(pBuffer[0]));
         pBuffer[nBufferSize] = 0;
 
         pHead = pTail + wcslen(pDelimiter);
@@ -55,7 +55,7 @@ str_utfn * GetParameterFromList(const str_utfn * pList, const str_utfn * pDelimi
     {
         int nBufferSize = static_cast<int>(wcslen(pHead));
         str_utfn * pBuffer = new str_utfn [static_cast<size_t>(nBufferSize) + 1];
-        memcpy(pBuffer, pHead, static_cast<size_t>(nBufferSize) * sizeof(str_utfn));
+        memcpy(pBuffer, pHead, static_cast<size_t>(nBufferSize) * sizeof(pBuffer[0]));
         pBuffer[nBufferSize] = 0;
         return pBuffer;
     }

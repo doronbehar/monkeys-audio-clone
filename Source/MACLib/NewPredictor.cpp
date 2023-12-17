@@ -202,8 +202,8 @@ int CPredictorDecompressNormal3930to3950::Flush()
     if (m_spNNFilter) m_spNNFilter->Flush();
     if (m_spNNFilter1) m_spNNFilter1->Flush();
 
-    ZeroMemory(m_spBuffer, (HISTORY_ELEMENTS + 1) * sizeof(int));
-    ZeroMemory(&m_aryM[0], M_COUNT * sizeof(int));
+    ZeroMemory(m_spBuffer, (HISTORY_ELEMENTS + 1) * sizeof(m_spBuffer[0]));
+    ZeroMemory(&m_aryM[0], M_COUNT * sizeof(m_aryM[0]));
 
     m_aryM[0] = 360;
     m_aryM[1] = 317;
@@ -223,7 +223,7 @@ int CPredictorDecompressNormal3930to3950::DecompressValue(int64 nInput, int64)
     if (m_nCurrentIndex == WINDOW_BLOCKS)
     {
         // copy forward and adjust pointers
-        memcpy(&m_spBuffer[0], &m_spBuffer[WINDOW_BLOCKS], HISTORY_ELEMENTS * sizeof(int));
+        memmove(&m_spBuffer[0], &m_spBuffer[WINDOW_BLOCKS], HISTORY_ELEMENTS * sizeof(m_spBuffer[0]));
         m_pInputBuffer = &m_spBuffer[HISTORY_ELEMENTS];
 
         m_nCurrentIndex = 0;

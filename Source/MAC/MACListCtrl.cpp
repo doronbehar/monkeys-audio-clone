@@ -246,8 +246,8 @@ void CMACListCtrl::LoadColumns()
         SetColumnWidth(z, nSize);
     }
 
-    CSmartPtr<int> spOrderArray(new int[COLUMN_COUNT], TRUE);
-    if (theApp.GetSettings()->LoadSetting(_T("List Column Order"), spOrderArray, (sizeof(int) * COLUMN_COUNT)))
+    CSmartPtr<int> spOrderArray(new int [COLUMN_COUNT], TRUE);
+    if (theApp.GetSettings()->LoadSetting(_T("List Column Order"), spOrderArray, (sizeof(spOrderArray[0]) * COLUMN_COUNT)))
         SetColumnOrderArray(COLUMN_COUNT, spOrderArray);
 }
 
@@ -375,7 +375,7 @@ void CMACListCtrl::OnDestroy()
 
     CSmartPtr<int> spOrderArray(new int [COLUMN_COUNT], TRUE);
     GetColumnOrderArray(spOrderArray, -1);
-    theApp.GetSettings()->SaveSetting(_T("List Column Order"), spOrderArray, (sizeof(int) * COLUMN_COUNT));
+    theApp.GetSettings()->SaveSetting(_T("List Column Order"), spOrderArray, (sizeof(spOrderArray[0]) * COLUMN_COUNT));
 
     // save the file list
     CString strFileListsFolder = GetUserDataPath() + _T("File Lists\\");
@@ -600,9 +600,9 @@ void CMACListCtrl::OnBegindrag(NMHDR *, LRESULT *)
                 while (InternalPos != NULL)
                 {
                     LPCTSTR pFilename = slDraggedFiles.GetNext(InternalPos).GetString();
-                    _tcscpy_s(pszBuff, static_cast<size_t>(nBufferSizeLeft) / sizeof(TCHAR), pFilename);
+                    _tcscpy_s(pszBuff, static_cast<size_t>(nBufferSizeLeft) / sizeof(pszBuff[0]), pFilename);
                     pszBuff += 1 + _tcslen(pFilename);
-                    nBufferSizeLeft -= static_cast<int>((sizeof(TCHAR) * (1 + _tcslen(pFilename))));
+                    nBufferSizeLeft -= static_cast<int>((sizeof(pszBuff[0]) * (1 + _tcslen(pFilename))));
                 }
                 GlobalUnlock(hgDrop);
 

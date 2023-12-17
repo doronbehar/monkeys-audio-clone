@@ -83,3 +83,7 @@ public:
 
     HRESULT OnThreadStartPlay();
 };
+
+extern int g_cTemplates;
+extern CFactoryTemplate g_Templates[];
+extern BOOL WINAPI DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpReserved);

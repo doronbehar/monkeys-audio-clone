@@ -151,7 +151,7 @@ int CAPEDecompressOld::Seek(int64 nBlockOffset)
     // skip necessary blocks
     const int64 nMaximumDecompressedFrameBytes = m_nBlockAlign * static_cast<int>(GetInfo(APE_INFO_BLOCKS_PER_FRAME));
     CSmartPtr<unsigned char> spTempBuffer;
-    spTempBuffer.Assign(new unsigned char[static_cast<size_t>(nMaximumDecompressedFrameBytes + 16)], true);
+    spTempBuffer.Assign(new unsigned char [static_cast<size_t>(nMaximumDecompressedFrameBytes + 16)], true);
     ZeroMemory(spTempBuffer.GetPtr(), static_cast<size_t>(nMaximumDecompressedFrameBytes + 16));
 
     m_nCurrentFrame = nBaseFrame;

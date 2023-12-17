@@ -69,7 +69,7 @@ CInputSource * CreateInputSource(const wchar_t * pSourceName, WAVEFORMATEX * pwf
     {
         if (pErrorCode) *pErrorCode = ERROR_SUCCESS;
         CInputSource * pWAV =  new CWAVInputSource(pSourceName, pwfeSource, pTotalBlocks, pHeaderBytes, pTerminatingBytes, pErrorCode);
-        if (pwfeSource->wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
+        if (pWAV->GetFloat())
             *pFlags |= APE_FORMAT_FLAG_FLOATING_POINT;
         return pWAV;
     }
@@ -235,6 +235,7 @@ CWAVInputSource::CWAVInputSource(const wchar_t * pSourceName, WAVEFORMATEX * pwf
     m_nTerminatingBytes = 0;
     m_nFileBytes = 0;
     m_nHeaderBytes = 0;
+    m_bFloat = false; // we need a boolean instead of just checking WAVE_FORMAT_IEEE_FLOAT since it can be extensible with the format float
     APE_CLEAR(m_wfeSource);
 
     m_bUnknownLengthPipe = false;
@@ -366,6 +367,10 @@ int CWAVInputSource::AnalyzeSource()
     // copy the format information to the WAVEFORMATEX passed in
     FillWaveFormatEx(&m_wfeSource, static_cast<int>(WAVFormatHeader.nFormatTag), static_cast<int>(WAVFormatHeader.nSamplesPerSecond), static_cast<int>(WAVFormatHeader.nBitsPerSample), static_cast<int>(WAVFormatHeader.nChannels));
 
+    // see if we're float
+    if (WAVFormatHeader.nFormatTag == WAVE_FORMAT_IEEE_FLOAT)
+        m_bFloat = true;
+
     // skip over any extra data in the header
     if (RIFFChunkHeader.nChunkBytes != static_cast<uint32_t>(-1))
     {
@@ -396,10 +401,18 @@ int CWAVInputSource::AnalyzeSource()
                 const CWAVFormatExtra * pExtra = reinterpret_cast<CWAVFormatExtra *>(spWAVFormatHeaderExtra.GetPtr());
 
                 const BYTE guidPCM[16] = { 1, 0, 0, 0, 0, 0, 16, 0, 128, 0, 0, 170, 0, 56, 155, 113 }; // KSDATAFORMAT_SUBTYPE_PCM but that isn't cross-platform
-                if (memcmp(&pExtra->guidSubFormat, &guidPCM, 16) != 0)
+                const BYTE guidFloat[16] = { 3, 0, 0, 0, 0, 0, 16, 0, 128, 0, 0, 170, 0, 56, 155, 113 }; // KSDATAFORMAT_SUBTYPE_IEEE_FLOAT but that isn't cross-platform
+                if ((memcmp(&pExtra->guidSubFormat, &guidPCM, 16) != 0) &&
+                    (memcmp(&pExtra->guidSubFormat, &guidFloat, 16) != 0))
                 {
-                    // we're not PCM, so error
+                    // we're not PCM or float, so error
                     return ERROR_INVALID_INPUT_FILE;
+                }
+
+                // switch the format to float if we're the float subtype
+                if (memcmp(&pExtra->guidSubFormat, &guidFloat, 16) == 0)
+                {
+                    m_bFloat = true;
                 }
             }
         }
@@ -411,7 +424,7 @@ int CWAVInputSource::AnalyzeSource()
     while (!(RIFFChunkHeader.cChunkLabel[0] == 'd' && RIFFChunkHeader.cChunkLabel[1] == 'a' && RIFFChunkHeader.cChunkLabel[2] == 't' && RIFFChunkHeader.cChunkLabel[3] == 'a'))
     {
         // move the file pointer to the end of this chunk
-        CSmartPtr<unsigned char> spRIFFChunk(new unsigned char[RIFFChunkHeader.nChunkBytes], true);
+        CSmartPtr<unsigned char> spRIFFChunk(new unsigned char [RIFFChunkHeader.nChunkBytes], true);
         RETURN_ON_ERROR(ReadSafe(m_spIO, spRIFFChunk, static_cast<int>(RIFFChunkHeader.nChunkBytes)))
 
         // check again for the data chunk
@@ -643,9 +656,7 @@ int CAIFFInputSource::AnalyzeSource()
             Common.nSampleRateMantissa = Swap8Bytes(Common.nSampleRateMantissa);
             const double dSampleRate = GetExtendedDouble(Common.nSampleRateExponent, Common.nSampleRateMantissa);
             const uint32_t nSampleRate = static_cast<uint32_t>(dSampleRate);
-
-            // copy the format information to the WAVEFORMATEX passed in
-            FillWaveFormatEx(&m_wfeSource, WAVE_FORMAT_PCM, static_cast<int>(nSampleRate), static_cast<int>(Common.nSampleSize), static_cast<int>(Common.nChannels));
+            bool bFloat = false;
 
             // skip rest of header
             if (Chunk.nChunkBytes > sizeof(Common))
@@ -678,6 +689,7 @@ int CAIFFInputSource::AnalyzeSource()
                         (spBuffer[2] == '3') &&
                         (spBuffer[3] == '2'))
                     {
+                        bFloat = true;
                         #ifndef APE_SUPPORT_FLOAT_COMPRESSION
                             // 32-bit floating point data (not supported)
                             return ERROR_INVALID_INPUT_FILE;
@@ -690,6 +702,9 @@ int CAIFFInputSource::AnalyzeSource()
                     }
                 }
             }
+
+            // copy the format information to the WAVEFORMATEX passed in
+            FillWaveFormatEx(&m_wfeSource, bFloat ? WAVE_FORMAT_IEEE_FLOAT : WAVE_FORMAT_PCM, static_cast<int>(nSampleRate), static_cast<int>(Common.nSampleSize), static_cast<int>(Common.nChannels));
         }
         else if ((Chunk.cChunkName[0] == 'S') && (Chunk.cChunkName[1] == 'S') && (Chunk.cChunkName[2] == 'N') && (Chunk.cChunkName[3] == 'D'))
         {

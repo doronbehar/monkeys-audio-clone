@@ -25,6 +25,7 @@ public:
 
     // get other properties
     virtual bool GetUnknownLengthPipe() { return false; }
+    virtual bool GetFloat() { return false; }
 
 protected:
     // get header / terminating data
@@ -53,6 +54,7 @@ public:
 
     // get other properties
     bool GetUnknownLengthPipe() APE_OVERRIDE { return m_bUnknownLengthPipe; }
+    bool GetFloat() APE_OVERRIDE { return m_bFloat; }
 
 private:
     int AnalyzeSource();
@@ -66,6 +68,7 @@ private:
     WAVEFORMATEX m_wfeSource;
     bool m_bIsValid;
     bool m_bUnknownLengthPipe;
+    bool m_bFloat;
 };
 
 /**************************************************************************************************
