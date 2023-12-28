@@ -2,8 +2,6 @@
 #include "APEHeader.h"
 #include "APEInfo.h"
 
-#define WAV_HEADER_SANITY (1024 * 1024) // no WAV header should be larger than 1MB, do not even try to read if larger
-
 namespace APE
 {
 
@@ -252,7 +250,7 @@ int CAPEHeader::AnalyzeCurrent(APE_FILE_INFO * pInfo)
     // get the wave header
     if (!(APEHeader.nFormatFlags & APE_FORMAT_FLAG_CREATE_WAV_HEADER))
     {
-        if (pInfo->nWAVHeaderBytes < 0 || pInfo->nWAVHeaderBytes > WAV_HEADER_SANITY)
+        if (pInfo->nWAVHeaderBytes < 0 || pInfo->nWAVHeaderBytes > APE_WAV_HEADER_OR_FOOTER_MAXIMUM_BYTES)
         {
             return ERROR_INVALID_INPUT_FILE;
         }
@@ -358,7 +356,7 @@ int CAPEHeader::AnalyzeOld(APE_FILE_INFO * pInfo)
     // get the wave header
     if (!(APEHeader.nFormatFlags & APE_FORMAT_FLAG_CREATE_WAV_HEADER) && (APEHeader.nHeaderBytes > 0))
     {
-        if (APEHeader.nHeaderBytes > WAV_HEADER_SANITY) return ERROR_INVALID_INPUT_FILE;
+        if (APEHeader.nHeaderBytes > APE_WAV_HEADER_OR_FOOTER_MAXIMUM_BYTES) return ERROR_INVALID_INPUT_FILE;
         if (m_pIO->GetPosition() + APEHeader.nHeaderBytes > m_pIO->GetSize()) { return ERROR_UNDEFINED; }
         pInfo->spWaveHeaderData.Assign(new unsigned char [APEHeader.nHeaderBytes], true);
         if (pInfo->spWaveHeaderData == APE_NULL) { return ERROR_UNDEFINED; }

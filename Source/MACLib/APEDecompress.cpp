@@ -194,9 +194,9 @@ int CAPEDecompress::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlo
             {
                 for (int nSample = 0; nSample < nBlocksDecoded * nChannels; nSample++)
                 {
-                    const unsigned char cTemp = pBuffer[(nChannels * nSample) + 0];
-                    pBuffer[(nChannels * nSample) + 0] = pBuffer[(nChannels * nSample) + 1];
-                    pBuffer[(nChannels * nSample) + 1] = cTemp;
+                    const unsigned char cTemp = pBuffer[(nSample * 2) + 0];
+                    pBuffer[(nSample * 2) + 0] = pBuffer[(nSample * 2) + 1];
+                    pBuffer[(nSample * 2) + 1] = cTemp;
                 }
             }
             else if (nBitdepth == 24)

@@ -468,7 +468,7 @@ int __stdcall CompressFileW2(const APE::str_utfn * pInputFilename, const APE::st
         // start the encoder
         if (nHeaderBytes > 0) spBuffer.Assign(new unsigned char[static_cast<uint32>(nHeaderBytes)], true);
         THROW_ON_ERROR(spInputSource->GetHeaderData(spBuffer.GetPtr()))
-        THROW_ON_ERROR(spAPECompress->Start(pOutputFilename, &WaveFormatEx, nAudioBytes, nCompressionLevel, spBuffer.GetPtr(), nHeaderBytes, nFlags))
+        THROW_ON_ERROR(spAPECompress->Start(pOutputFilename, &WaveFormatEx, spInputSource->GetFloat(), nAudioBytes, nCompressionLevel, spBuffer.GetPtr(), nHeaderBytes, nFlags))
         spBuffer.Delete();
 
         // set-up the progress
@@ -768,7 +768,8 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
 
             // create and start the compressor
             spAPECompress.Assign(CreateIAPECompress());
-            THROW_ON_ERROR(spAPECompress->Start(pOutputFilename, &wfeInput, (spAPEDecompress->GetInfo(IAPEDecompress::APE_DECOMPRESS_TOTAL_BLOCKS) * spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BLOCK_ALIGN)),
+            THROW_ON_ERROR(spAPECompress->Start(pOutputFilename, &wfeInput, spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_FLOATING_POINT,
+                (spAPEDecompress->GetInfo(IAPEDecompress::APE_DECOMPRESS_TOTAL_BLOCKS) * spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BLOCK_ALIGN)),
                 nCompressionLevel, spTempBuffer, spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_HEADER_BYTES), nFlags))
         }
 #endif

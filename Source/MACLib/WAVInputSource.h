@@ -41,8 +41,11 @@ CWAVInputSource - wraps working with WAV files
 class CWAVInputSource : public CInputSource
 {
 public:
+    // test header
+    static bool GetHeaderMatches(BYTE aryHeader[64]);
+
     // construction / destruction
-    CWAVInputSource(const wchar_t * pSourceName, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode = APE_NULL);
+    CWAVInputSource(CIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode = APE_NULL);
     ~CWAVInputSource();
 
     // get data
@@ -77,8 +80,11 @@ CAIFFInputSource - wraps working with AIFF files
 class CAIFFInputSource : public CInputSource
 {
 public:
+    // test header
+    static bool GetHeaderMatches(BYTE aryHeader[64]);
+
     // construction / destruction
-    CAIFFInputSource(const wchar_t * pSourceName, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode = APE_NULL);
+    CAIFFInputSource(CIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode = APE_NULL);
     ~CAIFFInputSource();
 
     // get data
@@ -90,6 +96,9 @@ public:
 
     // endian
     bool GetIsBigEndian();
+
+    // get other properties
+    bool GetFloat() APE_OVERRIDE { return m_bFloat; }
 
 private:
     int AnalyzeSource();
@@ -104,6 +113,7 @@ private:
     WAVEFORMATEX m_wfeSource;
     bool m_bIsValid;
     bool m_bLittleEndian;
+    bool m_bFloat;
 };
 
 /**************************************************************************************************
@@ -128,8 +138,11 @@ struct WAVFormatChunkData
 class CW64InputSource : public CInputSource
 {
 public:
+    // test header
+    static bool GetHeaderMatches(BYTE aryHeader[64]);
+
     // construction / destruction
-    CW64InputSource(const wchar_t * pSourceName, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode = APE_NULL);
+    CW64InputSource(CIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode = APE_NULL);
     ~CW64InputSource();
 
     // get data
@@ -138,6 +151,9 @@ public:
     // get header / terminating data
     int GetHeaderData(unsigned char * pBuffer) APE_OVERRIDE;
     int GetTerminatingData(unsigned char * pBuffer) APE_OVERRIDE;
+
+    // get other properties
+    bool GetFloat() APE_OVERRIDE { return m_bFloat; }
 
 private:
     int AnalyzeSource();
@@ -150,6 +166,7 @@ private:
     int64 m_nFileBytes;
     WAVEFORMATEX m_wfeSource;
     bool m_bIsValid;
+    bool m_bFloat;
 };
 
 /**************************************************************************************************
@@ -158,8 +175,11 @@ CSNDInputSource - wraps working with SND files
 class CSNDInputSource : public CInputSource
 {
 public:
+    // test header
+    static bool GetHeaderMatches(BYTE aryHeader[64]);
+
     // construction / destruction
-    CSNDInputSource(const wchar_t * pSourceName, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode = APE_NULL, int32 * pFlags = APE_NULL);
+    CSNDInputSource(CIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode = APE_NULL, int32 * pFlags = APE_NULL);
     ~CSNDInputSource();
 
     // get data
@@ -168,6 +188,9 @@ public:
     // get header / terminating data
     int GetHeaderData(unsigned char * pBuffer) APE_OVERRIDE;
     int GetTerminatingData(unsigned char * pBuffer) APE_OVERRIDE;
+
+    // get other properties
+    bool GetFloat() APE_OVERRIDE { return (m_wfeSource.wFormatTag == WAVE_FORMAT_IEEE_FLOAT); }
 
 private:
     int AnalyzeSource(int32 * pFlags);
@@ -189,8 +212,11 @@ CCAFInputSource - wraps working with CAF files
 class CCAFInputSource : public CInputSource
 {
 public:
+    // test header
+    static bool GetHeaderMatches(BYTE aryHeader[64]);
+
     // construction / destruction
-    CCAFInputSource(const wchar_t * pSourceName, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode = APE_NULL);
+    CCAFInputSource(CIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode = APE_NULL);
     ~CCAFInputSource();
 
     // get data
@@ -199,6 +225,9 @@ public:
     // get header / terminating data
     int GetHeaderData(unsigned char * pBuffer) APE_OVERRIDE;
     int GetTerminatingData(unsigned char * pBuffer) APE_OVERRIDE;
+
+    // get other properties
+    bool GetFloat() APE_OVERRIDE { return (m_wfeSource.wFormatTag == WAVE_FORMAT_IEEE_FLOAT); }
 
     // endian
     bool GetIsBigEndian();

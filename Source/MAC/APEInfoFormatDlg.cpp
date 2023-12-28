@@ -131,7 +131,7 @@ CString CAPEInfoFormatDlg::GetSummary(const CString & strFilename)
                 strFormat += _T("\r\nBig endian");
             if (nFlags & APE_FORMAT_FLAG_SIGNED_8_BIT)
                 strFormat += _T("\r\nSigned 8-bit");
-            if (wfeInput.wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
+            if (spInputSource->GetFloat())
                 strFormat += _T("\r\nFloating point");
         }
         else
