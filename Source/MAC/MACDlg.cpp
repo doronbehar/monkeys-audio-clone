@@ -587,10 +587,11 @@ void CMACDlg::OnTimer(UINT_PTR nIDEvent)
         }
 
         // output our progress
+        BOOL bPaused = m_spProcessFiles->GetPaused();
         for (int z = 0; z < m_aryFiles.GetSize(); z++)
         {
             MAC_FILE * pInfo = &m_aryFiles[z];
-            if (pInfo && (pInfo->bNeedsUpdate || pInfo->GetRunning()))
+            if (pInfo && (pInfo->bNeedsUpdate || (pInfo->GetRunning() && (bPaused == FALSE))))
             {
                 CRect rectItem;
                 m_ctrlList.GetItemRect(z, &rectItem, LVIR_BOUNDS);

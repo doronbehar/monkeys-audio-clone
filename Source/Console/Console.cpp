@@ -449,7 +449,7 @@ int _tmain(int argc, TCHAR * argv[])
             #endif
         }
     }
-    else 
+    else
 #endif
     if (nMode == DECOMPRESS_MODE)
     {

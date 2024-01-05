@@ -86,7 +86,7 @@ CInputSource * CreateInputSource(const wchar_t * pSourceName, WAVEFORMATEX * pwf
     spIO.SetDelete(false);
     spIO.Assign(spHeaderIO);
     spIO.SetDelete(true); // this is redundant because Assign sets it, but it's here for clarity
-    
+
     // read header
     if (CWAVInputSource::GetHeaderMatches(aryHeader))
     {
@@ -377,6 +377,10 @@ int CWAVInputSource::AnalyzeSource()
 
     while (!(RIFFChunkHeader.cChunkLabel[0] == 'f' && RIFFChunkHeader.cChunkLabel[1] == 'm' && RIFFChunkHeader.cChunkLabel[2] == 't' && RIFFChunkHeader.cChunkLabel[3] == ' '))
     {
+        // check if the header stretches past the end of the file (then we're not valid)
+        if (RIFFChunkHeader.nChunkBytes > (m_spIO->GetSize() - m_spIO->GetPosition()))
+            return ERROR_INVALID_INPUT_FILE;
+
         // move the file pointer to the end of this chunk
         CSmartPtr<unsigned char> spExtraChunk(new unsigned char [RIFFChunkHeader.nChunkBytes], true);
         RETURN_ON_ERROR(ReadSafe(m_spIO, spExtraChunk, static_cast<int>(RIFFChunkHeader.nChunkBytes)))
@@ -459,11 +463,19 @@ int CWAVInputSource::AnalyzeSource()
         }
     }
 
+    // if we're float, force the size to 32-bit (we found some files where this wasn't true)
+    if (m_bFloat)
+        FillWaveFormatEx(&m_wfeSource, static_cast<int>(m_wfeSource.wFormatTag), static_cast<int>(m_wfeSource.nSamplesPerSec), static_cast<int>(32), static_cast<int>(m_wfeSource.nChannels));
+
     // find the data chunk
     RETURN_ON_ERROR(ReadSafe(m_spIO, &RIFFChunkHeader, sizeof(RIFFChunkHeader)))
 
     while (!(RIFFChunkHeader.cChunkLabel[0] == 'd' && RIFFChunkHeader.cChunkLabel[1] == 'a' && RIFFChunkHeader.cChunkLabel[2] == 't' && RIFFChunkHeader.cChunkLabel[3] == 'a'))
     {
+        // check for headers that go past the end of the file
+        if (RIFFChunkHeader.nChunkBytes > (m_spIO->GetSize() - m_spIO->GetPosition()))
+            return ERROR_INVALID_INPUT_FILE;
+
         // move the file pointer to the end of this chunk
         CSmartPtr<unsigned char> spRIFFChunk(new unsigned char [RIFFChunkHeader.nChunkBytes], true);
         RETURN_ON_ERROR(ReadSafe(m_spIO, spRIFFChunk, static_cast<int>(RIFFChunkHeader.nChunkBytes)))
@@ -1388,15 +1400,15 @@ int CCAFInputSource::AnalyzeSource()
         uint32_t mBitsPerChannel;
     };
     enum {
-		APE_kCAFLinearPCMFormatFlagIsFloat = (1L << 0),
-		APE_kCAFLinearPCMFormatFlagIsLittleEndian = (1L << 1)
+        APE_kCAFLinearPCMFormatFlagIsFloat = (1L << 0),
+        APE_kCAFLinearPCMFormatFlagIsLittleEndian = (1L << 1)
     };
     #pragma pack(pop)
 
     bool bFoundDesc = false;
     while (true)
     {
-		APE_CAFChunkHeader Chunk;
+        APE_CAFChunkHeader Chunk;
         if (ReadSafe(m_spIO, &Chunk, sizeof(Chunk)) != ERROR_SUCCESS)
             return ERROR_INVALID_INPUT_FILE; // we read past the last chunk and didn't find the necessary chunks
 

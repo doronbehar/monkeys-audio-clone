@@ -175,7 +175,7 @@ int CHeaderIO::Read(void * pBuffer, unsigned int nBytesToRead, unsigned int * pB
     {
         nResult = m_spSource->Read(pBuffer, nBytesToRead, pBytesRead);
     }
-    
+
     // increment position
     m_nPosition += *pBytesRead;
 
@@ -185,7 +185,12 @@ int CHeaderIO::Read(void * pBuffer, unsigned int nBytesToRead, unsigned int * pB
 
 int CHeaderIO::Write(const void * pBuffer, unsigned int nBytesToWrite, unsigned int * pBytesWritten)
 {
-    return m_spSource->Write(pBuffer, nBytesToWrite, pBytesWritten);
+    int nResult = m_spSource->Write(pBuffer, nBytesToWrite, pBytesWritten);
+
+    // increment position
+    m_nPosition += *pBytesWritten;
+
+    return nResult;
 }
 
 int CHeaderIO::Seek(int64 nPosition, SeekMethod nMethod)
@@ -226,7 +231,7 @@ int CHeaderIO::SetEOF()
 
 int64 CHeaderIO::GetPosition()
 {
-    return m_spSource->GetPosition();
+    return m_nPosition;
 }
 
 int64 CHeaderIO::GetSize()
