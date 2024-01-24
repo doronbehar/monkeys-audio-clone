@@ -7,6 +7,8 @@ namespace APE
 
 class IAPEDecompress;
 
+#pragma pack(push, 1)
+
 // decodes 0000 up to and including 3890
 class CUnBitArrayOld : public CUnBitArrayBase
 {
@@ -21,13 +23,13 @@ public:
 
 private:
     // helpers
-    void GenerateArrayOld(int * pOutputArray, uint32 NumberOfElements, int MinimumBitArrayBytes);
-    void GenerateArrayRice(int * pOutputArray, uint32 NumberOfElements);
+    void GenerateArrayOld(int * pOutputArray, uint32 nNumberOfElements, int nMinimumBitArrayBytes);
+    void GenerateArrayRice(int * pOutputArray, uint32 nNumberOfElements);
     uint32 DecodeValueRiceUnsigned(uint32 kl);
 
     // data
-    uint32 m_k;
-    uint32 m_K_Sum;
+    uint32 m_nK;
+    uint32 m_nKSum;
     uint32 m_nRefillBitThreshold;
 
     // functions
@@ -35,5 +37,7 @@ private:
     uint32 GetBitsRemaining();
     __forceinline uint32 Get_K(uint32 x);
 };
+
+#pragma pack(pop)
 
 }

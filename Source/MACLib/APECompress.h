@@ -49,8 +49,7 @@ private:
     int64 m_nBufferTail;
     int64 m_nBufferSize;
     CSmartPtr<unsigned char> m_spBuffer;
-    CIO * m_pioOutput;
-    bool m_bOwnsOutputIO;
+    CSmartPtr<CIO> m_spioOutput;
     bool m_bBufferLocked;
     bool m_bFloat;
     WAVEFORMATEX m_wfeInput;

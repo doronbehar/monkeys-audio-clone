@@ -984,7 +984,7 @@ extern "C" int APE_GetAlbumArt(const wchar_t * filename, const wchar_t * type, v
         if ((pTagImage != NULL) && (pTagImage->GetFieldSize() > 0))
         {
             *len = static_cast<size_t>(pTagImage->GetFieldSize());
-            CSmartPtr<BYTE> spBuffer(new BYTE[*len], true);
+            CSmartPtr<BYTE> spBuffer(new BYTE [*len], true);
 
             int nBufferBytes = static_cast<int>(*len);
             if (pTag->GetFieldBinary(APE_TAG_FIELD_COVER_ART_FRONT, spBuffer, &nBufferBytes) == ERROR_SUCCESS)

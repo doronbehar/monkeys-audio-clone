@@ -23,8 +23,8 @@ CUnBitArrayOld::CUnBitArrayOld(IAPEDecompress * pAPEDecompress, intn nVersion, i
     CUnBitArrayBase(nFurthestReadByte)
 {
     // initialize (to avoid warnings)
-    m_K_Sum = 0;
-    m_k = 0;
+    m_nKSum = 0;
+    m_nK = 0;
 
     // bit array size
     intn nBitArrayBytes = 262144;
@@ -61,7 +61,6 @@ CUnBitArrayOld::CUnBitArrayOld(IAPEDecompress * pAPEDecompress, intn nVersion, i
 
 CUnBitArrayOld::~CUnBitArrayOld()
 {
-    APE_SAFE_ARRAY_DELETE(m_pBitArray)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -82,7 +81,7 @@ uint32 CUnBitArrayOld::DecodeValueRiceUnsigned(uint32 k)
 
     // plug through the string of 0's (the overflow)
     const uint32 BitInitial = m_nCurrentBitIndex;
-    while (!(m_pBitArray[m_nCurrentBitIndex >> 5] & Powers_of_Two_Reversed[m_nCurrentBitIndex & 31]))
+    while (!(m_spBitArray[m_nCurrentBitIndex >> 5] & Powers_of_Two_Reversed[m_nCurrentBitIndex & 31]))
     {
         m_nCurrentBitIndex++;
         if (m_nCurrentBitIndex >= m_nBits)
@@ -131,7 +130,7 @@ uint32 CUnBitArrayOld::DecodeValue(DECODE_VALUE_METHOD DecodeMethod, int nParam1
 ////////////////////////////////////////////////////////////////////////////////////
 // Generates an array from the m_nCurrentBitIndexarray
 ////////////////////////////////////////////////////////////////////////////////////
-void CUnBitArrayOld::GenerateArrayOld(int * Output_Array, uint32 Number_of_Elements, int Minimum_nCurrentBitIndex_Array_Bytes)
+void CUnBitArrayOld::GenerateArrayOld(int * pOutputArray, uint32 nNumberOfElements, int nMinimumBitArrayBytes)
 {
     // variable declarations
     uint32 K_Sum;
@@ -143,50 +142,50 @@ void CUnBitArrayOld::GenerateArrayOld(int * Output_Array, uint32 Number_of_Eleme
 
     // fill bit array if necessary
     // could use seek information to determine what the max was...
-    uint32 Max_Bits_Needed = Number_of_Elements * 50;
+    uint32 Max_Bits_Needed = nNumberOfElements * 50;
 
-    if (Minimum_nCurrentBitIndex_Array_Bytes > 0)
+    if (nMinimumBitArrayBytes > 0)
     {
         // this is actually probably double what is really needed
         // we can only calculate the space needed for both arrays in multichannel
-        Max_Bits_Needed = static_cast<uint32>((Minimum_nCurrentBitIndex_Array_Bytes + 4) * 8);
+        Max_Bits_Needed = static_cast<uint32>((nMinimumBitArrayBytes + 4) * 8);
     }
 
     if (Max_Bits_Needed > GetBitsRemaining())
         FillBitArray();
 
     // decode the first 5 elements (all k = 10)
-    Max = (Number_of_Elements < 5) ? Number_of_Elements : 5;
+    Max = (nNumberOfElements < 5) ? nNumberOfElements : 5;
     for (q = 0; q < Max; q++)
     {
-        Output_Array[q] = static_cast<int>(DecodeValueRiceUnsigned(10));
+        pOutputArray[q] = static_cast<int>(DecodeValueRiceUnsigned(10));
     }
 
     // quit if that was all
-    if (Number_of_Elements <= 5)
+    if (nNumberOfElements <= 5)
     {
-        for (p2 = &Output_Array[0]; p2 < &Output_Array[Number_of_Elements]; p2++)
+        for (p2 = &pOutputArray[0]; p2 < &pOutputArray[nNumberOfElements]; p2++)
             *p2 = (*p2 & 1) ? (*p2 >> 1) + 1 : -(*p2 >> 1);
         return;
     }
 
     // update k and K_Sum
-    K_Sum = static_cast<uint32>(Output_Array[0] + Output_Array[1] + Output_Array[2] + Output_Array[3] + Output_Array[4]);
+    K_Sum = static_cast<uint32>(pOutputArray[0] + pOutputArray[1] + pOutputArray[2] + pOutputArray[3] + pOutputArray[4]);
     k = Get_K(K_Sum / 10);
 
     // work through the rest of the elements before the primary loop
-    Max = (Number_of_Elements < 64) ? Number_of_Elements : 64;
+    Max = (nNumberOfElements < 64) ? nNumberOfElements : 64;
     for (q = 5; q < Max; q++)
     {
-        Output_Array[q] = static_cast<int>(DecodeValueRiceUnsigned(k));
-        K_Sum += static_cast<uint32>(Output_Array[q]); // we established it was unsigned above
+        pOutputArray[q] = static_cast<int>(DecodeValueRiceUnsigned(k));
+        K_Sum += static_cast<uint32>(pOutputArray[q]); // we established it was unsigned above
         k = Get_K(K_Sum / (q  + 1) / 2);
     }
 
     // quit if that was all
-    if (Number_of_Elements <= 64)
+    if (nNumberOfElements <= 64)
     {
-        for (p2 = &Output_Array[0]; p2 < &Output_Array[Number_of_Elements]; p2++)
+        for (p2 = &pOutputArray[0]; p2 < &pOutputArray[nNumberOfElements]; p2++)
             *p2 = (*p2 & 1) ? (*p2 >> 1) + 1 : -(*p2 >> 1);
         return;
     }
@@ -198,11 +197,11 @@ void CUnBitArrayOld::GenerateArrayOld(int * Output_Array, uint32 Number_of_Eleme
     kmax = K_SUM_MAX_BOUNDARY_OLD[k];
 
     // the primary loop
-    for (p1 = &Output_Array[64], p2 = &Output_Array[0]; p1 < &Output_Array[Number_of_Elements]; p1++, p2++)
+    for (p1 = &pOutputArray[64], p2 = &pOutputArray[0]; p1 < &pOutputArray[nNumberOfElements]; p1++, p2++)
     {
         // plug through the string of 0's (the overflow)
-        const uint32 Bit_Initial = m_nCurrentBitIndex;
-        while (!(m_pBitArray[m_nCurrentBitIndex >> 5] & Powers_of_Two_Reversed[m_nCurrentBitIndex & 31]))
+        const uint32 nBitInitial = m_nCurrentBitIndex;
+        while (!(m_spBitArray[m_nCurrentBitIndex >> 5] & Powers_of_Two_Reversed[m_nCurrentBitIndex & 31]))
         {
             m_nCurrentBitIndex++;
             if (m_nCurrentBitIndex >= m_nBits)
@@ -213,12 +212,12 @@ void CUnBitArrayOld::GenerateArrayOld(int * Output_Array, uint32 Number_of_Eleme
         // if k = 0, your done
         if (k == 0)
         {
-            v = (m_nCurrentBitIndex - Bit_Initial - 1);
+            v = (m_nCurrentBitIndex - nBitInitial - 1);
         }
         else
         {
             // put the overflow value into v
-            v = (m_nCurrentBitIndex - Bit_Initial - 1) << k;
+            v = (m_nCurrentBitIndex - nBitInitial - 1) << k;
 
             // store the bit information and incement the bit pointer by 'k'
             Bit_Array_Index = m_nCurrentBitIndex >> 5;
@@ -227,12 +226,12 @@ void CUnBitArrayOld::GenerateArrayOld(int * Output_Array, uint32 Number_of_Eleme
 
             // figure the extra bits on the left and the left value
             const int Left_Extra_Bits = static_cast<int>((32 - k) - Bit_Index);
-            const unsigned int Left_Value = m_pBitArray[Bit_Array_Index] & Powers_of_Two_Minus_One_Reversed[Bit_Index];
+            const unsigned int Left_Value = m_spBitArray[Bit_Array_Index] & Powers_of_Two_Minus_One_Reversed[Bit_Index];
 
             if (Left_Extra_Bits >= 0)
                 v |= (Left_Value >> Left_Extra_Bits);
             else
-                v |= (Left_Value << -Left_Extra_Bits) | (m_pBitArray[Bit_Array_Index + 1] >> (32 + Left_Extra_Bits));
+                v |= (Left_Value << -Left_Extra_Bits) | (m_spBitArray[Bit_Array_Index + 1] >> (32 + Left_Extra_Bits));
         }
 
         *p1 = static_cast<int>(v);
@@ -254,7 +253,7 @@ void CUnBitArrayOld::GenerateArrayOld(int * Output_Array, uint32 Number_of_Eleme
         }
     }
 
-    for (; p2 < &Output_Array[Number_of_Elements]; p2++)
+    for (; p2 < &pOutputArray[nNumberOfElements]; p2++)
         *p2 = (*p2 & 1) ? (*p2 >> 1) + 1 : -(*p2 >> 1);
 }
 
@@ -274,19 +273,19 @@ void CUnBitArrayOld::GenerateArray(int * pOutputArray, int nElements, intn nByte
     }
 }
 
-void CUnBitArrayOld::GenerateArrayRice(int * Output_Array, uint32 Number_of_Elements)
+void CUnBitArrayOld::GenerateArrayRice(int * pOutputArray, uint32 nNumberOfElements)
 {
     /////////////////////////////////////////////////////////////////////////////
     // decode the bit array
     /////////////////////////////////////////////////////////////////////////////
 
-    m_k = 10;
-    m_K_Sum = 1024 * 16;
+    m_nK = 10;
+    m_nKSum = 1024 * 16;
 
     if (m_nVersion <= 3880)
     {
         // the primary loop
-        for (int * p1 = &Output_Array[0]; p1 < &Output_Array[Number_of_Elements]; p1++)
+        for (int * p1 = &pOutputArray[0]; p1 < &pOutputArray[nNumberOfElements]; p1++)
         {
             *p1 = DecodeValueNew(false);
         }
@@ -294,7 +293,7 @@ void CUnBitArrayOld::GenerateArrayRice(int * Output_Array, uint32 Number_of_Elem
     else
     {
         // the primary loop
-        for (int * p1 = &Output_Array[0]; p1 < &Output_Array[Number_of_Elements]; p1++)
+        for (int * p1 = &pOutputArray[0]; p1 < &pOutputArray[nNumberOfElements]; p1++)
         {
             *p1 = DecodeValueNew(true);
         }
@@ -313,45 +312,45 @@ __inline int CUnBitArrayOld::DecodeValueNew(bool bCapOverflow)
     unsigned int v;
 
     // plug through the string of 0's (the overflow)
-    const uint32 Bit_Initial = m_nCurrentBitIndex;
-    while (!(m_pBitArray[m_nCurrentBitIndex >> 5] & Powers_of_Two_Reversed[m_nCurrentBitIndex & 31])) {
+    const uint32 nBitInitial = m_nCurrentBitIndex;
+    while (!(m_spBitArray[m_nCurrentBitIndex >> 5] & Powers_of_Two_Reversed[m_nCurrentBitIndex & 31])) {
         m_nCurrentBitIndex++;
     }
     m_nCurrentBitIndex++;
 
-    int nOverflow = static_cast<int>(m_nCurrentBitIndex - Bit_Initial - 1);
+    int nOverflow = static_cast<int>(m_nCurrentBitIndex - nBitInitial - 1);
 
     if (bCapOverflow)
     {
         while (nOverflow >= 16)
         {
-            m_k += 4;
+            m_nK += 4;
             nOverflow -= 16;
         }
     }
 
     // if k = 0, your done
-    if (m_k != 0)
+    if (m_nK != 0)
     {
         // put the overflow value into v
-        v = static_cast<unsigned int>(nOverflow << m_k);
+        v = static_cast<unsigned int>(nOverflow << m_nK);
 
         // store the bit information and incement the bit pointer by 'k'
         const unsigned int Bit_Array_Index = m_nCurrentBitIndex >> 5;
         const unsigned int Bit_Index = m_nCurrentBitIndex & 31;
-        m_nCurrentBitIndex += m_k;
+        m_nCurrentBitIndex += m_nK;
 
         // figure the extra bits on the left and the left value
-        const int Left_Extra_Bits = static_cast<int>((32 - m_k) - Bit_Index);
-        const unsigned int Left_Value = m_pBitArray[Bit_Array_Index] & Powers_of_Two_Minus_One_Reversed[Bit_Index];
+        const int nLeftExtraBits = static_cast<int>((32 - m_nK) - Bit_Index);
+        const unsigned int Left_Value = m_spBitArray[Bit_Array_Index] & Powers_of_Two_Minus_One_Reversed[Bit_Index];
 
-        if (Left_Extra_Bits >= 0)
+        if (nLeftExtraBits >= 0)
         {
-            v |= (Left_Value >> Left_Extra_Bits);
+            v |= (Left_Value >> nLeftExtraBits);
         }
         else
         {
-            v |= (Left_Value << -Left_Extra_Bits) | (m_pBitArray[Bit_Array_Index + 1] >> (32 + Left_Extra_Bits));
+            v |= (Left_Value << -nLeftExtraBits) | (m_spBitArray[Bit_Array_Index + 1] >> (32 + nLeftExtraBits));
         }
     }
     else
@@ -360,17 +359,17 @@ __inline int CUnBitArrayOld::DecodeValueNew(bool bCapOverflow)
     }
 
     // update K_Sum
-    m_K_Sum += v - ((m_K_Sum + 8) >> 4);
+    m_nKSum += v - ((m_nKSum + 8) >> 4);
 
     // clip k
-    if (m_k > 31)
-        m_k = 31;
+    if (m_nK > 31)
+        m_nK = 31;
 
     // update k
-    if (m_K_Sum < K_SUM_MIN_BOUNDARY[m_k])
-        m_k--;
-    else if (K_SUM_MAX_BOUNDARY[m_k] && m_K_Sum >= K_SUM_MAX_BOUNDARY[m_k])
-        m_k++;
+    if (m_nKSum < K_SUM_MIN_BOUNDARY[m_nK])
+        m_nK--;
+    else if (K_SUM_MAX_BOUNDARY[m_nK] && m_nKSum >= K_SUM_MAX_BOUNDARY[m_nK])
+        m_nK++;
 
     // convert to unsigned and save
     return (v & 1) ? static_cast<int>(v >> 1) + 1 : -(static_cast<int>(v >> 1));

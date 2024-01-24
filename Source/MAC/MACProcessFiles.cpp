@@ -260,13 +260,27 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
             // analyze if the input and output are the same
             BOOL bInputOutputSame = (pInfo->strInputFilename.CompareNoCase(pInfo->strOutputFilename) == 0);
 
-            // rename output if necessary
-            if ((bInputOutputSame == FALSE) && (theApp.GetSettings()->m_nOutputExistsMode == OUTPUT_EXISTS_MODE_RENAME))
-                pInfo->strOutputFilename = GetUniqueFilename(pInfo->strOutputFilename);
+            // we loop a few times and try to name the output file over and over since in race conditions encoding the same file
+            // we can get a filename, then it can be gone by the time we go to use it
+            // to reproduce, encode two files with similar names with a shared output directory (example: C:\Temporary\AIFF From Porcus\demo-snd.aiff / C:\Temporary\AIFF From Porcus\demo-snd (1).aiff)
+            bool bMakeUnique = (bInputOutputSame == FALSE) && (theApp.GetSettings()->m_nOutputExistsMode == OUTPUT_EXISTS_MODE_RENAME);
+            for (int nRetry = 0; nRetry < (bMakeUnique ? 3 : 1); nRetry++)
+            {
+                // rename output if necessary
+                if (bMakeUnique)
+                    pInfo->strOutputFilename = GetUniqueFilename(pInfo->strOutputFilename);
 
-            // move the working file to the final location
-            if (MoveFile(pInfo->strWorkingFilename, pInfo->strOutputFilename, TRUE) == FALSE)
-                nRetVal = ERROR_INVALID_OUTPUT_FILE;
+                // move the working file to the final location
+                if (MoveFile(pInfo->strWorkingFilename, pInfo->strOutputFilename, TRUE) != FALSE)
+                {
+                    nRetVal = ERROR_SUCCESS;
+                    break;
+                }
+                else
+                {
+                    nRetVal = ERROR_INVALID_OUTPUT_FILE;
+                }
+            }
 
             // mirror time stamp if specified
             if ((nRetVal == ERROR_SUCCESS) && theApp.GetSettings()->m_bOutputMirrorTimeStamp)

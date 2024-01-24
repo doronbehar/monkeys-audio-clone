@@ -23,7 +23,7 @@ class RangeOverflowTable
 public:
     RangeOverflowTable(const uint32 * RANGE_TOTAL);
     ~RangeOverflowTable();
-    uint8 operator[](uint32 nIndex) const;
+    inline uint8 operator[](uint32 nIndex) const;
 
 private:
     uint8 * m_pTable;
@@ -32,6 +32,8 @@ private:
 /**************************************************************************************************
 CUnBitArray
 **************************************************************************************************/
+#pragma pack(push, 1)
+
 class CUnBitArray : public CUnBitArrayBase
 {
 public:
@@ -59,5 +61,7 @@ private:
     uint32 RangeDecodeFastWithUpdate(int nShift);
     void GenerateArrayRange(int * pOutputArray, int nElements);
 };
+
+#pragma pack(pop)
 
 }

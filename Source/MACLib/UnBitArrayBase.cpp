@@ -59,7 +59,6 @@ CUnBitArrayBase::CUnBitArrayBase(int64 nFurthestReadByte)
     m_nVersion = 0;
     m_pIO = APE_NULL;
     m_nFurthestReadByte = nFurthestReadByte;
-    m_pBitArray = APE_NULL;
     m_nCurrentBitIndex = 0;
 }
 
@@ -113,13 +112,13 @@ uint32 CUnBitArrayBase::DecodeValueXBits(uint32 nBits)
 
     // if their isn't an overflow to the right value, get the value and exit
     if (nLeftBits >= nBits)
-        return (m_pBitArray[nBitArrayIndex] & (POWERS_OF_TWO_MINUS_ONE[nLeftBits])) >> (nLeftBits - nBits);
+        return (m_spBitArray[nBitArrayIndex] & (POWERS_OF_TWO_MINUS_ONE[nLeftBits])) >> (nLeftBits - nBits);
 
     // must get the "split" value from left and right
     const int nRightBits = static_cast<int>(nBits - nLeftBits);
 
-    const uint32 nLeftValue = ((m_pBitArray[nBitArrayIndex] & POWERS_OF_TWO_MINUS_ONE[nLeftBits]) << nRightBits);
-    const uint32 nRightValue = (m_pBitArray[nBitArrayIndex + 1] >> (32 - nRightBits));
+    const uint32 nLeftValue = ((m_spBitArray[nBitArrayIndex] & POWERS_OF_TWO_MINUS_ONE[nLeftBits]) << nRightBits);
+    const uint32 nRightValue = (m_spBitArray[nBitArrayIndex + 1] >> (32 - nRightBits));
     return (nLeftValue | nRightValue);
 }
 
@@ -151,7 +150,7 @@ int CUnBitArrayBase::FillBitArray()
     // move the remaining data to the front
     const int nBytesToMove = static_cast<int>(m_nBytes - (nBitArrayIndex * 4));
     if (nBytesToMove > 0)
-        memmove(m_pBitArray, (m_pBitArray + nBitArrayIndex), static_cast<size_t>(nBytesToMove));
+        memmove(m_spBitArray, (m_spBitArray + nBitArrayIndex), static_cast<size_t>(nBytesToMove));
 
     // get the number of bytes to read
     int64 nBytesToRead = static_cast<int64>(nBitArrayIndex) * 4;
@@ -168,12 +167,12 @@ int CUnBitArrayBase::FillBitArray()
 
     // read the new data
     unsigned int nBytesRead = 0;
-    const int nResult = m_pIO->Read(m_pBitArray + m_nElements - nBitArrayIndex, static_cast<unsigned int>(nBytesToRead), &nBytesRead);
+    const int nResult = m_pIO->Read(m_spBitArray + m_nElements - nBitArrayIndex, static_cast<unsigned int>(nBytesToRead), &nBytesRead);
 
     // zero anything at the tail we didn't fill
     m_nGoodBytes = ((m_nElements - nBitArrayIndex) * 4) + nBytesRead;
     if (m_nGoodBytes < m_nBytes)
-        memset(&(reinterpret_cast<unsigned char *>(m_pBitArray))[m_nGoodBytes], 0, m_nBytes - m_nGoodBytes);
+        memset(&(reinterpret_cast<unsigned char *>(m_spBitArray.GetPtr()))[m_nGoodBytes], 0, m_nBytes - m_nGoodBytes);
 
     // adjust the m_Bit pointer
     m_nCurrentBitIndex = m_nCurrentBitIndex & 31;
@@ -200,10 +199,12 @@ int CUnBitArrayBase::CreateHelper(CIO * pIO, intn nBytes, intn nVersion)
 
     // create the bitarray (we allocate and empty a little extra as buffer insurance, although it should never be necessary)
     const size_t nAllocateElements = static_cast<size_t>(m_nElements) + 64;
-    m_pBitArray = new uint32 [nAllocateElements];
-    memset(m_pBitArray, 0, nAllocateElements * sizeof(m_pBitArray[0]));
+    m_spBitArray.Assign(new uint32[nAllocateElements], true);
+    if (m_spBitArray == NULL)
+        return ERROR_INSUFFICIENT_MEMORY;
 
-    return (m_pBitArray != APE_NULL) ? 0 : ERROR_INSUFFICIENT_MEMORY;
+    memset(m_spBitArray, 0, nAllocateElements * sizeof(m_spBitArray[0]));
+    return ERROR_SUCCESS;
 }
 
 }

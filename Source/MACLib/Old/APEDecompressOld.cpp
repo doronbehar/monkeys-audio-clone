@@ -108,11 +108,10 @@ int CAPEDecompressOld::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * p
         // decode more
         if (nBytesLeft > 0)
         {
-            nBlocksDecoded = m_UnMAC.DecompressFrame(&m_spBuffer[m_nBufferTail], static_cast<int32>(m_nCurrentFrame++));
-            if (nBlocksDecoded == -1)
-            {
-                return ERROR_UNDEFINED;
-            }
+            int nErrorCode = ERROR_UNDEFINED;
+            nBlocksDecoded = m_UnMAC.DecompressFrame(&m_spBuffer[m_nBufferTail], static_cast<int32>(m_nCurrentFrame++), &nErrorCode);
+            if (nBlocksDecoded < 0)
+                return nErrorCode;
             m_nBufferTail += (nBlocksDecoded * m_nBlockAlign);
         }
     }
@@ -156,12 +155,11 @@ int CAPEDecompressOld::Seek(int64 nBlockOffset)
 
     m_nCurrentFrame = nBaseFrame;
 
-    const intn nBlocksDecoded = m_UnMAC.DecompressFrame(spTempBuffer.GetPtr(), static_cast<int32>(m_nCurrentFrame++));
+    int nErrorCode = ERROR_UNDEFINED;
+    const intn nBlocksDecoded = m_UnMAC.DecompressFrame(spTempBuffer.GetPtr(), static_cast<int32>(m_nCurrentFrame++), &nErrorCode);
 
-    if (nBlocksDecoded == -1)
-    {
-        return ERROR_UNDEFINED;
-    }
+    if (nBlocksDecoded < 0)
+        return nErrorCode;
 
     const int64 nBytesToKeep = (nBlocksDecoded * m_nBlockAlign) - nBytesToSkip;
     memcpy(&m_spBuffer[m_nBufferTail], &spTempBuffer[nBytesToSkip], static_cast<size_t>(nBytesToKeep));

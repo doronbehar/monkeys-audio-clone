@@ -620,7 +620,7 @@ int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, IAPEProgressCal
             CSmartPtr<CMACProgressHelper> spMACProgressHelper;
             spMACProgressHelper.Assign(new CMACProgressHelper(nBytesLeft, pProgressCallback));
 
-            CSmartPtr<unsigned char> spBuffer(new unsigned char[16384], true);
+            CSmartPtr<unsigned char> spBuffer(new unsigned char [16384], true);
             nBytesRead = 1;
             while ((nBytesLeft > 0) && (nBytesRead > 0))
             {

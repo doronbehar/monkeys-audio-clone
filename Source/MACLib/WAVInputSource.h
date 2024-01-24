@@ -95,7 +95,7 @@ public:
     int GetTerminatingData(unsigned char * pBuffer) APE_OVERRIDE;
 
     // endian
-    bool GetIsBigEndian();
+    bool GetIsBigEndian() const;
 
     // get other properties
     bool GetFloat() APE_OVERRIDE { return m_bFloat; }
@@ -230,7 +230,7 @@ public:
     bool GetFloat() APE_OVERRIDE { return (m_wfeSource.wFormatTag == WAVE_FORMAT_IEEE_FLOAT); }
 
     // endian
-    bool GetIsBigEndian();
+    bool GetIsBigEndian() const;
 
 private:
     int AnalyzeSource();

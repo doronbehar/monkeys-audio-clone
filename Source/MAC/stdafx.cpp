@@ -45,7 +45,7 @@ CString GetUserDataPath()
     size_t nRequired = 0;
     _tgetenv_s(&nRequired, NULL, 0, _T("APPDATA"));
 
-    CSmartPtr<wchar_t> spAppData(new wchar_t[nRequired + 1], true);
+    CSmartPtr<wchar_t> spAppData(new wchar_t [nRequired + 1], true);
     memset(spAppData, 0, nRequired + 1);
     _tgetenv_s(&nRequired, spAppData, nRequired, _T("APPDATA"));
 
@@ -377,7 +377,7 @@ BOOL ExecuteProgramBlocking(CString strApplication, CString strParameters, int *
             pstrReturnOutput->Empty();
 
             int nBufferBytes = 65536;
-            CSmartPtr<UCHAR> spBuffer(new UCHAR[static_cast<size_t>(nBufferBytes)], true);
+            CSmartPtr<UCHAR> spBuffer(new UCHAR [static_cast<size_t>(nBufferBytes)], true);
             DWORD dwRead = 0;
 
             // close the write pipe so reads finish

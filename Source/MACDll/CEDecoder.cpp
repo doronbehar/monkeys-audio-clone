@@ -133,7 +133,7 @@ __declspec(dllexport) DWORD FAR PASCAL ReadFilterInput(HANDLE hInput, unsigned c
 
         // expand to 32 bit
         float * p32Bit = reinterpret_cast<float *>(&buf[(nBlocksDecoded * pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS) * 4) - 4]);
-        int* p32BitInt = reinterpret_cast<int *>(p32Bit);
+        int * p32BitInt = reinterpret_cast<int *>(p32Bit);
 
         const float fDivisor = float(256 * 256);
         while (p32Bit >= reinterpret_cast<float *>(&buf[0]))

@@ -54,9 +54,9 @@ int CBufferIO::Read(void * pBuffer, unsigned int nBytesToRead, unsigned int * pB
     return nResult;
 }
 
-int CBufferIO::Write(const void * pBuffer, unsigned int nBytesToWrite, unsigned int * pBytesWritten)
+int CBufferIO::Write(const void *, unsigned int, unsigned int *)
 {
-    return m_spSource->Write(pBuffer, nBytesToWrite, pBytesWritten);
+    return ERROR_IO_WRITE;
 }
 
 int CBufferIO::Seek(int64 nPosition, SeekMethod nMethod)
@@ -183,14 +183,9 @@ int CHeaderIO::Read(void * pBuffer, unsigned int nBytesToRead, unsigned int * pB
     return nResult;
 }
 
-int CHeaderIO::Write(const void * pBuffer, unsigned int nBytesToWrite, unsigned int * pBytesWritten)
+int CHeaderIO::Write(const void *, unsigned int, unsigned int *)
 {
-    int nResult = m_spSource->Write(pBuffer, nBytesToWrite, pBytesWritten);
-
-    // increment position
-    m_nPosition += *pBytesWritten;
-
-    return nResult;
+    return ERROR_IO_WRITE;
 }
 
 int CHeaderIO::Seek(int64 nPosition, SeekMethod nMethod)

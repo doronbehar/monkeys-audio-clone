@@ -320,7 +320,7 @@ int CWAVInputSource::AnalyzeSource()
     bool bPipe = false;
     {
         wchar_t * pName = new wchar_t [APE_MAX_PATH];
-        pName[0] = 0;
+        pName[0] = 0; // empty the first byte, we don't care if the rest is noise then
         m_spIO->GetName(pName);
         if (_wcsicmp(pName, L"-") == 0)
             bPipe = true;
@@ -733,7 +733,7 @@ int CAIFFInputSource::AnalyzeSource()
             {
                 const int nExtraBytes = static_cast<int>(Chunk.nChunkBytes) - static_cast<int>(sizeof(Common));
 
-                CSmartPtr<BYTE> spBuffer(new BYTE[static_cast<size_t>(nExtraBytes)], true);
+                CSmartPtr<BYTE> spBuffer(new BYTE [static_cast<size_t>(nExtraBytes)], true);
                 RETURN_ON_ERROR(ReadSafe(m_spIO, spBuffer, nExtraBytes))
 
                 // COMM chunks can optionally have a compression type after the last cExtra parameter and in this case "sowt" mean we're little endian (reversed from normal AIFF)
@@ -858,7 +858,7 @@ double CAIFFInputSource::GetExtendedDouble(uint16_t exponent, uint64_t mantissa)
     return result;
 }
 
-bool CAIFFInputSource::GetIsBigEndian()
+bool CAIFFInputSource::GetIsBigEndian() const
 {
     return !m_bLittleEndian;
 }
@@ -1533,7 +1533,7 @@ int CCAFInputSource::GetTerminatingData(unsigned char * pBuffer)
     return GetTerminatingDataHelper(m_bIsValid, pBuffer, m_nTerminatingBytes, m_spIO);
 }
 
-bool CCAFInputSource::GetIsBigEndian()
+bool CCAFInputSource::GetIsBigEndian() const
 {
     return !m_bLittleEndian;
 }

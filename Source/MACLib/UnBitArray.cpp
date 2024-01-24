@@ -34,7 +34,7 @@ RangeOverflowTable::~RangeOverflowTable()
     delete [] m_pTable;
 }
 
-uint8 RangeOverflowTable::operator[](uint32 nIndex) const
+inline uint8 RangeOverflowTable::operator[](uint32 nIndex) const
 {
     return m_pTable[nIndex];
 }
@@ -71,7 +71,6 @@ CUnBitArray::CUnBitArray(CIO * pIO, intn nVersion, int64 nFurthestReadByte) :
 
 CUnBitArray::~CUnBitArray()
 {
-    APE_SAFE_ARRAY_DELETE(m_pBitArray)
 }
 
 uint32 CUnBitArray::DecodeValue(DECODE_VALUE_METHOD DecodeMethod, int, int)
@@ -93,7 +92,7 @@ inline uint32 CUnBitArray::DecodeByte()
         EnsureBitsAvailable(8, true);
 
     // read byte
-    const uint32 nByte = ((m_pBitArray[m_nCurrentBitIndex >> 5] >> (24 - (m_nCurrentBitIndex & 31))) & 0xFF);
+    const uint32 nByte = ((m_spBitArray[m_nCurrentBitIndex >> 5] >> (24 - (m_nCurrentBitIndex & 31))) & 0xFF);
     m_nCurrentBitIndex += 8;
     return nByte;
 }

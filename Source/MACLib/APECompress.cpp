@@ -16,9 +16,7 @@ CAPECompress::CAPECompress()
     m_nBufferTail = 0;
     m_nBufferSize = 0;
     m_bBufferLocked = false;
-    m_bOwnsOutputIO = false;
     m_bFloat = false;
-    m_pioOutput = APE_NULL;
     APE_CLEAR(m_wfeInput);
 
     m_spAPECompressCreate.Assign(new CAPECompressCreate());
@@ -27,34 +25,26 @@ CAPECompress::CAPECompress()
 CAPECompress::~CAPECompress()
 {
     m_spBuffer.Delete();
-
-    if (m_bOwnsOutputIO)
-    {
-        APE_SAFE_DELETE(m_pioOutput)
-    }
+    m_spioOutput.Delete();
 }
 
 int CAPECompress::Start(const wchar_t * pOutputFilename, const WAVEFORMATEX * pwfeInput, bool bFloat, int64 nMaxAudioBytes, int nCompressionLevel, const void * pHeaderData, int64 nHeaderBytes, int nFlags)
 {
-    if (m_pioOutput)
-    {
-        APE_SAFE_DELETE(m_pioOutput)
-    }
+    m_spioOutput.Delete();
 
-    m_pioOutput = CreateCIO();
-    m_bOwnsOutputIO = true;
+    m_spioOutput.Assign(CreateCIO());
 
     // update float
     HandleFloat(bFloat, pwfeInput);
 
     // create
-    if (m_pioOutput->Create(pOutputFilename) != 0)
+    if (m_spioOutput->Create(pOutputFilename) != 0)
     {
         return ERROR_INVALID_OUTPUT_FILE;
     }
 
     // start
-    const int nStartResult = m_spAPECompressCreate->Start(m_pioOutput, pwfeInput, nMaxAudioBytes, nCompressionLevel,
+    const int nStartResult = m_spAPECompressCreate->Start(m_spioOutput, pwfeInput, nMaxAudioBytes, nCompressionLevel,
         pHeaderData, nHeaderBytes, nFlags);
 
     // create buffer
@@ -70,15 +60,14 @@ int CAPECompress::Start(const wchar_t * pOutputFilename, const WAVEFORMATEX * pw
 
 int CAPECompress::StartEx(CIO * pioOutput, const WAVEFORMATEX * pwfeInput, bool bFloat, int64 nMaxAudioBytes, int nCompressionLevel, const void * pHeaderData, int64 nHeaderBytes)
 {
-    // store information
-    m_pioOutput = pioOutput;
-    m_bOwnsOutputIO = false;
+    // store information (we don't own the I/O object so don't delete it)
+    m_spioOutput.Assign(pioOutput, false, false);
 
     // update float
     HandleFloat(bFloat, pwfeInput);
 
     // start
-    m_spAPECompressCreate->Start(m_pioOutput, pwfeInput, nMaxAudioBytes, nCompressionLevel,
+    m_spAPECompressCreate->Start(m_spioOutput, pwfeInput, nMaxAudioBytes, nCompressionLevel,
         pHeaderData, nHeaderBytes);
 
     // create buffer
