@@ -10,7 +10,7 @@ using namespace APE;
 
 CMACProcessFiles::CMACProcessFiles()
 {
-    m_paryFiles = NULL;
+    m_paryFiles = APE_NULL;
     m_nPausedStartTickCount = 0;
     m_nPausedTotalMS = 0;
     Destroy();
@@ -42,7 +42,7 @@ void CMACProcessFiles::Destroy()
 {
     m_bStopped = FALSE;
     m_bPaused = FALSE;
-    m_paryFiles = NULL;
+    m_paryFiles = APE_NULL;
 }
 
 BOOL CMACProcessFiles::Process(MAC_FILE_ARRAY * paryFiles)
@@ -296,7 +296,7 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
                     for (int z = 0; true; z++)
                     {
                         CAPETagField * pField = spAPETag->GetTagField(z);
-                        if (pField == NULL)
+                        if (pField == APE_NULL)
                             break;
                         spAPETagNew->SetFieldBinary(pField->GetFieldName(), pField->GetFieldValue(), pField->GetFieldValueSize(), pField->GetFieldFlags());
                     }

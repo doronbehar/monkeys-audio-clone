@@ -161,7 +161,7 @@ CPredictorDecompressNormal3930to3950::CPredictorDecompressNormal3930to3950(int n
 {
     // initialize (to avoid warnings)
     APE_CLEAR(m_aryM);
-    m_pInputBuffer = NULL;
+    m_pInputBuffer = APE_NULL;
     m_nLastValue = 0;
     m_nCurrentIndex = 0;
 

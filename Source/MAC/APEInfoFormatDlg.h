@@ -10,7 +10,7 @@ class CAPEInfoFormatDlg : public CDialog
     DECLARE_DYNAMIC(CAPEInfoFormatDlg)
 
 public:
-    CAPEInfoFormatDlg(CMACDlg * pMACDlg, CWnd * pParent = NULL);
+    CAPEInfoFormatDlg(CMACDlg * pMACDlg, CWnd * pParent = APE_NULL);
     virtual ~CAPEInfoFormatDlg();
 
     void Layout();

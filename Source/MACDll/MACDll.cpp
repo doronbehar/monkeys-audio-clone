@@ -128,7 +128,7 @@ int __stdcall RemoveTagW(const str_utfn * pFilename)
     // error check creation
     if (nErrorCode != ERROR_SUCCESS)
         return nErrorCode;
-    if (spAPEDecompress == NULL) return ERROR_UNDEFINED;
+    if (spAPEDecompress == APE_NULL) return ERROR_UNDEFINED;
 
     // remove the tag
     IAPETag * pTag = GET_TAG(spAPEDecompress);

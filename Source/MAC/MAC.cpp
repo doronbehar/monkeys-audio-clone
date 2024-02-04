@@ -20,15 +20,15 @@ CMACApp::CMACApp()
 {
     // initialize
     m_dScale = -1.0; // default to an impossible value so the first SetScale(...) call returns that it changed
-    m_hSingleInstance = CreateMutex(NULL, FALSE, _T("Mokey's Audio"));
+    m_hSingleInstance = CreateMutex(APE_NULL, FALSE, _T("Mokey's Audio"));
     DWORD dwLastError = GetLastError();
     m_bAnotherInstanceRunning = (dwLastError == ERROR_ALREADY_EXISTS);
-    m_pMACDlg = NULL;
+    m_pMACDlg = APE_NULL;
 
     // start GDI plus
     Gdiplus::GdiplusStartupInput gdiplusStartupInput;
     ULONG_PTR gdiplusToken;
-    Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+    Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, APE_NULL);
 }
 
 CMACApp::~CMACApp()
@@ -43,8 +43,8 @@ BOOL CMACApp::InitInstance()
     // don't run if we're already running
     if (m_bAnotherInstanceRunning)
     {
-        HWND hwndMonkeysAudio = FindWindow(NULL, APE_NAME);
-        if (hwndMonkeysAudio != NULL)
+        HWND hwndMonkeysAudio = FindWindow(APE_NULL, APE_NAME);
+        if (hwndMonkeysAudio != APE_NULL)
         {
             ShowWindow(hwndMonkeysAudio, SW_RESTORE);
             SetForegroundWindow(hwndMonkeysAudio);
@@ -75,7 +75,7 @@ BOOL CMACApp::InitInstance()
         _tcscat_s(pUninstall, APE_MAX_PATH, GetInstallPath());
         _tcscat_s(pUninstall, APE_MAX_PATH, _T("uninstall.exe"));
 
-        ShellExecute(NULL, NULL, pUninstall, NULL, NULL, SW_SHOW);
+        ShellExecute(APE_NULL, APE_NULL, pUninstall, APE_NULL, APE_NULL, SW_SHOW);
 
         APE_SAFE_ARRAY_DELETE(pUninstall)
 
@@ -98,7 +98,7 @@ BOOL CMACApp::InitInstance()
     else if (nResponse == IDCANCEL)
     {
     }
-    m_pMACDlg = NULL;
+    m_pMACDlg = APE_NULL;
 
     // Since the dialog has been closed, return FALSE so that we exit the
     //  application, rather than start the application's message pump.
@@ -113,10 +113,10 @@ int CMACApp::ExitInstance()
     m_spMonkey.Delete();
 
     // close single instance handle
-    if (m_hSingleInstance != NULL)
+    if (m_hSingleInstance != APE_NULL)
     {
         CloseHandle(m_hSingleInstance);
-        m_hSingleInstance = NULL;
+        m_hSingleInstance = APE_NULL;
     }
 
     // delete helpers
@@ -128,14 +128,14 @@ int CMACApp::ExitInstance()
 
 CFormatArray * CMACApp::GetFormatArray()
 {
-    if (m_sparyFormats == NULL)
+    if (m_sparyFormats == APE_NULL)
         m_sparyFormats.Assign(new CFormatArray(m_pMACDlg));
     return m_sparyFormats.GetPtr();
 }
 
 CMACSettings * CMACApp::GetSettings()
 {
-    if (m_spSettings == NULL)
+    if (m_spSettings == APE_NULL)
         m_spSettings.Assign(new CMACSettings);
     return m_spSettings.GetPtr();
 }
@@ -149,19 +149,19 @@ void CMACApp::DeleteImageLists()
 
 CImageList * CMACApp::GetImageList(EImageList Image)
 {
-    CImageList * pImageList = (Image == Image_Toolbar) ? &m_ImageListToolbar : (Image == Image_OptionsList) ? &m_ImageListOptionsList : (Image == Image_OptionsPages) ? &m_ImageListOptionsPages : NULL;
-    if ((pImageList != NULL) && (pImageList->GetSafeHandle() == NULL))
+    CImageList * pImageList = (Image == Image_Toolbar) ? &m_ImageListToolbar : (Image == Image_OptionsList) ? &m_ImageListOptionsList : (Image == Image_OptionsPages) ? &m_ImageListOptionsPages : APE_NULL;
+    if ((pImageList != APE_NULL) && (pImageList->GetSafeHandle() == APE_NULL))
     {
         // load the image
-        if (m_spButtons == NULL)
+        if (m_spButtons == APE_NULL)
         {
             CString strImage = GetProgramPath() + _T("APE_Buttons.png");
             if (FileExists(strImage) == false)
                 strImage = GetInstallPath() + _T("APE_Buttons.png");
             m_spButtons.Assign(Gdiplus::Bitmap::FromFile(strImage));
         }
-        if ((m_spButtons == NULL) || (m_spButtons->GetLastStatus() != Gdiplus::Ok))
-            return NULL;
+        if ((m_spButtons == APE_NULL) || (m_spButtons->GetLastStatus() != Gdiplus::Ok))
+            return APE_NULL;
 
         // build the image list
         CSize sizeImageList = GetSize(32, 32);
@@ -243,7 +243,7 @@ bool CMACApp::SetScale(double dScale)
 
 Gdiplus::Bitmap * CMACApp::GetMonkeyImage()
 {
-    if (m_spMonkey == NULL)
+    if (m_spMonkey == APE_NULL)
     {
         // load image
         CString strImage = GetProgramPath() + _T("Monkey.png");

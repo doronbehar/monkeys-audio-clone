@@ -788,6 +788,7 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
         {
             // processing flags
             IAPEDecompress::APE_GET_DATA_PROCESSING Processing;
+            APE_CLEAR(Processing); // empty so Clang doesn't warn
             Processing.bApplyFloatProcessing = (nOutputMode != UNMAC_DECODER_OUTPUT_APE);
             Processing.bApplySigned8BitProcessing = (nOutputMode != UNMAC_DECODER_OUTPUT_APE);
             Processing.bApplyBigEndianProcessing = (nOutputMode != UNMAC_DECODER_OUTPUT_APE);

@@ -136,7 +136,7 @@ void CAboutDlg::OnPaint()
     {
         CRect rectWindow; GetWindowRect(rectWindow);
         CRect rectClient; GetClientRect(rectClient);
-        SetWindowPos(NULL, 0, 0, nWindowWidth + (rectWindow.Width() - rectClient.Width()) + (2 * nWindowBorder), nTop + nWindowBorder + (rectWindow.Height() - rectClient.Height()) + (0 * nLineSpacing), SWP_NOMOVE);
+        SetWindowPos(APE_NULL, 0, 0, nWindowWidth + (rectWindow.Width() - rectClient.Width()) + (2 * nWindowBorder), nTop + nWindowBorder + (rectWindow.Height() - rectClient.Height()) + (0 * nLineSpacing), SWP_NOMOVE);
     }
     m_bFontsCreated = true;
 }

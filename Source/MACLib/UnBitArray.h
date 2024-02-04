@@ -5,6 +5,8 @@
 namespace APE
 {
 
+#pragma pack(push, 1)
+
 class IAPEDecompress;
 
 struct RANGE_CODER_STRUCT_DECOMPRESS
@@ -23,17 +25,17 @@ class RangeOverflowTable
 public:
     RangeOverflowTable(const uint32 * RANGE_TOTAL);
     ~RangeOverflowTable();
-    inline uint8 operator[](uint32 nIndex) const;
+#ifdef APE_ADD_GET_TO_RANGE_OVERFLOW_TABLE // only include if this define is set or else Clang will warn when UnBitArray.h is included in places this isn't called
+    __forceinline uint8 Get(uint32 nIndex) const { return m_aryTable[nIndex]; }
+#endif
 
 private:
-    uint8 * m_pTable;
+    uint8 m_aryTable[65536];
 };
 
 /**************************************************************************************************
 CUnBitArray
 **************************************************************************************************/
-#pragma pack(push, 1)
-
 class CUnBitArray : public CUnBitArrayBase
 {
 public:
@@ -52,6 +54,8 @@ private:
     // data
     int m_nFlushCounter;
     int m_nFinalizeCounter;
+    CSmartPtr<RangeOverflowTable> m_spRangeTable1;
+    CSmartPtr<RangeOverflowTable> m_spRangeTable2;
     RANGE_CODER_STRUCT_DECOMPRESS m_RangeCoderInfo;
 
     // functions

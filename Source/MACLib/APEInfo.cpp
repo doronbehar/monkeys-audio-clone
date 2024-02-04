@@ -77,7 +77,7 @@ CAPEInfo::CAPEInfo(int * pErrorCode, const wchar_t * pFilename, CAPETag * pTag, 
         if (nSize < (APE_BYTES_IN_MEGABYTE * 200))
         {
             CWholeFileIO * pWholeFile = CreateWholeFileIO(m_spIO, nSize);
-            if (pWholeFile != NULL)
+            if (pWholeFile != APE_NULL)
             {
                 m_spIO.SetDelete(false);
                 m_spIO.Assign(pWholeFile);

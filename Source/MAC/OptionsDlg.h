@@ -6,7 +6,7 @@ class OPTIONS_PAGE;
 class COptionsDlg : public CDialog
 {
 public:
-    COptionsDlg(CMACDlg * pMACDlg, CWnd * pParent = NULL);
+    COptionsDlg(CMACDlg * pMACDlg, CWnd * pParent = APE_NULL);
 
     enum { IDD = IDD_OPTIONS };
     CListCtrl m_ctrlPageList;

@@ -200,7 +200,7 @@ int CUnBitArrayBase::CreateHelper(CIO * pIO, intn nBytes, intn nVersion)
     // create the bitarray (we allocate and empty a little extra as buffer insurance, although it should never be necessary)
     const size_t nAllocateElements = static_cast<size_t>(m_nElements) + 64;
     m_spBitArray.Assign(new uint32[nAllocateElements], true);
-    if (m_spBitArray == NULL)
+    if (m_spBitArray == APE_NULL)
         return ERROR_INSUFFICIENT_MEMORY;
 
     memset(m_spBitArray, 0, nAllocateElements * sizeof(m_spBitArray[0]));

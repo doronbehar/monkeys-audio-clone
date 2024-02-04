@@ -43,7 +43,7 @@ void CAPEInfoFormatDlg::Layout()
     CRect rectWindow;
     GetClientRect(&rectWindow);
     const int nBorder = 0;
-    m_ctrlFormat.SetWindowPos(NULL, theApp.GetSize(nBorder, 0).cx, theApp.GetSize(nBorder, 0).cx, rectWindow.Width() - theApp.GetSize(nBorder * 2, 0).cx, rectWindow.Height() - theApp.GetSize(nBorder * 2, 0).cx, SWP_NOZORDER);
+    m_ctrlFormat.SetWindowPos(APE_NULL, theApp.GetSize(nBorder, 0).cx, theApp.GetSize(nBorder, 0).cx, rectWindow.Width() - theApp.GetSize(nBorder * 2, 0).cx, rectWindow.Height() - theApp.GetSize(nBorder * 2, 0).cx, SWP_NOZORDER);
 }
 
 BOOL CAPEInfoFormatDlg::SetFiles(CStringArray & aryFiles)

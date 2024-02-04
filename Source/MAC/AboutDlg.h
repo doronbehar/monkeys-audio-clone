@@ -3,7 +3,7 @@
 class CAboutDlg : public CDialog
 {
 public:
-    CAboutDlg(CWnd * pParent = NULL);
+    CAboutDlg(CWnd * pParent = APE_NULL);
 
     enum { IDD = IDD_ABOUT };
 

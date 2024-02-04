@@ -190,7 +190,7 @@ struct APE_DESCRIPTOR
     uint32 nAPEFrameDataBytesHigh;             // the high order number of APE frame data bytes
     uint32 nTerminatingDataBytes;              // the terminating data of the file (not including tag data)
 
-    uint8  cFileMD5[16];                       // the MD5 hash of the file (see notes for usage... it's a littly tricky)
+    uint8  cFileMD5[16];                       // the MD5 hash of the file (see notes for usage... it's a little tricky)
 };
 
 /**************************************************************************************************
@@ -310,7 +310,7 @@ public:
         bool bApplySigned8BitProcessing;
         bool bApplyBigEndianProcessing;
     };
-    virtual int GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlocksRetrieved, APE_GET_DATA_PROCESSING * pProcessing = NULL) = 0;
+    virtual int GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlocksRetrieved, APE_GET_DATA_PROCESSING * pProcessing = APE_NULL) = 0;
 
     //////////////////////////////////////////////////////////////////////////////////////////////
     // Seek(...) - seeks

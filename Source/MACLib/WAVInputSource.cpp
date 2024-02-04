@@ -69,7 +69,7 @@ CInputSource * CreateInputSource(const wchar_t * pSourceName, WAVEFORMATEX * pwf
     if (spIO->Open(pSourceName, true) != ERROR_SUCCESS)
     {
         *pErrorCode = ERROR_INVALID_INPUT_FILE;
-        return NULL;
+        return APE_NULL;
     }
 
     // read header
@@ -78,7 +78,7 @@ CInputSource * CreateInputSource(const wchar_t * pSourceName, WAVEFORMATEX * pwf
     if (spHeaderIO->ReadHeader(aryHeader) == false)
     {
         *pErrorCode = ERROR_IO_READ;
-        return NULL;
+        return APE_NULL;
     }
 
     // set as reader
