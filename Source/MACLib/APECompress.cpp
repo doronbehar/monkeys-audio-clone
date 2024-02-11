@@ -126,12 +126,6 @@ int64 CAPECompress::AddData(unsigned char * pData, int64 nBytes)
     // check the buffer
     if (m_spBuffer == APE_NULL) return ERROR_INSUFFICIENT_MEMORY;
 
-    // process float data
-    if (m_bFloat)
-    {
-        CFloatTransform::Process(reinterpret_cast<uint32 *>(pData), nBytes / static_cast<int64>(sizeof(float)));
-    }
-
     // loop
     int64 nBytesDone = 0;
     while (nBytesDone < nBytes)
@@ -182,11 +176,21 @@ int CAPECompress::ProcessBuffer(bool bFinalize)
 
         while ((m_nBufferTail - m_nBufferHead) >= nThreshold)
         {
-            const int64 nFrameBytes = ape_min(m_spAPECompressCreate->GetFullFrameBytes(), m_nBufferTail - m_nBufferHead);
+            int64 nFrameBytes = ape_min(m_spAPECompressCreate->GetFullFrameBytes(), m_nBufferTail - m_nBufferHead);
 
+            // truncate to the size of a floating point number in float mode (since CFloatTransform::Process can only work on full samples)
+            if (m_bFloat)
+                nFrameBytes = (nFrameBytes / sizeof(float)) * sizeof(float);
+
+            // break if we have no size
             if (nFrameBytes == 0)
                 break;
 
+            // float process
+            if (m_bFloat)
+                CFloatTransform::Process(reinterpret_cast<uint32 *>(&m_spBuffer[m_nBufferHead]), nFrameBytes / static_cast<int64>(sizeof(float)));
+
+            // encode
             const int nResult = m_spAPECompressCreate->EncodeFrame(&m_spBuffer[m_nBufferHead], static_cast<int>(nFrameBytes));
             if (nResult != 0) { return nResult; }
 
@@ -257,10 +261,6 @@ int64 CAPECompress::AddDataFromInputSource(CInputSource * pInputSource, int64 nM
             return nResult;
         else
             nBytesRead = static_cast<int64>(nBlocksAdded) * static_cast<int64>(m_wfeInput.nBlockAlign);
-
-        // float process
-        if (m_bFloat)
-            CFloatTransform::Process(reinterpret_cast<uint32 *>(pBuffer), static_cast<int64>(nBlocksAdded) * static_cast<int64>(m_wfeInput.nChannels));
 
         // store the bytes read
         if (pBytesAdded)
