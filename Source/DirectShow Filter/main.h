@@ -1,6 +1,7 @@
 #pragma once
 
 const int WAVE_BUFFER_SIZE = 4096;
+EXTERN_C const GUID CLSID_APEDecoder;
 
 //-----------------------------------------------------------------------------
 //

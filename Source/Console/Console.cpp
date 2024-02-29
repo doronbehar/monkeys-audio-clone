@@ -95,7 +95,6 @@ static void DisplayProperUsage(FILE * pFile)
     fwprintf(pFile, L"    Full Verify: mac.exe \"Metallica - One.ape\" -V\n");
     fwprintf(pFile, L"    Tag: mac.exe \"Metallica - One.ape\" -t \"Artist=Metallica|Album=Black|Name=One|Comment=\\\"This is in quotes\\\"\"\n");
     fwprintf(pFile, L"    Remove tag: mac.exe \"Metallica - One.ape\" -r\n");
-    fwprintf(pFile, L"    (note: int filenames must be put inside of quotations)\n");
 }
 
 /**************************************************************************************************

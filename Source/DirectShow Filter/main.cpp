@@ -7,9 +7,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifdef _DEBUG
-#undef _X86_
-#endif
 #define PLATFORM_WINDOWS
 
 #include "All.h"
@@ -19,7 +16,6 @@
 #include <wxutil.h>
 #include <initguid.h>
 #include <stdio.h>
-
 #include "main.h"
 
 extern "C" BOOL WINAPI DllEntryPoint(HINSTANCE, ULONG, LPVOID);

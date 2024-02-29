@@ -180,7 +180,7 @@ int CAPECompress::ProcessBuffer(bool bFinalize)
 
             // truncate to the size of a floating point number in float mode (since CFloatTransform::Process can only work on full samples)
             if (m_bFloat)
-                nFrameBytes = (nFrameBytes / sizeof(float)) * sizeof(float);
+                nFrameBytes = (nFrameBytes / static_cast<int64>(sizeof(float))) * static_cast<int64>(sizeof(float));
 
             // break if we have no size
             if (nFrameBytes == 0)
