@@ -198,7 +198,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <IgnoreImportLibrary>true</IgnoreImportLibrary>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>APE64</TargetName>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
@@ -250,7 +249,8 @@
       <AdditionalLibraryDirectories>../DirectShow SDK/Win32/Release</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>..\..\..\Certificate\ScSignTool.exe sign /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /td sha256 /fd sha256 /a /as /sha1 6eb1d58802c48bc1eb7418692b2dea94cea3dfde "$(TargetPath)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -362,7 +362,8 @@
       <AdditionalLibraryDirectories>../DirectShow SDK/x64/Release</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>..\..\..\Certificate\ScSignTool.exe sign /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /td sha256 /fd sha256 /a /as /sha1 6eb1d58802c48bc1eb7418692b2dea94cea3dfde "$(TargetPath)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64EC'">
@@ -429,6 +430,7 @@
       <PreprocessorDefinitions>PLATFORM_WINDOWS;UNICODE;_UNICODE;WIN32;DEBUG;_WINDOWS;APEDECODER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>EnableAllWarnings</WarningLevel>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -443,6 +445,7 @@
       <ImportLibrary>$(TargetDir)$(TargetName).lib</ImportLibrary>
       <AdditionalOptions>/ignore:4286 %(AdditionalOptions)</AdditionalOptions>
       <IgnoreSpecificDefaultLibraries>MSVCRTD.lib</IgnoreSpecificDefaultLibraries>
+      <AdditionalLibraryDirectories>../DirectShow SDK/x64/Debug</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64EC'">
@@ -503,16 +506,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\DirectShow Filter\main.cpp">
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">INC_OLE2;STRICT;WIN32;_MT;_DLL;_X86_=1;WINVER=0x0400;DBG=1;DEBUG;try=__try;except=__except;leave=__leave;finally=__finally</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">INC_OLE2;STRICT;WIN32;_MT;_DLL;_X86_=1;WINVER=0x0400;DBG=1;DEBUG;try=__try;except=__except;leave=__leave;finally=__finally</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">INC_OLE2;STRICT;WIN32;_MT;_DLL;_X86_=1;WINVER=0x0400;DBG=1;DEBUG;try=__try;except=__except;leave=__leave;finally=__finally</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64EC'">INC_OLE2;STRICT;WIN32;_MT;_DLL;_X86_=1;WINVER=0x0400;DBG=1;DEBUG;try=__try;except=__except;leave=__leave;finally=__finally</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">INC_OLE2;STRICT;WIN32;_MT;_DLL;_X86_=1;WINVER=0x0400;DBG=1;DEBUG;try=__try;except=__except;leave=__leave;finally=__finally</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;APEDECODER_EXPORTS</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;APEDECODER_EXPORTS</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;APEDECODER_EXPORTS</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|ARM64EC'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;APEDECODER_EXPORTS</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;APEDECODER_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\..\DirectShow Filter\RegistryUtils.cpp" />
   </ItemGroup>

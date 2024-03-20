@@ -7,8 +7,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#define PLATFORM_WINDOWS
-
 #include "All.h"
 #include "MACLib.h"
 #include "RegistryUtils.h"
@@ -42,7 +40,7 @@ const AMOVIESETUP_MEDIATYPE sudAPEOutPinTypes =
 
 const AMOVIESETUP_PIN sudAPEOutPin =
                                 {
-                                    L"PCM Out",             // Pin string name          // NOLINT
+                                    NULL,                   // Pin string name (MSDN says this is obsolete, so I switched from L"PCM Out" to NULL on 3/11/2024 to avoid Clang warning)
                                     FALSE,                  // Is it rendered
                                     TRUE,                   // Is it an output
                                     FALSE,                  // Can we have none
@@ -100,7 +98,7 @@ STDAPI DllRegisterServer()
         if (lr != ERROR_SUCCESS) return AmHresultFromWin32(lr);
 
         wsprintf(achTemp, _T("%ls"), szCLSID);
-        lr = RegSetValueEx(hkey, _T("Source Filter"), 0, REG_SZ, reinterpret_cast<const BYTE*>(achTemp), (2 + CHARS_IN_GUID) * sizeof(TCHAR));
+        lr = RegSetValueEx(hkey, _T("Source Filter"), 0, REG_SZ, reinterpret_cast<const BYTE*>(achTemp), static_cast<size_t>(2 + CHARS_IN_GUID) * sizeof(TCHAR));
         if (lr != ERROR_SUCCESS) return AmHresultFromWin32(lr);
         RegCloseKey(hkey);
 
@@ -114,7 +112,7 @@ STDAPI DllRegisterServer()
         if (lr != ERROR_SUCCESS) return AmHresultFromWin32(lr);
 
         wsprintf(achTemp, _T("%ls"), szCLSID);
-        lr = RegSetValueEx(hkey, _T("Source Filter"), 0, REG_SZ, reinterpret_cast<const BYTE*>(achTemp), (2 + CHARS_IN_GUID) * sizeof(TCHAR));
+        lr = RegSetValueEx(hkey, _T("Source Filter"), 0, REG_SZ, reinterpret_cast<const BYTE*>(achTemp), static_cast<size_t>(2 + CHARS_IN_GUID) * sizeof(TCHAR));
         if (lr != ERROR_SUCCESS) return AmHresultFromWin32(lr);
         RegCloseKey(hkey);
 

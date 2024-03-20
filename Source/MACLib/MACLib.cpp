@@ -783,16 +783,12 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
         // create the progress helper
         spMACProgressHelper.Assign(new CMACProgressHelper(nBlocksLeft / BLOCKS_PER_DECODE, pProgressCallback));
 
+        // processing flags
+        IAPEDecompress::APE_GET_DATA_PROCESSING Processing = { (nOutputMode != UNMAC_DECODER_OUTPUT_APE), (nOutputMode != UNMAC_DECODER_OUTPUT_APE), (nOutputMode != UNMAC_DECODER_OUTPUT_APE) };
+
         // main decoding loop
         while (nBlocksLeft > 0)
         {
-            // processing flags
-            IAPEDecompress::APE_GET_DATA_PROCESSING Processing;
-            APE_CLEAR(Processing); // empty so Clang doesn't warn
-            Processing.bApplyFloatProcessing = (nOutputMode != UNMAC_DECODER_OUTPUT_APE);
-            Processing.bApplySigned8BitProcessing = (nOutputMode != UNMAC_DECODER_OUTPUT_APE);
-            Processing.bApplyBigEndianProcessing = (nOutputMode != UNMAC_DECODER_OUTPUT_APE);
-
             // decode data
             int64 nBlocksDecoded = -1;
             const int nResult = spAPEDecompress->GetData(spTempBuffer, BLOCKS_PER_DECODE, &nBlocksDecoded, &Processing);

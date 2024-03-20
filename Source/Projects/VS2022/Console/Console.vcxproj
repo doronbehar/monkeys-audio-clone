@@ -276,7 +276,8 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PostBuildEvent>
-      <Command>..\..\..\Certificate\ScSignTool.exe sign /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /td sha256 /fd sha256 /a /as /sha1 6eb1d58802c48bc1eb7418692b2dea94cea3dfde "$(TargetPath)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
@@ -301,9 +302,6 @@
     <Link>
       <SubSystem>Console</SubSystem>
     </Link>
-    <PostBuildEvent>
-      <Command>..\..\..\Certificate\ScSignTool.exe sign /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /td sha256 /fd sha256 /a /as /sha1 6eb1d58802c48bc1eb7418692b2dea94cea3dfde "$(TargetPath)"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -393,7 +391,8 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PostBuildEvent>
-      <Command>..\..\..\Certificate\ScSignTool.exe sign /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /td sha256 /fd sha256 /a /as /sha1 6eb1d58802c48bc1eb7418692b2dea94cea3dfde "$(TargetPath)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64EC'">
@@ -418,9 +417,6 @@
     <Link>
       <SubSystem>Console</SubSystem>
     </Link>
-    <PostBuildEvent>
-      <Command>..\..\..\Certificate\ScSignTool.exe sign /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /td sha256 /fd sha256 /a /as /sha1 6eb1d58802c48bc1eb7418692b2dea94cea3dfde "$(TargetPath)"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <ClCompile>
@@ -444,9 +440,6 @@
     <Link>
       <SubSystem>Console</SubSystem>
     </Link>
-    <PostBuildEvent>
-      <Command>..\..\..\Certificate\ScSignTool.exe sign /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /td sha256 /fd sha256 /a /as /sha1 6eb1d58802c48bc1eb7418692b2dea94cea3dfde "$(TargetPath)"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Console\Console.cpp" />

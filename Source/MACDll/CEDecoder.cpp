@@ -101,10 +101,7 @@ __declspec(dllexport) DWORD FAR PASCAL ReadFilterInput(HANDLE hInput, unsigned c
         // 32 bit float decode (convert to 32 bit in Cool Edit format)
         //////////////////////
 
-        IAPEDecompress::APE_GET_DATA_PROCESSING GetDataProcessing;
-        APE_CLEAR(GetDataProcessing);
-        GetDataProcessing.bApplyFloatProcessing = true;
-
+        IAPEDecompress::APE_GET_DATA_PROCESSING GetDataProcessing = { true, false, false };
         if (pAPEDecompress->GetData(reinterpret_cast<unsigned char*>(buf), nBlocksToDecode, &nBlocksDecoded, &GetDataProcessing) != ERROR_SUCCESS)
             return 0;
 

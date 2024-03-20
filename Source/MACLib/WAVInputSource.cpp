@@ -1391,13 +1391,17 @@ int CCAFInputSource::AnalyzeSource()
         uint64 mChunkSize;
     };
     struct APE_CAFAudioFormat {
-        uint64 mSampleRate;
+        union
+        {
+            uint64 nSampleRate;
+            double dSampleRate;
+        };
         char cFormatID[4];
-        uint32_t mFormatFlags;
-        uint32_t mBytesPerPacket;
-        uint32_t mFramesPerPacket;
-        uint32_t mChannelsPerFrame;
-        uint32_t mBitsPerChannel;
+        uint32_t nFormatFlags;
+        uint32_t nBytesPerPacket;
+        uint32_t nFramesPerPacket;
+        uint32_t nChannelsPerFrame;
+        uint32_t nBitsPerChannel;
     };
     enum {
         APE_kCAFLinearPCMFormatFlagIsFloat = (1L << 0),
@@ -1432,17 +1436,16 @@ int CCAFInputSource::AnalyzeSource()
                     return ERROR_INVALID_INPUT_FILE;
                 }
 
-                AudioFormat.mSampleRate = Swap8Bytes(AudioFormat.mSampleRate);
-                const double dSampleRate = *(reinterpret_cast<double *>(&AudioFormat.mSampleRate));
-                AudioFormat.mBitsPerChannel = Swap4Bytes(AudioFormat.mBitsPerChannel);
-                AudioFormat.mChannelsPerFrame = Swap4Bytes(AudioFormat.mChannelsPerFrame);
-                AudioFormat.mFormatFlags = Swap4Bytes(AudioFormat.mFormatFlags);
+                AudioFormat.nSampleRate = Swap8Bytes(AudioFormat.nSampleRate);
+                AudioFormat.nBitsPerChannel = Swap4Bytes(AudioFormat.nBitsPerChannel);
+                AudioFormat.nChannelsPerFrame = Swap4Bytes(AudioFormat.nChannelsPerFrame);
+                AudioFormat.nFormatFlags = Swap4Bytes(AudioFormat.nFormatFlags);
 
                 // only support 8-bit, 16-bit, and 24-bit, maybe 32-bit
                 bool bFloat = false;
-                if (AudioFormat.mBitsPerChannel == 32)
+                if (AudioFormat.nBitsPerChannel == 32)
                 {
-                    if (AudioFormat.mFormatFlags & APE_kCAFLinearPCMFormatFlagIsFloat)
+                    if (AudioFormat.nFormatFlags & APE_kCAFLinearPCMFormatFlagIsFloat)
                     {
                         #ifndef APE_SUPPORT_FLOAT_COMPRESSION
                             return ERROR_INVALID_INPUT_FILE;
@@ -1450,16 +1453,16 @@ int CCAFInputSource::AnalyzeSource()
                         bFloat = true;
                     }
                 }
-                else if ((AudioFormat.mBitsPerChannel != 8) && (AudioFormat.mBitsPerChannel != 16) && (AudioFormat.mBitsPerChannel != 24))
+                else if ((AudioFormat.nBitsPerChannel != 8) && (AudioFormat.nBitsPerChannel != 16) && (AudioFormat.nBitsPerChannel != 24))
                 {
                     return ERROR_INVALID_INPUT_FILE;
                 }
 
                 // if we're little endian, mark that
-                if (AudioFormat.mFormatFlags & APE_kCAFLinearPCMFormatFlagIsLittleEndian)
+                if (AudioFormat.nFormatFlags & APE_kCAFLinearPCMFormatFlagIsLittleEndian)
                     m_bLittleEndian = true;
 
-                FillWaveFormatEx(&m_wfeSource, bFloat ? WAVE_FORMAT_IEEE_FLOAT : WAVE_FORMAT_PCM, static_cast<int>(dSampleRate), static_cast<int>(AudioFormat.mBitsPerChannel), static_cast<int>(AudioFormat.mChannelsPerFrame));
+                FillWaveFormatEx(&m_wfeSource, bFloat ? WAVE_FORMAT_IEEE_FLOAT : WAVE_FORMAT_PCM, static_cast<int>(AudioFormat.dSampleRate), static_cast<int>(AudioFormat.nBitsPerChannel), static_cast<int>(AudioFormat.nChannelsPerFrame));
                 bFoundDesc = true;
             }
             else

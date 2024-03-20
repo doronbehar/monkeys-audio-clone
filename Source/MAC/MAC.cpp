@@ -70,6 +70,7 @@ BOOL CMACApp::InitInstance()
     // uninstall if specified
     if (strCommandLine.CompareNoCase(_T("-uninstall")) == 0)
     {
+        // launch the uninstall (this way we show as the icon for the uninstall instead of a non-descript one)
         TCHAR * pUninstall = new TCHAR [APE_MAX_PATH];
         pUninstall[0] = 0;
         _tcscat_s(pUninstall, APE_MAX_PATH, GetInstallPath());
