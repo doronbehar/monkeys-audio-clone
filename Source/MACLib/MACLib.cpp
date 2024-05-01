@@ -42,11 +42,13 @@ IAPEDecompress * CreateIAPEDecompressCore(CAPEInfo * pAPEInfo, int nStartBlock, 
             {
                 // create
                 const int nVersion = static_cast<int>(pAPEInfo->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION));
-                if ((nVersion >= 3930) && (nVersion <= APE_FILE_VERSION_NUMBER))
+                if ((nVersion >= 3990) && (nVersion <= APE_FILE_VERSION_NUMBER))
                     spAPEDecompress.Assign(new CAPEDecompress(pErrorCode, pAPEInfo, nStartBlock, nFinishBlock));
                 else if (nVersion == 4110)
                     spAPEDecompress.Assign(new CAPEDecompress(pErrorCode, pAPEInfo, nStartBlock, nFinishBlock)); // a few users have mailed me files with this version -- I don't know where they came from but they verify fine using this code
 #ifdef APE_BACKWARDS_COMPATIBILITY
+                else if ((nVersion >= 3930) && (nVersion <= APE_FILE_VERSION_NUMBER))
+                    spAPEDecompress.Assign(new CAPEDecompress(pErrorCode, pAPEInfo, nStartBlock, nFinishBlock));
                 else if (nVersion < 3930)
                     spAPEDecompress.Assign(new CAPEDecompressOld(pErrorCode, pAPEInfo, nStartBlock, nFinishBlock));
 #endif

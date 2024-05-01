@@ -25,6 +25,7 @@ BEGIN_MESSAGE_MAP(COptionsDlg, CDialog)
     ON_NOTIFY(LVN_ITEMCHANGED, IDC_PAGE_LIST, &COptionsDlg::OnItemchangedPageList)
     ON_WM_DESTROY()
     ON_WM_SIZE()
+    ON_WM_MOVING()
 END_MESSAGE_MAP()
 
 BOOL COptionsDlg::OnInitDialog()
@@ -154,6 +155,25 @@ void COptionsDlg::OnSize(UINT nType, int cx, int cy)
     // frame
     CRect rectPageList; m_ctrlPageList.GetClientRect(&rectPageList);
     m_ctrlPageFrame.SetWindowPos(APE_NULL, rectPageList.right + (nBorder * 3), nPageTopBorder, cx - rectPageList.right - (nBorder * 4), cy - (1 * nBorder) - nPageTopBorder, SWP_NOZORDER);
+}
+
+void COptionsDlg::OnMoving(UINT, LPRECT pRect)
+{
+    HMONITOR hMonitor = MonitorFromWindow(GetSafeHwnd(), MONITOR_DEFAULTTONEAREST);
+
+    MONITORINFO info;
+    info.cbSize = sizeof(MONITORINFO);
+    if (GetMonitorInfo(hMonitor, &info))
+    {
+        if (pRect->left < info.rcMonitor.left)
+            OffsetRect(pRect, info.rcMonitor.left - pRect->left, 0);
+        if (pRect->top < info.rcMonitor.top)
+            OffsetRect(pRect, 0, info.rcMonitor.top - pRect->top);
+        if (pRect->right > info.rcMonitor.right)
+            OffsetRect(pRect, info.rcMonitor.right - pRect->right, 0);
+        if (pRect->bottom > info.rcMonitor.bottom)
+            OffsetRect(pRect, 0, info.rcMonitor.bottom - pRect->bottom);
+    }
 }
 
 void COptionsDlg::OnOK()

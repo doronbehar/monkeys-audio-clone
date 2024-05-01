@@ -214,6 +214,9 @@ int CAPEHeader::AnalyzeCurrent(APE_FILE_INFO * pInfo)
     pInfo->nBlockAlign            = pInfo->nBytesPerSample * pInfo->nChannels;
     pInfo->nTotalBlocks           = (APEHeader.nTotalFrames == 0) ? 0 : (static_cast<int64>(APEHeader.nTotalFrames -  1) * static_cast<int64>(pInfo->nBlocksPerFrame)) + static_cast<int64>(APEHeader.nFinalFrameBlocks);
 
+    // WAV data
+    pInfo->nWAVDataBytes = static_cast<int64>(pInfo->nTotalBlocks) * static_cast<int64>(pInfo->nBlockAlign);
+
     // WAV header and footer
     int nWAVHeaderSize = sizeof(WAVE_HEADER);
     if (pInfo->nWAVDataBytes >= (APE_BYTES_IN_GIGABYTE * 4))
@@ -221,8 +224,7 @@ int CAPEHeader::AnalyzeCurrent(APE_FILE_INFO * pInfo)
     pInfo->nWAVHeaderBytes = (APEHeader.nFormatFlags & APE_FORMAT_FLAG_CREATE_WAV_HEADER) ? nWAVHeaderSize : pInfo->spAPEDescriptor->nHeaderDataBytes;
     pInfo->nWAVTerminatingBytes = pInfo->spAPEDescriptor->nTerminatingDataBytes;
 
-    // WAV data and total
-    pInfo->nWAVDataBytes = static_cast<int64>(pInfo->nTotalBlocks) * static_cast<int64>(pInfo->nBlockAlign);
+    // WAV total
     pInfo->nWAVTotalBytes = pInfo->nWAVDataBytes + pInfo->nWAVHeaderBytes + pInfo->nWAVTerminatingBytes;
 
     // APE size

@@ -5,6 +5,8 @@
 #include "APLHelper.h"
 #include "FormatArray.h"
 #include "APETag.h"
+#include "FLACTag.h"
+#include "IO.h"
 
 using namespace APE;
 
@@ -286,9 +288,9 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
             if ((nRetVal == ERROR_SUCCESS) && theApp.GetSettings()->m_bOutputMirrorTimeStamp)
                 CopyFileTime(pInfo->strInputFilename, pInfo->strOutputFilename);
 
-            // copy tags from WavPack to APE files
-            if ((nRetVal == ERROR_SUCCESS) && (pInfo->GetOutputExtension() == _T(".ape")) && (pInfo->strInputFilename.Right(3) == _T(".wv")))
+            if ((nRetVal == ERROR_SUCCESS) && (pInfo->GetOutputExtension() == _T(".ape")) && (pInfo->strInputFilename.Right(3).CompareNoCase(_T(".wv")) == 0))
             {
+                // copy tags from WavPack to APE files
                 CSmartPtr<APE::IAPETag> spAPETag(new CAPETag(pInfo->strInputFilename, true));
                 if (spAPETag->GetHasAPETag())
                 {
@@ -300,6 +302,82 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
                             break;
                         spAPETagNew->SetFieldBinary(pField->GetFieldName(), pField->GetFieldValue(), pField->GetFieldValueSize(), pField->GetFieldFlags());
                     }
+                    spAPETagNew->Save(false);
+                }
+            }
+            else if ((nRetVal == ERROR_SUCCESS) && (pInfo->GetOutputExtension() == _T(".ape")) && (pInfo->strInputFilename.Right(5).CompareNoCase(_T(".flac")) == 0))
+            {
+                // copy tags from FLAC to APE files
+                CSmartPtr<CFLACTag> spFLACTag(new CFLACTag(pInfo->strInputFilename));
+                if (spFLACTag->m_mapFields.GetCount() > 0)
+                {
+                    CSmartPtr<APE::IAPETag> spAPETagNew(new CAPETag(pInfo->strOutputFilename, true));
+
+                    POSITION Pos = spFLACTag->m_mapFields.GetStartPosition();
+                    while (Pos)
+                    {
+                        CString strKey, strValue;
+                        spFLACTag->m_mapFields.GetNextAssoc(Pos, strKey, strValue);
+
+                        if (strKey.CompareNoCase(_T("TITLE")) == 0)
+                            spAPETagNew->SetFieldString(APE_TAG_FIELD_TITLE, strValue);
+                        else if (strKey.CompareNoCase(_T("ARTIST")) == 0)
+                            spAPETagNew->SetFieldString(APE_TAG_FIELD_ARTIST, strValue);
+                        else if (strKey.CompareNoCase(_T("ALBUM")) == 0)
+                            spAPETagNew->SetFieldString(APE_TAG_FIELD_ALBUM, strValue);
+                        else if (strKey.CompareNoCase(_T("ALBUM ARTIST")) == 0)
+                            spAPETagNew->SetFieldString(APE_TAG_FIELD_ALBUM_ARTIST, strValue);
+                        else if (strKey.CompareNoCase(_T("TRACKNUMBER")) == 0)
+                            spAPETagNew->SetFieldString(APE_TAG_FIELD_TRACK, strValue);
+                        else if (strKey.CompareNoCase(_T("DISCNUMBER")) == 0)
+                            spAPETagNew->SetFieldString(APE_TAG_FIELD_DISC, strValue);
+                        else if (strKey.CompareNoCase(_T("COMMENT")) == 0)
+                            spAPETagNew->SetFieldString(APE_TAG_FIELD_COMMENT, strValue);
+                        else if (strKey.CompareNoCase(_T("GENRE")) == 0)
+                            spAPETagNew->SetFieldString(APE_TAG_FIELD_GENRE, strValue);
+                        else if (strKey.CompareNoCase(_T("COMPOSER")) == 0)
+                            spAPETagNew->SetFieldString(APE_TAG_FIELD_COMPOSER, strValue);
+                        else if (strKey.CompareNoCase(_T("CONDUCTOR")) == 0)
+                            spAPETagNew->SetFieldString(APE_TAG_FIELD_CONDUCTOR, strValue);
+                        else if (strKey.CompareNoCase(_T("ORCHESTRA")) == 0)
+                            spAPETagNew->SetFieldString(APE_TAG_FIELD_ORCHESTRA, strValue);
+                        else if (strKey.CompareNoCase(_T("RATING")) == 0)
+                            spAPETagNew->SetFieldString(APE_TAG_FIELD_RATING, strValue);
+                        else if (strKey.CompareNoCase(_T("DATE")) == 0)
+                        {
+                            // year only
+                            if ((strValue.GetLength() == 4) && (_ttoi(strValue) >= 1500) && (_ttoi(strValue) <= 2500))
+                            {
+                                // date is simply a year
+                                spAPETagNew->SetFieldString(APE_TAG_FIELD_YEAR, strValue);
+                            }
+                            else
+                            {
+                                // date is formatted more advanced than just a year so try to parse it
+                                COleDateTime dtDate;
+                                if (dtDate.ParseDateTime(strValue) && (dtDate.GetYear() > 0))
+                                {
+                                    strValue.Format(_T("%d"), dtDate.GetYear());
+                                    spAPETagNew->SetFieldString(APE_TAG_FIELD_YEAR, strValue);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // look at strKey here
+                            CString strMissing = strKey;
+                            OutputDebugString(strMissing);
+                        }
+                    }
+
+                    if (spFLACTag->m_spPicture != NULL)
+                    {
+                        CSmartPtr<char> spBuffer(new char [spFLACTag->m_nPictureBytes + 10], true);
+                        memcpy(spBuffer, "Cover.jpg\0", 10);
+                        memcpy(&spBuffer[10], spFLACTag->m_spPicture, spFLACTag->m_nPictureBytes);
+                        spAPETagNew->SetFieldBinary(APE_TAG_FIELD_COVER_ART_FRONT, spBuffer, spFLACTag->m_nPictureBytes + 10, TAG_FIELD_FLAG_DATA_TYPE_BINARY);
+                    }
+
                     spAPETagNew->Save(false);
                 }
             }

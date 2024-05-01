@@ -12,6 +12,9 @@ namespace APE
 
 const uint32 POWERS_OF_TWO_MINUS_ONE[33] = {0,1,3,7,15,31,63,127,255,511,1023,2047,4095,8191,16383,32767,65535,131071,262143,524287,1048575,2097151,4194303,8388607,16777215,33554431,67108863,134217727,268435455,536870911,1073741823,2147483647,4294967295U};
 
+/**************************************************************************************************
+CreateUnBitArray
+**************************************************************************************************/
 CUnBitArrayBase * CreateUnBitArray(IAPEDecompress * pAPEDecompress, intn nVersion)
 {
     // determine the furthest position we should read in the I/O object
@@ -32,13 +35,21 @@ CUnBitArrayBase * CreateUnBitArray(IAPEDecompress * pAPEDecompress, intn nVersio
     }
 
 #ifdef APE_BACKWARDS_COMPATIBILITY
-    if (nVersion >= 3900)
-        return dynamic_cast<CUnBitArrayBase *>(new CUnBitArray(GET_IO(pAPEDecompress), nVersion, nFurthestReadByte));
-    else
+    if (nVersion < 3900)
+    {
         return dynamic_cast<CUnBitArrayBase *>(new CUnBitArrayOld(pAPEDecompress, nVersion, nFurthestReadByte));
+    }
+    else if (nVersion < 3990)
+    {
+        return dynamic_cast<CUnBitArrayBase *>(new CUnBitArray3891To3989(GET_IO(pAPEDecompress), nVersion, nFurthestReadByte));
+    }
+    else
+    {
+        return dynamic_cast<CUnBitArrayBase *>(new CUnBitArray(GET_IO(pAPEDecompress), nVersion, nFurthestReadByte));
+    }
 #else
     // create the appropriate object
-    if (nVersion < 3900)
+    if (nVersion < 3990)
     {
         // we should no longer be trying to decode files this old (this check should be redundant since
         // the main gate keeper should be CreateIAPEDecompressCore(...)
@@ -46,10 +57,32 @@ CUnBitArrayBase * CreateUnBitArray(IAPEDecompress * pAPEDecompress, intn nVersio
         return APE_NULL;
     }
 
-    return (CUnBitArrayBase * ) new CUnBitArray(GET_IO(pAPEDecompress), nVersion, nFurthestReadByte);
+    return dynamic_cast<CUnBitArrayBase *>(new CUnBitArray(GET_IO(pAPEDecompress), nVersion, nFurthestReadByte));
 #endif
 }
 
+/**************************************************************************************************
+RangeOverflowTable
+**************************************************************************************************/
+RangeOverflowTable::RangeOverflowTable(const uint32 * RANGE_TOTAL)
+{
+    uint8 nOverflow = 0;
+    for (uint32 z = 0; z < 65536; z++)
+    {
+        if (z >= RANGE_TOTAL[nOverflow + 1])
+            nOverflow++;
+
+        m_aryTable[z] = nOverflow;
+    }
+}
+
+RangeOverflowTable::~RangeOverflowTable()
+{
+}
+
+/**************************************************************************************************
+CUnBitArrayBase
+**************************************************************************************************/
 CUnBitArrayBase::CUnBitArrayBase(int64 nFurthestReadByte)
 {
     m_nElements = 0;
@@ -142,6 +175,14 @@ int CUnBitArrayBase::FillAndResetBitArray(int64 nFileLocation, int64 nNewBitInde
     return nResult;
 }
 
+uint32 CUnBitArrayBase::DecodeValue(DECODE_VALUE_METHOD DecodeMethod, int)
+{
+    if (DecodeMethod == DECODE_VALUE_METHOD_UNSIGNED_INT)
+        return DecodeValueXBits(32);
+
+    return 0;
+}
+
 int CUnBitArrayBase::FillBitArray()
 {
     // get the bit array index
@@ -172,7 +213,7 @@ int CUnBitArrayBase::FillBitArray()
     // zero anything at the tail we didn't fill
     m_nGoodBytes = ((m_nElements - nBitArrayIndex) * 4) + nBytesRead;
     if (m_nGoodBytes < m_nBytes)
-        memset(&(reinterpret_cast<unsigned char *>(m_spBitArray.GetPtr()))[m_nGoodBytes], 0, m_nBytes - m_nGoodBytes);
+        memset(&(reinterpret_cast<unsigned char *>(m_spBitArray.GetPtr()))[m_nGoodBytes], 0, static_cast<size_t>(m_nBytes - m_nGoodBytes));
 
     // adjust the m_Bit pointer
     m_nCurrentBitIndex = m_nCurrentBitIndex & 31;

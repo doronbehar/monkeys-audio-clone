@@ -355,7 +355,7 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nPara
 
         if (m_APEFileInfo.nFormatFlags & APE_FORMAT_FLAG_CREATE_WAV_HEADER)
         {
-            if (m_APEFileInfo.nWAVDataBytes >= (4 * APE_BYTES_IN_GIGABYTE))
+            if (m_APEFileInfo.nWAVDataBytes >= (APE_BYTES_IN_GIGABYTE * 4))
             {
                 if (static_cast<APE::int64>(sizeof(RF64_HEADER)) > nMaxBytes)
                 {

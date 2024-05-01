@@ -308,6 +308,7 @@
       <EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <OptimizeReferences>true</OptimizeReferences>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -444,6 +445,7 @@
       <EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <OptimizeReferences>true</OptimizeReferences>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -512,6 +514,7 @@
     <ClCompile Include="..\..\..\MAC\AboutDlg.cpp" />
     <ClCompile Include="..\..\..\MAC\APEInfoDlg.cpp" />
     <ClCompile Include="..\..\..\MAC\APEInfoFormatDlg.cpp" />
+    <ClCompile Include="..\..\..\MAC\FLACTag.cpp" />
     <ClCompile Include="..\..\..\MAC\MAC.cpp" />
     <ClCompile Include="..\..\..\MAC\MACDlg.cpp" />
     <ClCompile Include="..\..\..\MAC\MACFile.cpp" />
@@ -565,6 +568,7 @@
     <ClInclude Include="..\..\..\MAC\AboutDlg.h" />
     <ClInclude Include="..\..\..\MAC\APEInfoDlg.h" />
     <ClInclude Include="..\..\..\MAC\APEInfoFormatDlg.h" />
+    <ClInclude Include="..\..\..\MAC\FLACTag.h" />
     <ClInclude Include="..\..\..\MAC\MAC.h" />
     <ClInclude Include="..\..\..\MAC\MACDlg.h" />
     <ClInclude Include="..\..\..\MAC\MACFile.h" />

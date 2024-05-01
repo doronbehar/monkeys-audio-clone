@@ -69,6 +69,8 @@ The version of the APE tag
 #define APE_TAG_FIELD_REPLAY_GAIN_RADIO         L"Replay Gain (radio)"
 #define APE_TAG_FIELD_REPLAY_GAIN_ALBUM         L"Replay Gain (album)"
 #define APE_TAG_FIELD_COMPOSER                  L"Composer"
+#define APE_TAG_FIELD_CONDUCTOR                 L"Conductor"
+#define APE_TAG_FIELD_ORCHESTRA                 L"Orchestra"
 #define APE_TAG_FIELD_KEYWORDS                  L"Keywords"
 #define APE_TAG_FIELD_RATING                    L"Rating"
 #define APE_TAG_FIELD_PUBLISHER                 L"Publisher"

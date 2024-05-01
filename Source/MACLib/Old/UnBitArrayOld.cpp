@@ -1,6 +1,7 @@
 #include "All.h"
 #ifdef APE_BACKWARDS_COMPATIBILITY
-
+#define APE_ADD_GET_TO_RANGE_OVERFLOW_TABLE
+#define APE_ADD_DECODE_BYTE
 #include "APEInfo.h"
 #include "UnBitArrayOld.h"
 
@@ -17,7 +18,7 @@ const uint32 K_SUM_MIN_BOUNDARY[32] = {0,32,64,128,256,512,1024,2048,4096,8192,1
 const uint32 K_SUM_MAX_BOUNDARY[32] = {32,64,128,256,512,1024,2048,4096,8192,16384,32768,65536,131072,262144,524288,1048576,2097152,4194304,8388608,16777216,33554432,67108864,134217728,268435456,536870912,1073741824,2147483648U,0,0,0,0,0};
 
 /**************************************************************************************************
-Construction
+CUnBitArrayOld
 **************************************************************************************************/
 CUnBitArrayOld::CUnBitArrayOld(IAPEDecompress * pAPEDecompress, intn nVersion, int64 nFurthestReadByte) :
     CUnBitArrayBase(nFurthestReadByte)
@@ -66,7 +67,7 @@ CUnBitArrayOld::~CUnBitArrayOld()
 ////////////////////////////////////////////////////////////////////////////////////
 // Gets the number of m_nBits of data left in the m_nCurrentBitIndex array
 ////////////////////////////////////////////////////////////////////////////////////
-uint32 CUnBitArrayOld::GetBitsRemaining()
+uint32 CUnBitArrayOld::GetBitsRemaining() const
 {
     return (m_nElements * 32 - m_nCurrentBitIndex);
 }
@@ -112,7 +113,7 @@ uint32 CUnBitArrayOld::Get_K(uint32 x)
     return k;
 }
 
-uint32 CUnBitArrayOld::DecodeValue(DECODE_VALUE_METHOD DecodeMethod, int nParam1, int)
+uint32 CUnBitArrayOld::DecodeValue(DECODE_VALUE_METHOD DecodeMethod, int nParam1)
 {
     switch (DecodeMethod)
     {
@@ -373,6 +374,189 @@ __inline int CUnBitArrayOld::DecodeValueNew(bool bCapOverflow)
 
     // convert to unsigned and save
     return (v & 1) ? static_cast<int>(v >> 1) + 1 : -(static_cast<int>(v >> 1));
+}
+
+/**************************************************************************************************
+CUnBitArray3891To3989
+**************************************************************************************************/
+CUnBitArray3891To3989::CUnBitArray3891To3989(CIO * pIO, intn nVersion, int64 nFurthestReadByte) :
+    CUnBitArrayBase(nFurthestReadByte)
+{
+    APE_CLEAR(m_RangeCoderInfo);
+    CreateHelper(pIO, 16384, nVersion);
+
+    // create the range table
+    m_spRangeTable.Assign(new RangeOverflowTable(RANGE_TOTAL_1));
+}
+
+CUnBitArray3891To3989::~CUnBitArray3891To3989()
+{
+}
+
+void CUnBitArray3891To3989::GenerateArray(int * pOutputArray, int nElements, intn)
+{
+    GenerateArrayRange(pOutputArray, nElements);
+}
+
+uint32 CUnBitArray3891To3989::RangeDecodeFast(int nShift)
+{
+    while (m_RangeCoderInfo.range <= BOTTOM_VALUE)
+    {
+        m_RangeCoderInfo.buffer = (m_RangeCoderInfo.buffer << 8) | DecodeByte();
+        m_RangeCoderInfo.low = (m_RangeCoderInfo.low << 8) | ((m_RangeCoderInfo.buffer >> 1) & 0xFF);
+        m_RangeCoderInfo.range <<= 8;
+
+        // check for end of life
+        if (m_RangeCoderInfo.range == 0)
+            return 0;
+    }
+
+    // decode
+    m_RangeCoderInfo.range >>= nShift;
+
+    return m_RangeCoderInfo.low / m_RangeCoderInfo.range;
+}
+
+uint32 CUnBitArray3891To3989::RangeDecodeFastWithUpdate(int nShift)
+{
+    // update range
+    while (m_RangeCoderInfo.range <= BOTTOM_VALUE)
+    {
+        // if the decoder's range falls to zero, it means the input bitstream is corrupt
+        if (m_RangeCoderInfo.range == 0)
+        {
+            ASSERT(false);
+            throw(1);
+        }
+
+        // read byte and update range
+        m_RangeCoderInfo.buffer = (m_RangeCoderInfo.buffer << 8) | DecodeByte();
+        m_RangeCoderInfo.low = (m_RangeCoderInfo.low << 8) | ((m_RangeCoderInfo.buffer >> 1) & 0xFF);
+        m_RangeCoderInfo.range <<= 8;
+    }
+
+    // decode
+    m_RangeCoderInfo.range >>= nShift;
+
+    // check for an invalid range value
+    if (m_RangeCoderInfo.range == 0)
+    {
+        ASSERT(false);
+        throw(1);
+    }
+
+    // get the result
+    const uint32 nResult = m_RangeCoderInfo.low / m_RangeCoderInfo.range;
+    m_RangeCoderInfo.low = m_RangeCoderInfo.low % m_RangeCoderInfo.range;
+    return nResult;
+}
+
+int64 CUnBitArray3891To3989::DecodeValueRange(UNBIT_ARRAY_STATE & BitArrayState)
+{
+    int64 nValue = 0;
+
+    // decode
+    const uint32 nRangeTotal = RangeDecodeFast(RANGE_OVERFLOW_SHIFT);
+    if (nRangeTotal >= 65536)
+        throw(ERROR_INVALID_INPUT_FILE);
+
+    // lookup the symbol from lookup table
+    uint32 nOverflow = m_spRangeTable->Get(nRangeTotal);
+
+    // update
+    m_RangeCoderInfo.low -= m_RangeCoderInfo.range * RANGE_TOTAL_1[nOverflow];
+    m_RangeCoderInfo.range = m_RangeCoderInfo.range * RANGE_WIDTH_1[nOverflow];
+
+    // get the working k
+    uint32 nTempK;
+    if (nOverflow == (MODEL_ELEMENTS - 1))
+    {
+        nTempK = RangeDecodeFastWithUpdate(5);
+        nOverflow = 0;
+    }
+    else
+    {
+        nTempK = (BitArrayState.k < 1) ? 0 : BitArrayState.k - 1;
+    }
+
+    // figure the extra bits on the left and the left value
+    if ((nTempK <= 16) || (m_nVersion < 3910))
+    {
+        nValue = RangeDecodeFastWithUpdate(static_cast<int>(nTempK));
+    }
+    else
+    {
+        const uint32 nX1 = RangeDecodeFastWithUpdate(16);
+        const uint32 nX2 = RangeDecodeFastWithUpdate(static_cast<int>(nTempK - 16));
+        // switched from nValue = nX1 | (nX2 << 16); on 1/30/2024 to avoid a warning (since x2 could overflow when shifted up by 16) (compressed a 24-bit noise file with 3.94 and it still verified)
+        nValue = nX1;
+        nValue |= (static_cast<int64>(nX2) << 16);
+    }
+
+    // build the value and output it
+    // this used to be an integer value, but now is int64
+    // the overflow shifted by k should still fit in 32-bits, but
+    // we'll expand to 64-bits to avoid a warning
+    nValue += static_cast<int64>(nOverflow) << nTempK;
+
+    // update nKSum
+    BitArrayState.nKSum += static_cast<uint32>(((nValue + 1) / 2)) - ((BitArrayState.nKSum + 16) >> 5);
+
+    // update k
+    if (BitArrayState.nKSum < K_SUM_MIN_BOUNDARY[BitArrayState.k])
+        BitArrayState.k--;
+    else if (K_SUM_MIN_BOUNDARY[BitArrayState.k + 1] && BitArrayState.nKSum >= K_SUM_MIN_BOUNDARY[BitArrayState.k + 1])
+        BitArrayState.k++;
+
+    // output the value (converted to signed)
+    return (nValue & 1) ? (nValue >> 1) + 1 : -(nValue >> 1);
+}
+
+void CUnBitArray3891To3989::FlushState(UNBIT_ARRAY_STATE & BitArrayState)
+{
+    BitArrayState.k = 10;
+    BitArrayState.nKSum = static_cast<uint32>((1 << BitArrayState.k) * 16);
+}
+
+void CUnBitArray3891To3989::FlushBitArray()
+{
+    AdvanceToByteBoundary();
+    DecodeValueXBits(8); // ignore the first byte... (slows compression too much to not output this dummy byte)
+    m_RangeCoderInfo.buffer = DecodeValueXBits(8);
+    m_RangeCoderInfo.low = m_RangeCoderInfo.buffer >> (8 - EXTRA_BITS);
+    m_RangeCoderInfo.range = static_cast<unsigned int>(1 << EXTRA_BITS);
+}
+
+void CUnBitArray3891To3989::Finalize()
+{
+    // normalize
+    while (m_RangeCoderInfo.range <= BOTTOM_VALUE)
+    {
+        m_nCurrentBitIndex += 8;
+        m_RangeCoderInfo.range <<= 8;
+        if (m_RangeCoderInfo.range == 0)
+            return; // end of life!
+    }
+
+    // used to back-pedal the last two bytes out
+    // this should never have been a problem because we've outputted and normalized beforehand
+    // but stopped doing it as of 3.96 in case it accounted for rare decompression failures
+    if (m_nVersion <= 3950)
+        m_nCurrentBitIndex -= 16;
+}
+
+void CUnBitArray3891To3989::GenerateArrayRange(int * pOutputArray, int nElements)
+{
+    UNBIT_ARRAY_STATE BitArrayState;
+    FlushState(BitArrayState);
+    FlushBitArray();
+
+    for (int z = 0; z < nElements; z++)
+    {
+        pOutputArray[z] = static_cast<int>(DecodeValueRange(BitArrayState));
+    }
+
+    Finalize();
 }
 
 }
