@@ -33,7 +33,8 @@ CFLACTag::CFLACTag(const TCHAR * pFilename)
             // loop chunks
             bool bReadImage = false;
             bool bReadTag = false;
-            while (!bReadImage || !bReadTag)
+            bool bLast = false;
+            while (!bLast && (!bReadImage || !bReadTag))
             {
                 // read the buffer
                 unsigned char cBuffer[4] = { 0 };
@@ -48,8 +49,9 @@ CFLACTag::CFLACTag(const TCHAR * pFilename)
                         nBufferBytes = (nBufferBytes << 8) | static_cast<uint32>(cBuffer[1 + z]);
 
                     // get type and last
-                    //int nLast = static_cast<int>(cBuffer[0] & 0x80);
+                    int nLast = static_cast<int>(cBuffer[0] & 0x80);
                     int nType = static_cast<int>(cBuffer[0] & (0x80 - 1));
+                    bLast = (nLast != 0);
 
                     // keep start position of the reader
                     int64 nOriginalPosition = m_spIO->GetPosition();
@@ -83,17 +85,28 @@ CFLACTag::CFLACTag(const TCHAR * pFilename)
                         {
                             uint32 nBytes = ReadInteger(spTag, nStartByte, false);
 
-                            CSmartPtr<APE::str_utf8> spChar(new APE::str_utf8[nBytes + 1], true);
-                            memcpy(spChar, &spTag[nStartByte + 4], nBytes);
-                            spChar[nBytes] = 0;
+                            // exit the loop if this tag would read past the end of the buffer
+                            if ((nStartByte + 4 + nBytes) > nBufferBytes)
+                            {
+                                ASSERT(false);
+                                break;
+                            }
 
+                            // allocate
+                            CSmartPtr<APE::str_utf8> spChar(new APE::str_utf8 [nBytes + 1], true);
+                            memcpy(spChar, &spTag[nStartByte + 4], nBytes);
+                            spChar[nBytes] = 0; // NULL terminate
+
+                            // get string
                             CString strTag = CAPECharacterHelper::GetUTF16FromUTF8(spChar.GetPtr());
                             int nEqual = strTag.Find(_T("="), 0);
                             if (nEqual >= 0)
                             {
+                                // split into key and value
                                 CString strKey = strTag.Left(nEqual);
                                 CString strValue = strTag.Mid(nEqual + 1);
 
+                                // store in map
                                 m_mapFields.SetAt(strKey, strValue);
                             }
 
