@@ -45,7 +45,7 @@
   <PropertyGroup Label="Globals">
     <ProjectName>DirectShow Filter</ProjectName>
     <ProjectGuid>{504A34A3-25F7-4535-B1F6-18B9E530FC0D}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

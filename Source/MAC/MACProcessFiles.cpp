@@ -375,7 +375,7 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
                         CSmartPtr<char> spBuffer(new char [spFLACTag->m_nPictureBytes + 10], true);
                         memcpy(spBuffer, "Cover.jpg\0", 10);
                         memcpy(&spBuffer[10], spFLACTag->m_spPicture, spFLACTag->m_nPictureBytes);
-                        spAPETagNew->SetFieldBinary(APE_TAG_FIELD_COVER_ART_FRONT, spBuffer, spFLACTag->m_nPictureBytes + 10, TAG_FIELD_FLAG_DATA_TYPE_BINARY);
+                        spAPETagNew->SetFieldBinary(APE_TAG_FIELD_COVER_ART_FRONT, spBuffer, static_cast<intn>(spFLACTag->m_nPictureBytes) + 10, TAG_FIELD_FLAG_DATA_TYPE_BINARY);
                     }
 
                     spAPETagNew->Save(false);

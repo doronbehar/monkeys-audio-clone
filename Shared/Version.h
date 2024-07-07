@@ -3,8 +3,8 @@
 /* build batch file */
 /*
 #ifdef APE_BATCH_FILE_VERSION
-Set _MA=1072
-Set _MAV=10.72
+Set _MA=1074
+Set _MAV=10.74
 #endif
 */
 
@@ -12,8 +12,8 @@ Set _MAV=10.72
 #define APE_VERSION_MAJOR 10
 
 /* build version number */
-#define APE_VERSION_REVISION 72
-#define APE_VERSION_REVISION_NUMBER 72
+#define APE_VERSION_REVISION 74
+#define APE_VERSION_REVISION_NUMBER 74
 
 /* library interface version, update this whenever the signature of an exported function changes */
 #define APE_INTERFACE_VERSION 10

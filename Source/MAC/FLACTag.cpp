@@ -51,6 +51,8 @@ CFLACTag::CFLACTag(const TCHAR * pFilename)
                     // get type and last
                     int nLast = static_cast<int>(cBuffer[0] & 0x80);
                     int nType = static_cast<int>(cBuffer[0] & (0x80 - 1));
+
+                    // set the last (don't keep reading)
                     bLast = (nLast != 0);
 
                     // keep start position of the reader
@@ -85,28 +87,17 @@ CFLACTag::CFLACTag(const TCHAR * pFilename)
                         {
                             uint32 nBytes = ReadInteger(spTag, nStartByte, false);
 
-                            // exit the loop if this tag would read past the end of the buffer
-                            if ((nStartByte + 4 + nBytes) > nBufferBytes)
-                            {
-                                ASSERT(false);
-                                break;
-                            }
-
-                            // allocate
                             CSmartPtr<APE::str_utf8> spChar(new APE::str_utf8 [nBytes + 1], true);
                             memcpy(spChar, &spTag[nStartByte + 4], nBytes);
-                            spChar[nBytes] = 0; // NULL terminate
+                            spChar[nBytes] = 0;
 
-                            // get string
                             CString strTag = CAPECharacterHelper::GetUTF16FromUTF8(spChar.GetPtr());
                             int nEqual = strTag.Find(_T("="), 0);
                             if (nEqual >= 0)
                             {
-                                // split into key and value
                                 CString strKey = strTag.Left(nEqual);
                                 CString strValue = strTag.Mid(nEqual + 1);
 
-                                // store in map
                                 m_mapFields.SetAt(strKey, strValue);
                             }
 
