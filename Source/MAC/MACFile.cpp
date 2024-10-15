@@ -127,7 +127,7 @@ double MAC_FILE::GetProgress() const
         return 1;
 }
 
-CString MAC_FILE::GetOutputExtension()
+CString MAC_FILE::GetOutputExtension() const
 {
     CString strExtension = theApp.GetFormatArray()->GetOutputExtension(Mode, strInputFilename, nLevel, pFormat);
     return strExtension;

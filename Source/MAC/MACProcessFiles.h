@@ -1,7 +1,5 @@
 #pragma once
 
-void CALLBACK MACProgressCallback(int nPercentageDone);
-
 #include "MACFileArray.h"
 #include <thread>
 
@@ -19,9 +17,9 @@ public:
     BOOL Pause(BOOL bPause);
     BOOL Stop(BOOL bImmediately);
 
-    inline BOOL GetPaused() { return m_bPaused; }
-    inline BOOL GetStopped() { return m_bStopped; }
-    int GetPausedTotalMS();
+    inline BOOL GetPaused() const { return m_bPaused; }
+    inline BOOL GetStopped() const { return m_bStopped; }
+    int GetPausedTotalMS() const;
 
 protected:
     // helpers

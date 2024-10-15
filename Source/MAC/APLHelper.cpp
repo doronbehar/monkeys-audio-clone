@@ -39,7 +39,13 @@ BOOL CAPLHelper::GenerateLinkFiles(const CString & strImage, const CString & str
         return FALSE;
     }
 
-    CString strCUE = spCUE.GetPtr();
+    // read as ANSI first
+    CString strCUE = CAPECharacterHelper::GetUTF16FromUTF8(reinterpret_cast<str_utf8 *>(spCUE.GetPtr()));
+    if (strCUE.Find(_T("FILE \""), 0) < 0)
+    {
+        // read as UTF16 since ANSI didn't find the file
+        strCUE = reinterpret_cast<str_utfn *>(spCUE.GetPtr());
+    }
 
     // parse the CUE header
     int nStart = strCUE.Find(_T("PERFORMER \""), 0);

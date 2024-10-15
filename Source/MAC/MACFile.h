@@ -40,7 +40,7 @@ public:
     BOOL PrepareForProcessing(CMACProcessFiles * pProcessFiles);
     void CalculateFilenames();
     double GetProgress() const;
-    CString GetOutputExtension();
-    inline BOOL GetNeverStarted() { return (bDone == FALSE) && (bStarted == FALSE); }
-    inline BOOL GetRunning() { return (bDone == FALSE) && (bStarted != FALSE); }
+    CString GetOutputExtension() const;
+    inline BOOL GetNeverStarted() const { return (bDone == FALSE) && (bStarted == FALSE); }
+    inline BOOL GetRunning() const { return (bDone == FALSE) && (bStarted != FALSE); }
 };

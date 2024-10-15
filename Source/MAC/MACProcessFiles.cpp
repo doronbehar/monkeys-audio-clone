@@ -80,7 +80,7 @@ BOOL CMACProcessFiles::Pause(BOOL bPause)
     return TRUE;
 }
 
-int CMACProcessFiles::GetPausedTotalMS()
+int CMACProcessFiles::GetPausedTotalMS() const
 {
     int nPausedMS = static_cast<int>(m_nPausedTotalMS);
     if (m_bPaused)
