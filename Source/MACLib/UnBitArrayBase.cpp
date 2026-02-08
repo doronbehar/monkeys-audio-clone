@@ -3,8 +3,10 @@
 #include "APEInfo.h"
 #include "UnBitArray.h"
 #ifdef APE_BACKWARDS_COMPATIBILITY
-    #include "Old/APEDecompressOld.h"
     #include "Old/UnBitArrayOld.h"
+#endif
+#if APE_BYTE_ORDER == APE_BIG_ENDIAN
+    #include "GlobalFunctions.h"
 #endif
 
 namespace APE
@@ -15,37 +17,38 @@ const uint32 POWERS_OF_TWO_MINUS_ONE[33] = {0,1,3,7,15,31,63,127,255,511,1023,20
 /**************************************************************************************************
 CreateUnBitArray
 **************************************************************************************************/
-CUnBitArrayBase * CreateUnBitArray(IAPEDecompress * pAPEDecompress, intn nVersion)
+CUnBitArrayBase * CreateUnBitArray(IAPEDecompress * pAPEDecompress, IAPEIO * pIO, intn nVersion)
 {
     // determine the furthest position we should read in the I/O object
-    int64 nFurthestReadByte = GET_IO(pAPEDecompress)->GetSize();
-    if (nFurthestReadByte > 0)
-    {
-       // terminating data
-       nFurthestReadByte -= pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES);
-
-       // tag (not worth analyzing the tag since we could be a remote file, etc.)
-       // also don't not read the tag if we're working on an APL file
-       if (pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_APL) == 0)
-       {
-           IAPETag * pAPETag = GET_TAG(pAPEDecompress);
-           if ((pAPETag != APE_NULL) && pAPETag->GetAnalyzed())
-               nFurthestReadByte -= pAPETag->GetTagBytes();
-       }
-    }
+    int64 nFurthestReadByte = pIO->GetSize();
 
 #ifdef APE_BACKWARDS_COMPATIBILITY
     if (nVersion < 3900)
     {
+        if (nFurthestReadByte > 0)
+        {
+            // terminating data
+            nFurthestReadByte -= pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES);
+
+            // tag (not worth analyzing the tag since we could be a remote file, etc.)
+            // also don't not read the tag if we're working on an APL file
+            if (pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_APL) == 0)
+            {
+                IAPETag * pAPETag = GET_TAG(pAPEDecompress);
+                if ((pAPETag != APE_NULL) && pAPETag->GetAnalyzed())
+                    nFurthestReadByte -= pAPETag->GetTagBytes();
+            }
+        }
+
         return dynamic_cast<CUnBitArrayBase *>(new CUnBitArrayOld(pAPEDecompress, nVersion, nFurthestReadByte));
     }
     else if (nVersion < 3990)
     {
-        return dynamic_cast<CUnBitArrayBase *>(new CUnBitArray3891To3989(GET_IO(pAPEDecompress), nVersion, nFurthestReadByte));
+        return dynamic_cast<CUnBitArrayBase *>(new CUnBitArray3891To3989(pIO, nVersion, nFurthestReadByte));
     }
     else
     {
-        return dynamic_cast<CUnBitArrayBase *>(new CUnBitArray(GET_IO(pAPEDecompress), nVersion, nFurthestReadByte));
+        return dynamic_cast<CUnBitArrayBase *>(new CUnBitArray(pIO, nVersion, nFurthestReadByte));
     }
 #else
     // create the appropriate object
@@ -57,7 +60,7 @@ CUnBitArrayBase * CreateUnBitArray(IAPEDecompress * pAPEDecompress, intn nVersio
         return APE_NULL;
     }
 
-    return dynamic_cast<CUnBitArrayBase *>(new CUnBitArray(GET_IO(pAPEDecompress), nVersion, nFurthestReadByte));
+    return dynamic_cast<CUnBitArrayBase *>(new CUnBitArray(pIO, nVersion, nFurthestReadByte));
 #endif
 }
 
@@ -113,10 +116,10 @@ bool CUnBitArrayBase::EnsureBitsAvailable(uint32 nBits, bool bThrowExceptionOnFa
     if ((m_nCurrentBitIndex + nBits) >= (m_nGoodBytes * 8))
     {
         // fill
-        FillBitArray();
+        bool bSuccess = (FillBitArray() == ERROR_SUCCESS);
 
         // if we still don't have enough good bytes, we don't have the bits available
-        if ((m_nCurrentBitIndex + nBits) >= (m_nGoodBytes * 8))
+        if (!bSuccess || ((m_nCurrentBitIndex + nBits) >= (m_nGoodBytes * 8)))
         {
             // overread error
             ASSERT(false);
@@ -210,6 +213,10 @@ int CUnBitArrayBase::FillBitArray()
     unsigned int nBytesRead = 0;
     const int nResult = m_pIO->Read(m_spBitArray + m_nElements - nBitArrayIndex, static_cast<unsigned int>(nBytesToRead), &nBytesRead);
 
+#if APE_BYTE_ORDER == APE_BIG_ENDIAN
+    SwitchBufferBytes(&m_spBitArray[m_nElements - nBitArrayIndex], 4, nBitArrayIndex);
+#endif
+
     // zero anything at the tail we didn't fill
     m_nGoodBytes = ((m_nElements - nBitArrayIndex) * 4) + nBytesRead;
     if (m_nGoodBytes < m_nBytes)
@@ -219,16 +226,16 @@ int CUnBitArrayBase::FillBitArray()
     m_nCurrentBitIndex = m_nCurrentBitIndex & 31;
 
     // return
-    return (nResult == 0) ? 0 : ERROR_IO_READ;
+    return (nResult == 0) ? ERROR_SUCCESS : ERROR_IO_READ;
 }
 
-int CUnBitArrayBase::CreateHelper(CIO * pIO, intn nBytes, intn nVersion)
+int CUnBitArrayBase::CreateHelper(IAPEIO * pIO, intn nBytes, intn nVersion)
 {
     // check the parameters
     if ((pIO == APE_NULL) || (nBytes <= 0)) { return ERROR_BAD_PARAMETER; }
 
     // save the size
-    m_nElements = static_cast<uint32>(nBytes) / 4;
+    m_nElements = static_cast<uint32>(nBytes / 4);
     m_nBytes = m_nElements * 4;
     m_nBits = m_nBytes * 8;
     m_nGoodBytes = 0;
@@ -239,12 +246,11 @@ int CUnBitArrayBase::CreateHelper(CIO * pIO, intn nBytes, intn nVersion)
     m_nCurrentBitIndex = 0;
 
     // create the bitarray (we allocate and empty a little extra as buffer insurance, although it should never be necessary)
-    const size_t nAllocateElements = static_cast<size_t>(m_nElements) + 64;
-    m_spBitArray.Assign(new uint32[nAllocateElements], true);
+    int64 nAllocateElements = static_cast<int64>(m_nElements) + 64;
+    m_spBitArray.AllocateArray(nAllocateElements, true);
     if (m_spBitArray == APE_NULL)
         return ERROR_INSUFFICIENT_MEMORY;
 
-    memset(m_spBitArray, 0, nAllocateElements * sizeof(m_spBitArray[0]));
     return ERROR_SUCCESS;
 }
 

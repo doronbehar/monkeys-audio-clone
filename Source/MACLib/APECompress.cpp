@@ -6,51 +6,56 @@
 #include "APECompressCreate.h"
 #include "WAVInputSource.h"
 #include "FloatTransform.h"
+#include "GlobalFunctions.h"
 
 namespace APE
 {
 
 CAPECompress::CAPECompress()
 {
+    m_nThreads = 1;
     m_nBufferHead = 0;
     m_nBufferTail = 0;
     m_nBufferSize = 0;
     m_bBufferLocked = false;
     m_bFloat = false;
-    APE_CLEAR(m_wfeInput);
 
     m_spAPECompressCreate.Assign(new CAPECompressCreate());
 }
 
 CAPECompress::~CAPECompress()
 {
-    m_spBuffer.Delete();
-    m_spioOutput.Delete();
+    // without this the compiler warns that it can't inline the destuctor
 }
 
-int CAPECompress::Start(const wchar_t * pOutputFilename, const WAVEFORMATEX * pwfeInput, bool bFloat, int64 nMaxAudioBytes, int nCompressionLevel, const void * pHeaderData, int64 nHeaderBytes, int nFlags)
+int CAPECompress::SetNumberOfThreads(int nThreads)
+{
+    m_nThreads = GetNumberThreads(nThreads);
+    return m_nThreads;
+}
+
+int CAPECompress::Start(const str_utfn * pOutputFilename, const WAVEFORMATEX * pwfeInput, bool bFloat, int64 nMaxAudioBytes, int nCompressionLevel, const void * pHeaderData, int64 nHeaderBytes, int nFlags)
 {
     m_spioOutput.Delete();
 
-    m_spioOutput.Assign(CreateCIO());
+    m_spioOutput.Assign(CreateIAPEIO());
 
     // update float
     HandleFloat(bFloat, pwfeInput);
 
     // create
-    if (m_spioOutput->Create(pOutputFilename) != 0)
-    {
-        return ERROR_INVALID_OUTPUT_FILE;
-    }
+    int nFileCreateResult = m_spioOutput->Create(pOutputFilename);
+    if (nFileCreateResult != 0)
+        return nFileCreateResult;
 
     // start
-    const int nStartResult = m_spAPECompressCreate->Start(m_spioOutput, pwfeInput, nMaxAudioBytes, nCompressionLevel,
+    const int nStartResult = m_spAPECompressCreate->Start(m_spioOutput, m_nThreads, pwfeInput, nMaxAudioBytes, nCompressionLevel,
         pHeaderData, nHeaderBytes, nFlags);
 
     // create buffer
     m_spBuffer.Delete();
     m_nBufferSize = m_spAPECompressCreate->GetFullFrameBytes();
-    m_spBuffer.Assign(new unsigned char [static_cast<size_t>(m_nBufferSize)], true);
+    m_spBuffer.AllocateArray(m_nBufferSize);
 
     // store format
     memcpy(&m_wfeInput, pwfeInput, sizeof(WAVEFORMATEX));
@@ -58,7 +63,7 @@ int CAPECompress::Start(const wchar_t * pOutputFilename, const WAVEFORMATEX * pw
     return nStartResult;
 }
 
-int CAPECompress::StartEx(CIO * pioOutput, const WAVEFORMATEX * pwfeInput, bool bFloat, int64 nMaxAudioBytes, int nCompressionLevel, const void * pHeaderData, int64 nHeaderBytes)
+int CAPECompress::StartEx(IAPEIO * pioOutput, const WAVEFORMATEX * pwfeInput, bool bFloat, int64 nMaxAudioBytes, int nCompressionLevel, const void * pHeaderData, int64 nHeaderBytes)
 {
     // store information (we don't own the I/O object so don't delete it)
     m_spioOutput.Assign(pioOutput, false, false);
@@ -67,13 +72,13 @@ int CAPECompress::StartEx(CIO * pioOutput, const WAVEFORMATEX * pwfeInput, bool 
     HandleFloat(bFloat, pwfeInput);
 
     // start
-    m_spAPECompressCreate->Start(m_spioOutput, pwfeInput, nMaxAudioBytes, nCompressionLevel,
+    m_spAPECompressCreate->Start(m_spioOutput, m_nThreads, pwfeInput, nMaxAudioBytes, nCompressionLevel,
         pHeaderData, nHeaderBytes);
 
     // create buffer
     m_spBuffer.Delete();
     m_nBufferSize = m_spAPECompressCreate->GetFullFrameBytes();
-    m_spBuffer.Assign(new unsigned char [static_cast<size_t>(m_nBufferSize)], true);
+    m_spBuffer.AllocateArray(m_nBufferSize);
 
     // store format
     memcpy(&m_wfeInput, pwfeInput, sizeof(WAVEFORMATEX));
@@ -139,7 +144,7 @@ int64 CAPECompress::AddData(unsigned char * pData, int64 nBytes)
         }
 
         // calculate how many bytes to copy and add that much to the buffer
-        const int64 nBytesToProcess = ape_min(nBytesAvailable, nBytes - nBytesDone);
+        const int64 nBytesToProcess = APE_MIN(nBytesAvailable, nBytes - nBytesDone);
         memcpy(pBuffer, &pData[nBytesDone], static_cast<size_t>(nBytesToProcess));
 
         // unlock the buffer (fail if not successful)
@@ -160,11 +165,6 @@ int CAPECompress::Finish(unsigned char * pTerminatingData, int64 nTerminatingByt
     return m_spAPECompressCreate->Finish(pTerminatingData, nTerminatingBytes, nWAVTerminatingBytes);
 }
 
-int CAPECompress::Kill()
-{
-    return ERROR_SUCCESS;
-}
-
 int CAPECompress::ProcessBuffer(bool bFinalize)
 {
     if (m_spBuffer == APE_NULL) { return ERROR_UNDEFINED; }
@@ -176,7 +176,7 @@ int CAPECompress::ProcessBuffer(bool bFinalize)
 
         while ((m_nBufferTail - m_nBufferHead) >= nThreshold)
         {
-            int64 nFrameBytes = ape_min(m_spAPECompressCreate->GetFullFrameBytes(), m_nBufferTail - m_nBufferHead);
+            int64 nFrameBytes = APE_MIN(m_spAPECompressCreate->GetFullFrameBytes(), m_nBufferTail - m_nBufferHead);
 
             // truncate to the size of a floating point number in float mode (since CFloatTransform::Process can only work on full samples)
             if (m_bFloat)
@@ -192,7 +192,7 @@ int CAPECompress::ProcessBuffer(bool bFinalize)
 
             // encode
             const int nResult = m_spAPECompressCreate->EncodeFrame(&m_spBuffer[m_nBufferHead], static_cast<int>(nFrameBytes));
-            if (nResult != 0) { return nResult; }
+            if (nResult != ERROR_SUCCESS) { return nResult; }
 
             m_nBufferHead += nFrameBytes;
         }

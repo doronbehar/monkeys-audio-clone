@@ -1,11 +1,12 @@
 #pragma once
 
-#include "IO.h"
+#include "IAPEIO.h"
 
 namespace APE
 {
 
-#pragma pack(push, 1)
+// forward declares
+class IID3v2Tag;
 
 /**************************************************************************************************
 CInputSource - base input format class (allows multiple format support)
@@ -13,6 +14,9 @@ CInputSource - base input format class (allows multiple format support)
 class CInputSource
 {
 public:
+    // input source creation
+    static CInputSource * CreateInputSource(const str_utfn * pSourceName, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int32 * pFlags, APE::IID3v2Tag * pTag, bool bReadFullInputForUnknownLength, int * pErrorCode = APE_NULL);
+
     // construction / destruction
     virtual ~CInputSource() { }
 
@@ -24,15 +28,17 @@ public:
     virtual int GetTerminatingData(unsigned char * pBuffer) = 0;
 
     // get other properties
-    virtual bool GetUnknownLengthPipe() { return false; }
+    virtual bool GetUnknownLengthFile() { return false; }
     virtual bool GetFloat() { return false; }
+
+    // structures
+    struct RIFF_HEADER;
 
 protected:
     // get header / terminating data
-    int GetHeaderDataHelper(bool bIsValid, unsigned char * pBuffer, uint32 nHeaderBytes, CIO * pIO);
-    int GetTerminatingDataHelper(bool bIsValid, unsigned char * pBuffer, uint32 nTerminatingBytes, CIO * pIO);
+    int GetHeaderDataHelper(bool bIsValid, unsigned char * pBuffer, uint32 nHeaderBytes, IAPEIO * pIO);
+    int GetTerminatingDataHelper(bool bIsValid, unsigned char * pBuffer, uint32 nTerminatingBytes, IAPEIO * pIO);
     void Convert8BitSignedToUnsigned(unsigned char * pBuffer, int nChannels, int nBlocks);
-    void FlipEndian(unsigned char * pBuffer, int nBitsPerSample, int nChannels, int nBlocks);
 };
 
 /**************************************************************************************************
@@ -45,8 +51,8 @@ public:
     static bool GetHeaderMatches(BYTE aryHeader[64]);
 
     // construction / destruction
-    CWAVInputSource(CIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode = APE_NULL);
-    ~CWAVInputSource();
+    CWAVInputSource(IAPEIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, IID3v2Tag * pTag, bool bReadFullInputForUnknownLength, int * pErrorCode = APE_NULL);
+    ~CWAVInputSource() APE_OVERRIDE;
 
     // get data
     int GetData(unsigned char * pBuffer, int nBlocks, int * pBlocksRetrieved) APE_OVERRIDE;
@@ -56,21 +62,26 @@ public:
     int GetTerminatingData(unsigned char * pBuffer) APE_OVERRIDE;
 
     // get other properties
-    bool GetUnknownLengthPipe() APE_OVERRIDE { return m_bUnknownLengthPipe; }
+    bool GetUnknownLengthFile() APE_OVERRIDE { return m_bUnknownLengthFile; }
     bool GetFloat() APE_OVERRIDE { return m_bFloat; }
+
+    // structures
+    struct DATA_TYPE_ID_HEADER;
+    struct RIFF_CHUNK_HEADER;
+    struct WAV_FORMAT_HEADER;
 
 private:
     int AnalyzeSource();
 
-    CSmartPtr<CIO> m_spIO;
+    CSmartPtr<IAPEIO> m_spIO;
     uint32 m_nHeaderBytes;
     uint32 m_nTerminatingBytes;
     int64 m_nDataBytes;
     int64 m_nFileBytes;
-    CSmartPtr<char> m_spFullHeader;
+    IID3v2Tag * m_pTag;
     WAVEFORMATEX m_wfeSource;
     bool m_bIsValid;
-    bool m_bUnknownLengthPipe;
+    bool m_bUnknownLengthFile;
     bool m_bFloat;
 };
 
@@ -84,8 +95,8 @@ public:
     static bool GetHeaderMatches(BYTE aryHeader[64]);
 
     // construction / destruction
-    CAIFFInputSource(CIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode = APE_NULL);
-    ~CAIFFInputSource();
+    CAIFFInputSource(IAPEIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, IID3v2Tag * pTag, int * pErrorCode = APE_NULL);
+    ~CAIFFInputSource() APE_OVERRIDE;
 
     // get data
     int GetData(unsigned char * pBuffer, int nBlocks, int * pBlocksRetrieved) APE_OVERRIDE;
@@ -97,6 +108,9 @@ public:
     // endian
     bool GetIsBigEndian() const;
 
+    // signed
+    bool GetIsSigned8Bit() const;
+
     // get other properties
     bool GetFloat() APE_OVERRIDE { return m_bFloat; }
 
@@ -105,36 +119,23 @@ private:
     unsigned long FetchLong(unsigned long * ptr);
     double GetExtendedDouble(uint16_t exponent, uint64_t mantissa);
 
-    CSmartPtr<CIO> m_spIO;
+    // data
+    CSmartPtr<IAPEIO> m_spIO;
     uint32 m_nHeaderBytes;
     uint32 m_nTerminatingBytes;
     int64 m_nDataBytes;
     int64 m_nFileBytes;
     WAVEFORMATEX m_wfeSource;
+    IID3v2Tag * m_pTag;
     bool m_bIsValid;
     bool m_bLittleEndian;
     bool m_bFloat;
+    bool m_bSigned8Bit;
 };
 
 /**************************************************************************************************
 CW64InputSource - wraps working with W64 files
 **************************************************************************************************/
-struct W64ChunkHeader
-{
-    GUID guidIdentifier; // the identifier of the chunk
-    uint64 nBytes; // the size of the chunk
-};
-
-struct WAVFormatChunkData
-{
-    uint16            nFormatTag;                // the format of the WAV...should equal 1 for a PCM file
-    uint16            nChannels;                // the number of channels
-    uint32            nSamplesPerSecond;        // the number of samples per second
-    uint32            nAverageBytesPerSecond; // the bytes per second
-    uint16            nBlockAlign;            // block alignment
-    uint16            nBitsPerSample;            // the number of bits per sample
-};
-
 class CW64InputSource : public CInputSource
 {
 public:
@@ -142,8 +143,8 @@ public:
     static bool GetHeaderMatches(BYTE aryHeader[64]);
 
     // construction / destruction
-    CW64InputSource(CIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode = APE_NULL);
-    ~CW64InputSource();
+    CW64InputSource(IAPEIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode = APE_NULL);
+    ~CW64InputSource() APE_OVERRIDE;
 
     // get data
     int GetData(unsigned char * pBuffer, int nBlocks, int * pBlocksRetrieved) APE_OVERRIDE;
@@ -155,11 +156,15 @@ public:
     // get other properties
     bool GetFloat() APE_OVERRIDE { return m_bFloat; }
 
+    // structures
+    struct W64ChunkHeader;
+    struct WAVFormatChunkData;
+
 private:
     int AnalyzeSource();
     int64 Align(int64 nValue, int nAlignment);
 
-    CSmartPtr<CIO> m_spIO;
+    CSmartPtr<IAPEIO> m_spIO;
     uint32 m_nHeaderBytes;
     uint32 m_nTerminatingBytes;
     int64 m_nDataBytes;
@@ -179,8 +184,8 @@ public:
     static bool GetHeaderMatches(BYTE aryHeader[64]);
 
     // construction / destruction
-    CSNDInputSource(CIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode = APE_NULL, int32 * pFlags = APE_NULL);
-    ~CSNDInputSource();
+    CSNDInputSource(IAPEIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode = APE_NULL, int32 * pFlags = APE_NULL);
+    ~CSNDInputSource() APE_OVERRIDE;
 
     // get data
     int GetData(unsigned char * pBuffer, int nBlocks, int * pBlocksRetrieved) APE_OVERRIDE;
@@ -194,9 +199,8 @@ public:
 
 private:
     int AnalyzeSource(int32 * pFlags);
-    uint32 FlipByteOrder32(uint32 nValue);
 
-    CSmartPtr<CIO> m_spIO;
+    CSmartPtr<IAPEIO> m_spIO;
     uint32 m_nHeaderBytes;
     uint32 m_nTerminatingBytes;
     int64 m_nDataBytes;
@@ -216,8 +220,8 @@ public:
     static bool GetHeaderMatches(BYTE aryHeader[64]);
 
     // construction / destruction
-    CCAFInputSource(CIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode = APE_NULL);
-    ~CCAFInputSource();
+    CCAFInputSource(IAPEIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode = APE_NULL);
+    ~CCAFInputSource() APE_OVERRIDE;
 
     // get data
     int GetData(unsigned char * pBuffer, int nBlocks, int * pBlocksRetrieved) APE_OVERRIDE;
@@ -232,10 +236,13 @@ public:
     // endian
     bool GetIsBigEndian() const;
 
+    // structures
+    struct CAFFileHeader;
+
 private:
     int AnalyzeSource();
 
-    CSmartPtr<CIO> m_spIO;
+    CSmartPtr<IAPEIO> m_spIO;
     uint32 m_nHeaderBytes;
     uint32 m_nTerminatingBytes;
     int64 m_nDataBytes;
@@ -244,12 +251,5 @@ private:
     bool m_bLittleEndian;
     bool m_bIsValid;
 };
-
-/**************************************************************************************************
-Input souce creation
-**************************************************************************************************/
-CInputSource * CreateInputSource(const wchar_t * pSourceName, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int32 * pFlags, int * pErrorCode = APE_NULL);
-
-#pragma pack(pop)
 
 }

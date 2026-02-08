@@ -3,12 +3,12 @@
 namespace APE
 {
 
-class CIO;
+class IAPEIO;
 
 /**************************************************************************************************
 APETag version history / supported formats
 
-1.0 (1000) - Original APE tag spec.  Fully supported by this code.
+1.0 (1000) - Original APE tag spec. Fully supported by this code.
 2.0 (2000) - Refined APE tag spec (better streaming support, UTF encoding). Fully supported by this code.
 
 Notes:
@@ -31,7 +31,7 @@ APETag layout
 /**************************************************************************************************
 Notes
 
-When saving images, store the filename (no directory -- i.e. Cover.jpg) in UTF-8 followed
+When saving images, store the extension in UTF-8, followed
 by a null terminator, followed by the image data.
 
 What saving text lists, delimit the values with a NULL terminator.
@@ -54,7 +54,7 @@ The version of the APE tag
 #define APE_TAG_FIELD_TRACK                     L"Track"
 #define APE_TAG_FIELD_DISC                      L"Disc"
 #define APE_TAG_FIELD_GENRE                     L"Genre"
-#define APE_TAG_FIELD_COVER_ART_FRONT           L"Cover Art (front)"
+#define APE_TAG_FIELD_COVER_ART_FRONT           L"Cover Art (front)" // stored as binary [extension][NULL character][image data] - previously was [filename] instead of [extension] so check for a dot when reading
 #define APE_TAG_FIELD_NOTES                     L"Notes"
 #define APE_TAG_FIELD_LYRICS                    L"Lyrics"
 #define APE_TAG_FIELD_COPYRIGHT                 L"Copyright"
@@ -102,7 +102,7 @@ struct ID3_TAG
 /**************************************************************************************************
 Footer (and header) flags
 **************************************************************************************************/
-#define APE_TAG_FLAG_CONTAINS_HEADER            ((unsigned int) 1 << 31)
+#define APE_TAG_FLAG_CONTAINS_HEADER            (static_cast<unsigned int>(1 << 31))
 #define APE_TAG_FLAG_CONTAINS_FOOTER            (1 << 30)
 #define APE_TAG_FLAG_IS_HEADER                  (1 << 29)
 
@@ -119,12 +119,9 @@ Tag field flags
 #define TAG_FIELD_FLAG_DATA_TYPE_EXTERNAL_INFO  (2 << 1)
 #define TAG_FIELD_FLAG_DATA_TYPE_RESERVED       (3 << 1)
 
-#pragma pack(push, 1)
-
 /**************************************************************************************************
 The footer at the end of APE tagged files (can also optionally be at the front of the tag)
 **************************************************************************************************/
-#ifdef APE_ENABLE_TAG_FOOTER
 #define APE_TAG_FOOTER_BYTES    32
 class APE_TAG_FOOTER
 {
@@ -169,7 +166,6 @@ public:
         return bValid ? true : false;
     }
 };
-#endif
 
 /**************************************************************************************************
 CAPETagField class (an APE tag is an array of these)
@@ -210,10 +206,10 @@ public:
 
 private:
     // helpers
-    void Save32(char* pBuffer, int nValue);
+    void Save32(char * pBuffer, int nValue);
 
     // data
-    CSmartPtr<str_utfn> m_spFieldNameUTF16;
+    CSmartPtr<str_utfn> m_spFieldNameUTFN;
     CSmartPtr<char> m_spFieldValue;
     int m_nFieldFlags;
     int m_nFieldValueBytes;
@@ -244,6 +240,7 @@ public:
     virtual int GetFieldBinary(const str_utfn * pFieldName, void * pBuffer, int * pBufferBytes) = 0;
     virtual int GetFieldString(const str_utfn * pFieldName, str_utfn * pBuffer, int * pBufferCharacters, const str_utfn * pListDelimiter = L"; ") = 0;
     virtual int GetFieldString(const str_utfn * pFieldName, str_ansi * pBuffer, int * pBufferCharacters, bool bUTF8Encode = false) = 0;
+    virtual int GetFieldNumber(const str_utfn * pFieldName, int nNotFoundResult = -1) = 0;
 
     // remove a specific field
     virtual int RemoveField(const str_utfn * pFieldName) = 0;
@@ -269,8 +266,8 @@ public:
 
     // gets a desired tag field (returns NULL if not found)
     // again, be careful, because this a pointer to the actual field in this class
-    virtual CAPETagField* GetTagField(const str_utfn * pFieldName) = 0;
-    virtual CAPETagField* GetTagField(int nIndex) = 0;
+    virtual CAPETagField * GetTagField(const str_utfn * pFieldName) = 0;
+    virtual CAPETagField * GetTagField(int nIndex) = 0;
 
     // options
     virtual void SetIgnoreReadOnly(bool bIgnoreReadOnly) = 0;
@@ -286,7 +283,7 @@ public:
     // create an APE tag
     // bAnalyze determines whether it will analyze immediately or on the first request
     // be careful with multiple threads / file pointer movement if you don't analyze immediately
-    CAPETag(CIO * pIO, bool bAnalyze = true, bool bCheckForID3v1 = true);
+    CAPETag(IAPEIO * pIO, bool bAnalyze = true, bool bCheckForID3v1 = true);
     CAPETag(const str_utfn * pFilename, bool bAnalyze = true);
 
     // destructor
@@ -308,6 +305,7 @@ public:
     int GetFieldBinary(const str_utfn * pFieldName, void * pBuffer, int * pBufferBytes);
     int GetFieldString(const str_utfn * pFieldName, str_utfn * pBuffer, int * pBufferCharacters, const str_utfn * pListDelimiter = L"; ");
     int GetFieldString(const str_utfn * pFieldName, str_ansi * pBuffer, int * pBufferCharacters, bool bUTF8Encode = false);
+    int GetFieldNumber(const str_utfn * pFieldName, int nNotFoundResult = -1);
 
     // remove a specific field
     int RemoveField(const str_utfn * pFieldName);
@@ -330,6 +328,7 @@ public:
     bool GetHasID3Tag();
     bool GetHasAPETag();
     int GetAPETagVersion();
+    bool GetIOMatches(APE::IAPEIO * pIO);
 
     // gets a desired tag field (returns NULL if not found)
     // again, be careful, because this a pointer to the actual field in this class
@@ -342,7 +341,7 @@ public:
     // statics
     static const int s_nID3GenreUndefined = 255;
     static const int s_nID3GenreCount = 148;
-    static const wchar_t * s_aryID3GenreNames[s_nID3GenreCount];
+    static const str_utfn * s_aryID3GenreNames[s_nID3GenreCount];
 
 private:
     // private functions
@@ -358,7 +357,7 @@ private:
     int GetFieldID3String(const str_utfn * pFieldName, char * pBuffer, int nBytes);
 
     // private data
-    CSmartPtr<CIO> m_spIO;
+    CSmartPtr<IAPEIO> m_spIO;
     int m_nTagBytes;
     int m_nFields;
     int m_nAllocatedFields;
@@ -370,7 +369,5 @@ private:
     bool m_bIgnoreReadOnly;
     bool m_bCheckForID3v1;
 };
-
-#pragma pack(pop)
 
 }

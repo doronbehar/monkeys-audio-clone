@@ -45,7 +45,7 @@
 
 //// Binary/Low-Level-IO ///////////////////////////////////////////
 //
-// All file I/O is basicly handled via an ANSI file pointer (type: FILE*) in
+// All file I/O is basicly handled via an ANSI file pointer (type: FILE *) in
 // FILEIO-Mode 1 and via a POSIX file descriptor (type: int) in
 // FILEIO-Mode 2 and 3.
 //
@@ -108,7 +108,7 @@
 namespace APE
 {
 
-CIO * CreateCIO()
+IAPEIO * CreateIAPEIO()
 {
     return new CStdLibFileIO;
 }
@@ -117,6 +117,7 @@ CStdLibFileIO::CStdLibFileIO()
 {
     APE_CLEAR(m_cFileName);
     m_bReadOnly = false;
+    m_bPipe = false;
     m_pFile = APE_NULL;
 }
 
@@ -130,7 +131,7 @@ int CStdLibFileIO::GetHandle()
     return FILENO(m_pFile);
 }
 
-int CStdLibFileIO::Open(const wchar_t * pName, bool)
+int CStdLibFileIO::Open(const str_utfn * pName, bool)
 {
     Close();
 
@@ -143,6 +144,7 @@ int CStdLibFileIO::Open(const wchar_t * pName, bool)
     {
         m_pFile = SETBINARY_IN(stdin);
         m_bReadOnly = true;                                                     // ReadOnly
+        m_bPipe = true;
     }
     else if (0 == wcscmp(pName, L"/dev/stdout"))
     {
@@ -151,7 +153,7 @@ int CStdLibFileIO::Open(const wchar_t * pName, bool)
     }
     else
     {
-        CSmartPtr<char> spFilenameUTF8((char *) CAPECharacterHelper::GetUTF8FromUTF16(pName), true);
+        CSmartPtr<char> spFilenameUTF8((char *) CAPECharacterHelper::GetUTF8FromUTFN(pName), true);
         m_pFile = fopen(spFilenameUTF8, "r+be");
         if (m_pFile == APE_NULL && (errno == EACCES || errno == EPERM || errno == EROFS))
         {
@@ -192,8 +194,10 @@ int CStdLibFileIO::Read(void * pBuffer, unsigned int nBytesToRead, unsigned int 
 
 int CStdLibFileIO::Write(const void * pBuffer, unsigned  int nBytesToWrite, unsigned int * pBytesWritten)
 {
-    *pBytesWritten = (unsigned int) fwrite(pBuffer, 1, nBytesToWrite, m_pFile);
-    return (ferror(m_pFile) || (*pBytesWritten != nBytesToWrite)) ? ERROR_IO_WRITE : ERROR_SUCCESS;
+    unsigned int nBytesWritten = (unsigned int) fwrite(pBuffer, 1, nBytesToWrite, m_pFile);
+    if (pBytesWritten != APE_NULL)
+        *pBytesWritten = nBytesWritten;
+    return (ferror(m_pFile) || (nBytesWritten != nBytesToWrite)) ? ERROR_IO_WRITE : ERROR_SUCCESS;
 }
 
 int CStdLibFileIO::Seek(int64 nPosition, SeekMethod nMethod)
@@ -219,7 +223,11 @@ int CStdLibFileIO::Seek(int64 nPosition, SeekMethod nMethod)
 
 int CStdLibFileIO::SetEOF()
 {
+#ifdef PLATFORM_WINDOWS
+    return _chsize_s(GetHandle(), GetPosition());
+#else
     return ftruncate(GetHandle(), GetPosition());
+#endif
 }
 
 int64 CStdLibFileIO::GetPosition()
@@ -235,6 +243,8 @@ int64 CStdLibFileIO::GetPosition()
 
 int64 CStdLibFileIO::GetSize()
 {
+    if (m_bPipe)
+        return APE_FILE_SIZE_UNDEFINED;
     int64 nCurrentPosition = GetPosition();
     Seek(0, SeekFileEnd);
     int64 nLength = GetPosition();
@@ -242,13 +252,13 @@ int64 CStdLibFileIO::GetSize()
     return nLength;
 }
 
-int CStdLibFileIO::GetName(wchar_t * pBuffer)
+int CStdLibFileIO::GetName(str_utfn * pBuffer)
 {
     wcscpy(pBuffer, m_cFileName);
     return ERROR_SUCCESS;
 }
 
-int CStdLibFileIO::Create(const wchar_t * pName)
+int CStdLibFileIO::Create(const str_utfn * pName)
 {
     Close();
 
@@ -262,7 +272,7 @@ int CStdLibFileIO::Create(const wchar_t * pName)
     }
     else
     {
-        CSmartPtr<char> spFilenameUTF8((char *) CAPECharacterHelper::GetUTF8FromUTF16(pName), true);
+        CSmartPtr<char> spFilenameUTF8((char *) CAPECharacterHelper::GetUTF8FromUTFN(pName), true);
         // NOTE: on Mac OSX (BSD Unix), we MUST have "w+b" if we want to read & write, with other systems "wb" seems to be fine
         m_pFile = fopen(spFilenameUTF8, "w+be");                  // Read/Write
         m_bReadOnly = false;
@@ -279,7 +289,7 @@ int CStdLibFileIO::Create(const wchar_t * pName)
 int CStdLibFileIO::Delete()
 {
     Close();
-    CSmartPtr<char> spFilenameUTF8((char *) CAPECharacterHelper::GetUTF8FromUTF16(m_cFileName), true);
+    CSmartPtr<char> spFilenameUTF8((char *) CAPECharacterHelper::GetUTF8FromUTFN(m_cFileName), true);
     return unlink(spFilenameUTF8);    // 0 success, -1 error
 }
 

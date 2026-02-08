@@ -93,6 +93,16 @@
 #define IDC_STATICB1                    1068
 #define IDC_STATICB2                    1069
 #define IDC_STATICO1                    1070
+#define IDC_TITLES                      1071
+#define IDC_TITLE5                      1072
+#define IDC_DIVIDER5                    1073
+#define IDC_SIZE_PICTURE                1074
+#define IDC_STATIC4                     1075
+#define IDC_PROGRAM_SIZE_COMBO          1076
+#define IDC_FONT_SIZE_COMBO             1077
+#define IDC_STATIC5                     1078
+
+
 #define ID_SETTINGS_CUSTOMIZE_TOOLBAR   32771
 #define ID_FILE_ADD_FILES               32772
 #define ID_FILE_PROCESS_FILES           32773

@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "MACDll.h"
 #include "WinampSettingsDlg.h"
 
 IMPLEMENT_DYNAMIC(CWinampSettingsDlg, CDialog)
@@ -33,44 +32,47 @@ void CWinampSettingsDlg::DoDataExchange(CDataExchange * pDX)
 BEGIN_MESSAGE_MAP(CWinampSettingsDlg, CDialog)
 END_MESSAGE_MAP()
 
-BOOL CWinampSettingsDlg::LoadSettings()
+bool CWinampSettingsDlg::LoadSettings()
 {
-    GetPrivateProfileString(_T("APE Plugin Settings"), _T("File Display Method"), _T("%1 - %2"), m_strFileDisplayMethod.GetBuffer(1024), 1023, m_strSettingsFilename);
-    m_strFileDisplayMethod.ReleaseBuffer();
-    m_nThreadPriority = GetPrivateProfileInt(_T("APE Plugin Settings"), _T("Thread Priority)"), THREAD_PRIORITY_HIGHEST, m_strSettingsFilename);
-    m_bScaleOutput = GetPrivateProfileInt(_T("APE Plugin Settings"), _T("Scale Output"), FALSE, m_strSettingsFilename);
-    m_bIgnoreBitstreamErrors = GetPrivateProfileInt(_T("APE Plugin Settings"), _T("Ignore Bitstream Errors"), FALSE, m_strSettingsFilename);
-    m_bSuppressSilence = GetPrivateProfileInt(_T("APE Plugin Settings"), _T("Suppress Silence"), FALSE, m_strSettingsFilename);
+    const CString strAppName = _T("APE Plugin Settings");
 
-    return TRUE;
+    GetPrivateProfileString(strAppName, _T("File Display Method"), _T("%1 - %2"), m_strFileDisplayMethod.GetBuffer(1024), 1023, m_strSettingsFilename);
+    m_strFileDisplayMethod.ReleaseBuffer();
+    m_nThreadPriority = GetPrivateProfileInt(strAppName, _T("Thread Priority)"), THREAD_PRIORITY_HIGHEST, m_strSettingsFilename);
+    m_bScaleOutput = GetPrivateProfileInt(strAppName, _T("Scale Output"), false, m_strSettingsFilename);
+    m_bIgnoreBitstreamErrors = GetPrivateProfileInt(strAppName, _T("Ignore Bitstream Errors"), false, m_strSettingsFilename);
+    m_bSuppressSilence = GetPrivateProfileInt(strAppName, _T("Suppress Silence"), false, m_strSettingsFilename);
+
+    return true;
 }
 
-BOOL CWinampSettingsDlg::SaveSettings()
+bool CWinampSettingsDlg::SaveSettings()
 {
+    const CString strAppName = _T("APE Plugin Settings");
     CString strTemp;
 
-    WritePrivateProfileString(_T("APE Plugin Settings"), _T("File Display Method"), m_strFileDisplayMethod, m_strSettingsFilename);
+    WritePrivateProfileString(strAppName, _T("File Display Method"), m_strFileDisplayMethod, m_strSettingsFilename);
 
     strTemp.Format(_T("%d"), m_nThreadPriority);
-    WritePrivateProfileString(_T("APE Plugin Settings"), _T("Thread Priority"), strTemp, m_strSettingsFilename);
+    WritePrivateProfileString(strAppName, _T("Thread Priority"), strTemp, m_strSettingsFilename);
 
     strTemp.Format(_T("%d"), m_bScaleOutput);
-    WritePrivateProfileString(_T("APE Plugin Settings"), _T("Scale Output"), strTemp, m_strSettingsFilename);
+    WritePrivateProfileString(strAppName, _T("Scale Output"), strTemp, m_strSettingsFilename);
 
     strTemp.Format(_T("%d"), m_bIgnoreBitstreamErrors);
-    WritePrivateProfileString(_T("APE Plugin Settings"), _T("Ignore Bitstream Errors"), strTemp, m_strSettingsFilename);
+    WritePrivateProfileString(strAppName, _T("Ignore Bitstream Errors"), strTemp, m_strSettingsFilename);
 
     strTemp.Format(_T("%d"), m_bSuppressSilence);
-    WritePrivateProfileString(_T("APE Plugin Settings"), _T("Suppress Silence"), strTemp, m_strSettingsFilename);
+    WritePrivateProfileString(strAppName, _T("Suppress Silence"), strTemp, m_strSettingsFilename);
 
-    return TRUE;
+    return true;
 }
 
-BOOL CWinampSettingsDlg::Show(HWND hwndParent)
+bool CWinampSettingsDlg::Show(HWND hwndParent)
 {
     m_hwndParent = hwndParent;
     DoModal();
-    return TRUE;
+    return true;
 }
 
 BOOL CWinampSettingsDlg::OnInitDialog()
@@ -80,13 +82,13 @@ BOOL CWinampSettingsDlg::OnInitDialog()
     m_ctrlThreadPrioritySlider.SetRange(0, 4);
     m_ctrlThreadPrioritySlider.SetPos(GetSliderFromThreadPriority());
 
-    return TRUE;  // return TRUE unless you set the focus to a control
+    return true;  // return TRUE unless you set the focus to a control
     // EXCEPTION: OCX Property Pages should return FALSE
 }
 
 void CWinampSettingsDlg::OnOK()
 {
-    UpdateData(TRUE);
+    UpdateData(true);
     m_nThreadPriority = GetThreadPriorityFromSlider();
 
     SaveSettings();

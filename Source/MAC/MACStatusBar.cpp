@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "MAC.h"
-#include "resource.h"
 #include "MACStatusBar.h"
 #include "MACFileArray.h"
 #include "MACDlg.h"
@@ -22,7 +21,7 @@ CMACStatusBar::CMACStatusBar(CMACDlg * pMACDlg)
 {
     m_pMACDlg = pMACDlg;
     m_hwndParent = APE_NULL;
-    m_pTaskBarlist = APE_NULL;
+    m_pTaskbarList = APE_NULL;
     m_bShowProgress = false;
     m_nProcessTotalMS = 0;
     m_strFreeSpaceDrive = _T("C");
@@ -53,10 +52,7 @@ int CMACStatusBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
     SetIndicators(indicators, sizeof(indicators) / sizeof(UINT));
 
     // set the panes up
-    SetPaneInfo(ID_INDICATOR_STATUS, static_cast<UINT>(-1), SBPS_NORMAL, theApp.GetSize(75, 0).cx);
-    SetPaneInfo(ID_INDICATOR_FILES, static_cast<UINT>(-1), SBPS_NORMAL, theApp.GetSize(300, 0).cx);
-    SetPaneInfo(ID_INDICATOR_PROGRESS, static_cast<UINT>(-1), SBPS_NORMAL, theApp.GetSize(185, 0).cx);
-    SetPaneInfo(ID_INDICATOR_PROGRESS_BAR, static_cast<UINT>(-1), SBPS_STRETCH, theApp.GetSize(0, 0).cx);
+    UpdateStatusbarSizes();
 
     // status
     UpdateProgress(0, 0);
@@ -78,9 +74,13 @@ void CMACStatusBar::OnSize(UINT nType, int cx, int cy)
     CRect rectProgressBarPane; GetItemRect(ID_INDICATOR_PROGRESS_BAR, &rectProgressBarPane);
     m_ctrlProgress.SetWindowPos(&wndTop, rectProgressBarPane.left, rectProgressBarPane.top, rectProgressBarPane.Width(), rectProgressBarPane.Height(), 0);
     m_ctrlProgress.ShowWindow(m_bShowProgress ? SW_SHOW : SW_HIDE);
+
+    // update sizes
+    if ((cx > 0) && (cy > 0))
+        UpdateStatusbarSizes();
 }
 
-BOOL CMACStatusBar::UpdateFiles(MAC_FILE_ARRAY * paryFiles)
+bool CMACStatusBar::UpdateFiles(MAC_FILE_ARRAY * paryFiles)
 {
     // analyze
     int nFiles = static_cast<int>(paryFiles->GetSize());
@@ -120,10 +120,10 @@ BOOL CMACStatusBar::UpdateFiles(MAC_FILE_ARRAY * paryFiles)
     // size
     SizeStatusbar();
 
-    return TRUE;
+    return true;
 }
 
-BOOL CMACStatusBar::UpdateProgress(double dProgress, double dSecondsLeft)
+bool CMACStatusBar::UpdateProgress(double dProgress, double dSecondsLeft)
 {
     bool bProcessing = false;
     if ((fabs(dProgress) <= APE_DOUBLE_ZERO) && (fabs(dSecondsLeft) <= APE_DOUBLE_ZERO))
@@ -131,7 +131,7 @@ BOOL CMACStatusBar::UpdateProgress(double dProgress, double dSecondsLeft)
         SetPaneText(ID_INDICATOR_STATUS, _T("\tReady"));
 
         CString strProgress;
-        strProgress.Format(_T("\tTotal Time: %s"), FormatDuration(static_cast<double>(m_nProcessTotalMS) / 1000, TRUE).GetString());
+        strProgress.Format(_T("\tTotal Time: %s"), FormatDuration(static_cast<double>(m_nProcessTotalMS) / 1000, true).GetString());
         SetPaneText(ID_INDICATOR_PROGRESS, strProgress);
         m_bShowProgress = false;
 
@@ -178,51 +178,49 @@ BOOL CMACStatusBar::UpdateProgress(double dProgress, double dSecondsLeft)
         }
     }
 
-    if (m_pTaskBarlist != APE_NULL)
+    if (m_pTaskbarList != APE_NULL)
     {
-        m_pTaskBarlist->SetProgressValue(m_hwndParent, static_cast<ULONGLONG>(m_ctrlProgress.GetPos()), 100);
+        m_pTaskbarList->SetProgressValue(m_hwndParent, static_cast<ULONGLONG>(m_ctrlProgress.GetPos()), 100);
     }
 
     if (bProcessing != m_bProcessing)
         SizeStatusbar();
     m_bProcessing = bProcessing;
 
-    return TRUE;
+    return true;
 }
 
-BOOL CMACStatusBar::SetLastProcessTotalMS(int nMilliseconds)
+bool CMACStatusBar::SetLastProcessTotalMS(int nMilliseconds)
 {
     m_nProcessTotalMS = nMilliseconds;
     UpdateProgress(0, 0);
-    return TRUE;
+    return true;
 }
 
 void CMACStatusBar::StartProcessing()
 {
     HRESULT hr = S_OK;
-    if (m_pTaskBarlist == APE_NULL)
+    if (m_pTaskbarList == APE_NULL)
     {
-        hr = CoCreateInstance(
-            CLSID_TaskbarList, APE_NULL, CLSCTX_ALL,
-            IID_ITaskbarList3, reinterpret_cast<void **>(&m_pTaskBarlist));
+        hr = CoCreateInstance(CLSID_TaskbarList, APE_NULL, CLSCTX_INPROC_SERVER, IID_ITaskbarList3, reinterpret_cast<void **>(&m_pTaskbarList));
     }
 
-    if (SUCCEEDED(hr) && (m_pTaskBarlist != APE_NULL))
+    if (SUCCEEDED(hr) && (m_pTaskbarList != APE_NULL))
     {
-        m_pTaskBarlist->SetProgressState(m_hwndParent, TBPF_NORMAL);
+        m_pTaskbarList->SetProgressState(m_hwndParent, TBPF_NORMAL);
     }
 }
 
 void CMACStatusBar::EndProcessing()
 {
-    if (m_pTaskBarlist != APE_NULL)
+    if (m_pTaskbarList != APE_NULL)
     {
         // show no progress
-        m_pTaskBarlist->SetProgressState(m_hwndParent, TBPF_NOPROGRESS);
+        m_pTaskbarList->SetProgressState(m_hwndParent, TBPF_NOPROGRESS);
 
         // release so the bar goes away
-        m_pTaskBarlist->Release();
-        m_pTaskBarlist = APE_NULL;
+        m_pTaskbarList->Release();
+        m_pTaskbarList = APE_NULL;
     }
 }
 
@@ -250,6 +248,14 @@ void CMACStatusBar::OnRButtonUp(UINT nFlags, CPoint pt)
     CStatusBar::OnRButtonUp(nFlags, pt);
 }
 
+void CMACStatusBar::UpdateStatusbarSizes()
+{
+    SetPaneInfo(ID_INDICATOR_STATUS, static_cast<UINT>(-1), SBPS_NORMAL, theApp.GetSize(125));
+    SetPaneInfo(ID_INDICATOR_FILES, static_cast<UINT>(-1), SBPS_NORMAL, theApp.GetSize(300));
+    SetPaneInfo(ID_INDICATOR_PROGRESS, static_cast<UINT>(-1), SBPS_NORMAL, theApp.GetSize(275));
+    SetPaneInfo(ID_INDICATOR_PROGRESS_BAR, static_cast<UINT>(-1), SBPS_STRETCH, theApp.GetSize(0));
+}
+
 void CMACStatusBar::ShowFreeSpaceDrivePopup()
 {
     CMenu menuPopup; menuPopup.CreatePopupMenu();
@@ -260,7 +266,7 @@ void CMACStatusBar::ShowFreeSpaceDrivePopup()
         aryDrive[0] = static_cast<TCHAR>(nDrive); CString strDrive(aryDrive);
         if (GetDriveType(strDrive) == DRIVE_FIXED)
         {
-            BOOL bChecked = (strDrive.Left(1).CompareNoCase(m_strFreeSpaceDrive) == 0);
+            bool bChecked = (strDrive.Left(1).CompareNoCase(m_strFreeSpaceDrive) == 0);
             menuPopup.AppendMenu(MF_STRING | (bChecked ? MF_CHECKED : MF_UNCHECKED),
                 UINT_PTR(nDrive) + 1000, strDrive);
         }
@@ -288,9 +294,9 @@ void CMACStatusBar::SizeStatusbar()
 
         // measure text
         CSize sizeText = m_pMACDlg->MeasureText(strPane);
-        sizeText.cx += theApp.GetSize(32, 0).cx;
+        sizeText.cx += theApp.GetSize(32);
 
         // update size to maximimum of text or current size
-        SetPaneInfo(nPane, static_cast<UINT>(-1), SBPS_NORMAL, ape_max(theApp.GetSize(aryWidth[nPane], 0).cx, sizeText.cx));
+        SetPaneInfo(nPane, static_cast<UINT>(-1), SBPS_NORMAL, APE_MAX(theApp.GetSize(aryWidth[nPane]), sizeText.cx));
     }
 }

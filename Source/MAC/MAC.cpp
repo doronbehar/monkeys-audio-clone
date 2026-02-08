@@ -1,6 +1,3 @@
-// MAC.cpp : Defines the class behaviors for the application.
-//
-
 #include "stdafx.h"
 #include "MAC.h"
 #include "MACDlg.h"
@@ -20,14 +17,15 @@ CMACApp::CMACApp()
 {
     // initialize
     m_dScale = -1.0; // default to an impossible value so the first SetScale(...) call returns that it changed
-    m_hSingleInstance = CreateMutex(APE_NULL, FALSE, _T("Mokey's Audio"));
+    m_hSingleInstance = CreateMutex(APE_NULL, false, _T("Mokey's Audio"));
     DWORD dwLastError = GetLastError();
     m_bAnotherInstanceRunning = (dwLastError == ERROR_ALREADY_EXISTS);
     m_pMACDlg = APE_NULL;
+    m_nMonitorDPI = 0;
 
     // start GDI plus
-    Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-    ULONG_PTR gdiplusToken;
+    Gdiplus::GdiplusStartupInput gdiplusStartupInput; // filled in by the constructor
+    ULONG_PTR gdiplusToken = 0;
     Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, APE_NULL);
 }
 
@@ -49,7 +47,7 @@ BOOL CMACApp::InitInstance()
             ShowWindow(hwndMonkeysAudio, SW_RESTORE);
             SetForegroundWindow(hwndMonkeysAudio);
         }
-        return FALSE;
+        return false;
     }
 
     // initialize
@@ -80,7 +78,7 @@ BOOL CMACApp::InitInstance()
 
         APE_SAFE_ARRAY_DELETE(pUninstall)
 
-        return FALSE;
+        return false;
     }
     else
     {
@@ -103,15 +101,14 @@ BOOL CMACApp::InitInstance()
 
     // Since the dialog has been closed, return FALSE so that we exit the
     //  application, rather than start the application's message pump.
-    return FALSE;
+    return false;
 }
 
 int CMACApp::ExitInstance()
 {
-    // we have to NOLINT on this delete or Clang gets unhappy; we could also just leave it for the destructor, but it seems better to cleanup here
-    // leaving it for the destructor causes Clang warnings about using memory after it is freed
-    m_spButtons.Delete(); // NOLINT
-    m_spMonkey.Delete();
+    // delete images
+    m_spbmpButtons.Delete();
+    m_spbmpMonkey.Delete();
 
     // close single instance handle
     if (m_hSingleInstance != APE_NULL)
@@ -154,23 +151,23 @@ CImageList * CMACApp::GetImageList(EImageList Image)
     if ((pImageList != APE_NULL) && (pImageList->GetSafeHandle() == APE_NULL))
     {
         // load the image
-        if (m_spButtons == APE_NULL)
+        if (m_spbmpButtons == APE_NULL)
         {
             CString strImage = GetProgramPath() + _T("APE_Buttons.png");
             if (FileExists(strImage) == false)
                 strImage = GetInstallPath() + _T("APE_Buttons.png");
-            m_spButtons.Assign(Gdiplus::Bitmap::FromFile(strImage));
+            m_spbmpButtons.Assign(Gdiplus::Bitmap::FromFile(strImage));
         }
-        if ((m_spButtons == APE_NULL) || (m_spButtons->GetLastStatus() != Gdiplus::Ok))
+        if ((m_spbmpButtons == APE_NULL) || (m_spbmpButtons->GetLastStatus() != Gdiplus::Ok))
             return APE_NULL;
 
         // build the image list
-        CSize sizeImageList = GetSize(32, 32);
-        pImageList->Create(sizeImageList.cx, sizeImageList.cy, ILC_COLOR32, TBB_COUNT + 1, 10);
+        int nSizeImageList = GetSize(32);
+        pImageList->Create(nSizeImageList, nSizeImageList, ILC_COLOR32, TBB_COUNT + 1, 10);
 
         // setup drawing
-        CSize sizeBitmap = theApp.GetSize(32 * static_cast<int>(m_spButtons->GetWidth() / m_spButtons->GetHeight()), 32);
-        Gdiplus::Bitmap newBmp(sizeBitmap.cx, sizeBitmap.cy, PixelFormat32bppPARGB);
+        int nImages = static_cast<int>(m_spbmpButtons->GetWidth() / m_spbmpButtons->GetHeight());
+        Gdiplus::Bitmap newBmp(nSizeImageList * nImages, nSizeImageList, PixelFormat32bppPARGB);
         Gdiplus::Graphics graphics(&newBmp);
         graphics.SetInterpolationMode(Gdiplus::InterpolationMode::InterpolationModeHighQualityBicubic);
         graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
@@ -179,31 +176,30 @@ CImageList * CMACApp::GetImageList(EImageList Image)
         if ((Image == Image_Toolbar) || (Image == Image_OptionsPages))
         {
             Gdiplus::SolidBrush b(Gdiplus::Color(255, 240, 240, 240));
-            graphics.FillRectangle(&b, 0, 0, TBB_COUNT * sizeImageList.cx, sizeImageList.cy);
+            graphics.FillRectangle(&b, 0, 0, TBB_COUNT * nSizeImageList, nSizeImageList);
         }
         else if (Image == Image_OptionsList)
         {
             Gdiplus::SolidBrush b(Gdiplus::Color(255, 255, 255, 255));
-            graphics.FillRectangle(&b, 0, 0, TBB_COUNT * sizeImageList.cx, sizeImageList.cy);
+            graphics.FillRectangle(&b, 0, 0, TBB_COUNT * nSizeImageList, nSizeImageList);
         }
 
         // draw the image over the top
-        int nSizeBitmap = static_cast<int>(m_spButtons->GetHeight());
-
+        int nSizeBitmap = static_cast<int>(m_spbmpButtons->GetHeight());
+        Gdiplus::Bitmap bmpSingle(nSizeBitmap, nSizeBitmap, PixelFormat32bppPARGB);
+        Gdiplus::Graphics graphicsSingle(&bmpSingle);
         for (int z = 0; z < TBB_COUNT; z++)
         {
-            // copy the individual image to the temporary buffer
+            // copy the individual image to the single buffer
             // we do this because there were artifacts drawing from an image that had all the images next to each other
             // the artifacts were found 12/3/2021 and was a line next to the Make APL icon
-            CSmartPtr<Gdiplus::Bitmap> spTemporary(m_spButtons->Clone(nSizeBitmap * z, 0, nSizeBitmap, nSizeBitmap, PixelFormat32bppPARGB));
+            graphicsSingle.Clear(Gdiplus::Color(0));
+            graphicsSingle.DrawImage(m_spbmpButtons, Gdiplus::Rect(0, 0, nSizeBitmap, nSizeBitmap), (nSizeBitmap * z), 0, nSizeBitmap, nSizeBitmap, Gdiplus::UnitPixel);
 
             // draw onto the graphics object
             Gdiplus::Rect rectSource(0, 0, nSizeBitmap, nSizeBitmap);
-            Gdiplus::Rect rectDestination(z * sizeImageList.cy, 0, sizeImageList.cx, sizeImageList.cy);
-            graphics.DrawImage(spTemporary, rectDestination, rectSource.X, rectSource.Y, rectSource.Width, rectSource.Height, Gdiplus::UnitPixel);
-
-            // delete
-            spTemporary.Delete();
+            Gdiplus::Rect rectDestination(z * nSizeImageList, 0, nSizeImageList, nSizeImageList);
+            graphics.DrawImage(&bmpSingle, rectDestination, rectSource.X, rectSource.Y, rectSource.Width, rectSource.Height, Gdiplus::UnitPixel);
         }
 
         // get the bitmap
@@ -217,12 +213,10 @@ CImageList * CMACApp::GetImageList(EImageList Image)
     return pImageList;
 }
 
-CSize CMACApp::GetSize(int x, int y, double dAdditional) const
+int CMACApp::GetSize(int nSize, double dAdditional) const
 {
-    CSize sizeFinished(x, y);
-    sizeFinished.cx = static_cast<int>(m_dScale * dAdditional * static_cast<double>(sizeFinished.cx));
-    sizeFinished.cy = static_cast<int>(m_dScale * dAdditional * static_cast<double>(sizeFinished.cy));
-    return sizeFinished;
+    int nSizeFinished = static_cast<int>(m_dScale * dAdditional * static_cast<double>(nSize));
+    return nSizeFinished;
 }
 
 int CMACApp::GetSizeReverse(int nSize) const
@@ -231,12 +225,21 @@ int CMACApp::GetSizeReverse(int nSize) const
     return nNewSize;
 }
 
-bool CMACApp::SetScale(double dScale)
+bool CMACApp::SetScale(double dScale, bool bForce)
 {
     bool bResult = false;
-    if (fabs(dScale - m_dScale) > 0.01)
+    if (bForce || (fabs(dScale - m_dScale) > 0.01))
     {
+        // store scale
         m_dScale = dScale;
+
+        // reset the font
+        m_Font.DeleteObject();
+
+        // build the font again
+        LoadFont(true);
+
+        // success
         bResult = true;
     }
     return bResult;
@@ -244,18 +247,18 @@ bool CMACApp::SetScale(double dScale)
 
 Gdiplus::Bitmap * CMACApp::GetMonkeyImage()
 {
-    if (m_spMonkey == APE_NULL)
+    if (m_spbmpMonkey == APE_NULL)
     {
         // load image
         CString strImage = GetProgramPath() + _T("Monkey.png");
         if (FileExists(strImage) == false)
             strImage = GetInstallPath() + _T("Monkey.png");
-        m_spMonkey.Assign(Gdiplus::Bitmap::FromFile(strImage));
+        m_spbmpMonkey.Assign(Gdiplus::Bitmap::FromFile(strImage));
 
         // lock bits and scale alpha
         Gdiplus::BitmapData bitmapData;
-        Gdiplus::Rect rectLock(0, 0, static_cast<INT>(m_spMonkey->GetWidth()), static_cast<INT>(m_spMonkey->GetHeight()));
-        m_spMonkey->LockBits(&rectLock, Gdiplus::ImageLockModeWrite, PixelFormat32bppARGB, &bitmapData);
+        Gdiplus::Rect rectLock(0, 0, static_cast<INT>(m_spbmpMonkey->GetWidth()), static_cast<INT>(m_spbmpMonkey->GetHeight()));
+        m_spbmpMonkey->LockBits(&rectLock, Gdiplus::ImageLockModeWrite, PixelFormat32bppARGB, &bitmapData);
         uint32 * pPixel = static_cast<uint32 *>(bitmapData.Scan0);
         for (int nPixel = 0; nPixel < int(bitmapData.Width * bitmapData.Height); nPixel++)
         {
@@ -263,7 +266,55 @@ Gdiplus::Bitmap * CMACApp::GetMonkeyImage()
             nAlpha /= 8; // scale alpha down so the image is faded
             pPixel[nPixel] = (nAlpha << 24) | (pPixel[nPixel] & 0x00FFFFFF);
         }
-        m_spMonkey->UnlockBits(&bitmapData);
+        m_spbmpMonkey->UnlockBits(&bitmapData);
     }
-    return m_spMonkey;
+    return m_spbmpMonkey;
+}
+
+void CMACApp::LoadFont(bool bRebuild)
+{
+    // if we rebuild delete the existing
+    if (bRebuild)
+        m_Font.DeleteObject();
+
+    // reset if we already exist
+    if (m_Font.GetSafeHandle() != APE_NULL)
+        m_Font.DeleteObject();
+
+    // get the system font using SPI_GETNONCLIENTMETRICS
+    NONCLIENTMETRICS ncm;
+    APE_CLEAR(ncm);
+    ncm.cbSize = sizeof(ncm);
+
+    // try to get DPI aware
+    BOOL bResult = false;
+    HMODULE hUser32 = LoadLibrary(_T("user32.dll"));
+    if (hUser32 != APE_NULL)
+    {
+        BOOL(STDAPICALLTYPE * pSystemParametersInfoForDpi) (IN UINT uiAction, IN UINT uiParam, PVOID pvParam, IN UINT fWinIni, IN UINT dpi) = APE_NULL;
+        *(reinterpret_cast<FARPROC*>(&pSystemParametersInfoForDpi)) = GetProcAddress(hUser32, "SystemParametersInfoForDpi");
+        if (pSystemParametersInfoForDpi != APE_NULL)
+        {
+            bResult = pSystemParametersInfoForDpi(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0, m_nMonitorDPI);
+        }
+
+        FreeLibrary(hUser32);
+    }
+
+    // get non-DPI aware
+    if (bResult == false)
+    {
+        // get font
+        SystemParametersInfo(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0);
+
+        // scale by scale factor (since we're not DPI aware)
+        ncm.lfMessageFont.lfHeight = GetSize(ncm.lfMessageFont.lfHeight);
+    }
+
+    // scale by the setting
+    double dSize = static_cast<double>(GetSettings()->LoadSetting(_T("Font Size"), 100));
+    ncm.lfMessageFont.lfHeight = static_cast<LONG>((static_cast<double>(ncm.lfMessageFont.lfHeight) * dSize) / 100.0);
+
+    // build font
+    m_Font.CreateFontIndirect(&ncm.lfMessageFont);
 }

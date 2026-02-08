@@ -31,7 +31,7 @@ BOOL CAboutDlg::OnInitDialog()
     else
         SetWindowText(APE_NAME _T(" (32-bit)"));
 
-    return TRUE;  // return TRUE unless you set the focus to a control
+    return true;  // return TRUE unless you set the focus to a control
                   // EXCEPTION: OCX Property Pages should return FALSE
 }
 
@@ -48,7 +48,7 @@ void CAboutDlg::OnPaint()
     int nSavedDC = dc.SaveDC();
 
     CRect rectPaint; GetClientRect(&rectPaint);
-    int nWindowBorder = theApp.GetSize(16, 0).cx;
+    int nWindowBorder = theApp.GetSize(16);
     rectPaint.DeflateRect(nWindowBorder, nWindowBorder, nWindowBorder, nWindowBorder);
 
     dc.SetBkMode(TRANSPARENT);
@@ -60,18 +60,18 @@ void CAboutDlg::OnPaint()
 
         pfontGUI->GetLogFont(&LogFont);
         LogFont.lfWidth = (LogFont.lfWidth * 180) / 100;
-        LogFont.lfWidth = theApp.GetSize(LogFont.lfWidth, 0).cx;
-        LogFont.lfHeight = theApp.GetSize(LogFont.lfHeight, 0).cx;
+        LogFont.lfWidth = theApp.GetSize(LogFont.lfWidth);
+        LogFont.lfHeight = theApp.GetSize(LogFont.lfHeight);
         LogFont.lfHeight = (LogFont.lfHeight * 180) / 100;
-        LogFont.lfHeight = theApp.GetSize(LogFont.lfHeight, 0).cx;
+        LogFont.lfHeight = theApp.GetSize(LogFont.lfHeight);
         LogFont.lfWeight = FW_BOLD;
         m_fontLarge.CreateFontIndirect(&LogFont);
 
         pfontGUI->GetLogFont(&LogFont);
         LogFont.lfWidth = (LogFont.lfWidth * 120) / 100;
-        LogFont.lfWidth = theApp.GetSize(LogFont.lfWidth, 0).cx;
+        LogFont.lfWidth = theApp.GetSize(LogFont.lfWidth);
         LogFont.lfHeight = (LogFont.lfHeight * 120) / 100;
-        LogFont.lfHeight = theApp.GetSize(LogFont.lfHeight, 0).cx;
+        LogFont.lfHeight = theApp.GetSize(LogFont.lfHeight);
         m_fontSmall.CreateFontIndirect(&LogFont);
     }
 
@@ -82,7 +82,7 @@ void CAboutDlg::OnPaint()
     int nFontSmallHeight = dc.GetTextExtent(_T("Ay")).cy;
     dc.SelectObject(&m_fontLarge);
     int nFontLargeHeight = dc.GetTextExtent(_T("Ay")).cy;
-    int nLineSpacing = theApp.GetSize(3, 0).cx;
+    int nLineSpacing = theApp.GetSize(3);
 
     int nTop = rectPaint.top;
 
@@ -90,18 +90,18 @@ void CAboutDlg::OnPaint()
     dc.SelectObject(&m_fontLarge);
     CRect rectSizeName;
     dc.DrawText(APE_NAME, &rectSizeName, DT_CENTER | DT_NOPREFIX | DT_CALCRECT);
-    int nWindowWidth = rectSizeName.Width() + theApp.GetSize(64, 0).cx;
+    int nWindowWidth = rectSizeName.Width() + theApp.GetSize(64);
 
     // size copyright
     dc.SelectObject(&m_fontSmall);
     CRect rectSizeCopyright;
     dc.DrawText(APE_RESOURCE_COPYRIGHT, &rectSizeCopyright, DT_CENTER | DT_NOPREFIX | DT_CALCRECT);
-    nWindowWidth = ape_max(nWindowWidth, rectSizeCopyright.Width() + theApp.GetSize(64, 0).cx);
+    nWindowWidth = APE_MAX(nWindowWidth, rectSizeCopyright.Width() + theApp.GetSize(64));
 
     // size CPU
     CRect rectCPU;
     dc.DrawText(strCPU, &rectCPU, DT_CENTER | DT_NOPREFIX | DT_CALCRECT);
-    nWindowWidth = ape_max(nWindowWidth, rectCPU.Width() + theApp.GetSize(64, 0).cx);
+    nWindowWidth = APE_MAX(nWindowWidth, rectCPU.Width() + theApp.GetSize(64));
 
     // paint rectangle
     rectPaint.right = rectPaint.left + nWindowWidth;
@@ -116,15 +116,23 @@ void CAboutDlg::OnPaint()
     dc.DrawText(APE_RESOURCE_COPYRIGHT, CRect(rectPaint.left, nTop, rectPaint.right, nTop + rectSizeCopyright.Height()), DT_CENTER | DT_NOPREFIX);
     nTop += nFontSmallHeight + nLineSpacing;
 
+    // all rights reserved
     dc.SelectObject(&m_fontSmall);
     CRect rectSize;
     dc.DrawText(_T("All rights reserved."), &rectSize, DT_CENTER | DT_NOPREFIX | DT_CALCRECT);
     dc.DrawText(_T("All rights reserved."), CRect(rectPaint.left, nTop, rectPaint.right, nTop + rectSize.Height()), DT_CENTER | DT_NOPREFIX);
     nTop += nFontSmallHeight + nLineSpacing;
 
+    // draw thanks to Robert Kausch (he's helped SO MUCH!)
+    dc.SelectObject(&m_fontSmall);
+    dc.DrawText(_T("Huge thanks to Robert Kausch for all his contributions!"), CRect(rectPaint.left, nTop, rectPaint.right, nTop + rectSizeCopyright.Height()), DT_CENTER | DT_NOPREFIX);
+    nTop += nFontSmallHeight + nLineSpacing;
+
+    // CPU
     dc.DrawText(strCPU, CRect(rectPaint.left, nTop, rectPaint.right, nTop + rectCPU.Height()), DT_CENTER | DT_NOPREFIX);
     nTop += nFontSmallHeight + nLineSpacing;
 
+    // scale
     CString strScale; strScale.Format(_T("Scale: %.1f"), theApp.GetScale());
     dc.DrawText(strScale, &rectSize, DT_CENTER | DT_NOPREFIX | DT_CALCRECT);
     dc.DrawText(strScale, CRect(rectPaint.left, nTop, rectPaint.right, nTop + rectSize.Height()), DT_CENTER | DT_NOPREFIX);
@@ -144,28 +152,14 @@ void CAboutDlg::OnPaint()
 
 void CAboutDlg::OnMoving(UINT, LPRECT pRect)
 {
-    HMONITOR hMonitor = MonitorFromWindow(GetSafeHwnd(), MONITOR_DEFAULTTONEAREST);
-
-    MONITORINFO info;
-    info.cbSize = sizeof(MONITORINFO);
-    if (GetMonitorInfo(hMonitor, &info))
-    {
-        if (pRect->left < info.rcMonitor.left)
-            OffsetRect(pRect, info.rcMonitor.left - pRect->left, 0);
-        if (pRect->top < info.rcMonitor.top)
-            OffsetRect(pRect, 0, info.rcMonitor.top - pRect->top);
-        if (pRect->right > info.rcMonitor.right)
-            OffsetRect(pRect, info.rcMonitor.right - pRect->right, 0);
-        if (pRect->bottom > info.rcMonitor.bottom)
-            OffsetRect(pRect, 0, info.rcMonitor.bottom - pRect->bottom);
-    }
+    CapMoveToMonitor(GetSafeHwnd(), pRect);
 }
 
 CString CAboutDlg::GetCPU()
 {
     CStringArrayEx aryCPU;
 
-#if defined(__i386__) || defined(__x86_64__) || defined(_M_IX86) || defined(_M_X64)
+#if (defined(__i386__) || defined(__x86_64__) || defined(_M_IX86) || defined(_M_X64)) && !defined(_M_ARM64EC)
     if (GetSSE2Available() && GetSSE2Supported())
         aryCPU.Add(_T("SSE2: yes"));
     else
@@ -185,11 +179,16 @@ CString CAboutDlg::GetCPU()
         aryCPU.Add(_T("AVX-512: yes"));
     else
         aryCPU.Add(_T("AVX-512: no"));
-#elif defined(__arm__) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64)
+#elif defined(__arm__) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64) || defined(_M_ARM64EC)
     if (GetNeonAvailable() && GetNeonSupported())
         aryCPU.Add(_T("Neon: yes"));
     else
         aryCPU.Add(_T("Neon: no"));
+#elif defined(__riscv)
+    if (GetRVVAvailable() && GetRVVSupported())
+        aryCPU.Add(_T("RVV: yes"));
+    else
+        aryCPU.Add(_T("RVV: no"));
 #endif
 
     if (IsProcessElevated())

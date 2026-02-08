@@ -5,7 +5,7 @@
 
 CFormatPluginInfoDlg::CFormatPluginInfoDlg(CMACDlg * pMACDlg, CString strName, CString strVersion, CString strAuthor, CString strDescription, CString strURL, CWnd * pParent)
     : CDialog(CFormatPluginInfoDlg::IDD, pParent),
-    m_ctrlURL(&pMACDlg->GetFont())
+    m_ctrlURL(theApp.GetFont())
 {
     m_pMACDlg = pMACDlg;
     m_strURL = strURL;
@@ -17,7 +17,7 @@ CFormatPluginInfoDlg::CFormatPluginInfoDlg(CMACDlg * pMACDlg, CString strName, C
     m_strDescription2 = strDescription;
 }
 
-void CFormatPluginInfoDlg::DoDataExchange(CDataExchange* pDX)
+void CFormatPluginInfoDlg::DoDataExchange(CDataExchange * pDX)
 {
     CDialog::DoDataExchange(pDX);
     DDX_Control(pDX, IDC_URL, m_ctrlURL);
@@ -33,15 +33,15 @@ BOOL CFormatPluginInfoDlg::OnInitDialog()
     CDialog::OnInitDialog();
 
     // set the font to all the controls
-    SetFont(&m_pMACDlg->GetFont());
-    m_ctrlURL.SetFont(&m_pMACDlg->GetFont());
-    SendMessageToDescendants(WM_SETFONT, reinterpret_cast<WPARAM>(m_pMACDlg->GetFont().GetSafeHandle()), MAKELPARAM(FALSE, 0), TRUE);
+    SetFont(theApp.GetFont());
+    m_ctrlURL.SetFont(theApp.GetFont());
+    SendMessageToDescendants(WM_SETFONT, reinterpret_cast<WPARAM>(theApp.GetFont()->GetSafeHandle()), MAKELPARAM(false, 0), true);
 
     if (m_strURL.IsEmpty())
     {
         m_ctrlURL.SetWindowText(_T("no webpage available"));
         m_ctrlURL.SetURL(_T(""));
-        m_ctrlURL.EnableWindow(FALSE);
+        m_ctrlURL.EnableWindow(false);
     }
     else
     {
@@ -50,6 +50,6 @@ BOOL CFormatPluginInfoDlg::OnInitDialog()
         m_ctrlURL.SetLinkCursor(LoadCursor(APE_NULL, IDC_HAND));
     }
 
-    return TRUE;  // return TRUE unless you set the focus to a control
+    return true;  // return TRUE unless you set the focus to a control
                   // EXCEPTION: OCX Property Pages should return FALSE
 }

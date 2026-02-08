@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "MACDllApp.h"
-#include "WinampSettingsDlg.h"
+#include "DirectShowSDK/streams.h"
 
 CMACDllApp g_Application;
 
@@ -17,6 +17,9 @@ CMACDllApp::~CMACDllApp()
 
 BOOL CMACDllApp::InitInstance()
 {
-    CWinApp::InitInstance();
-    return TRUE;
+    // store the instances for the DirectShow filter
+    g_hInst = AfxGetInstanceHandle();
+
+    // parent
+    return CWinApp::InitInstance();
 }

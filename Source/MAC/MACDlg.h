@@ -15,17 +15,20 @@ public:
     CMACStatusBar m_ctrlStatusBar;
     CToolBar m_ctrlToolbar;
 
-    BOOL GetProcessing() { return (m_spProcessFiles != APE_NULL); }
-    BOOL GetInitialized() { return m_bInitialized; }
-    CFont & GetFont() { return m_Font; }
+    bool GetProcessing() { return (m_spProcessFiles != APE_NULL); }
+    bool GetInitialized() const { return m_bInitialized; }
+    int GetScaledFontHeight(int nStart);
     CSize MeasureText(const CString & strText);
 
     virtual BOOL PreTranslateMessage(MSG * pMsg);
     virtual void WinHelp(DWORD_PTR dwData, UINT nCmd = HELP_CONTEXT);
 
+    int GetControlHeight(CWnd * pwndControl);
     void LayoutControlTop(CWnd * pwndLayout, CRect & rectLayout, bool bOnlyControlWidth = false, bool bCombobox = false, CWnd * pwndRight = APE_NULL);
     void LayoutControlTopWithDivider(CWnd * pwndLayout, CWnd * pwndDivider, CWnd * pwndImage, CRect & rectLayout);
-    BOOL SetMode(APE::APE_MODES Mode);
+    bool SetMode(APE::APE_MODES Mode);
+    void FilesChanged(MAC_FILE_ARRAY * paryFiles);
+    MAC_FILE_ARRAY & GetFileArray() { return m_aryFiles; }
 
 protected:
     virtual void DoDataExchange(CDataExchange * pDX);
@@ -74,27 +77,29 @@ protected:
     afx_msg void OnGetMinMaxInfo(MINMAXINFO FAR * lpMMI);
     afx_msg BOOL OnQueryEndSession();
     afx_msg void OnEndSession [[ noreturn ]] (BOOL bEnding);
-    afx_msg LRESULT OnDPIChange(WPARAM wParam, LPARAM lParam);
+    afx_msg LRESULT OnDPIChanged(WPARAM wParam, LPARAM lParam);
+    afx_msg void OnListItemChanged(NMHDR * pNMHDR, LRESULT * pResult);
     DECLARE_MESSAGE_MAP()
 
-    BOOL m_bInitialized;
+    bool m_bInitialized;
     APE::CSmartPtr<CMACProcessFiles> m_spProcessFiles;
     MAC_FILE_ARRAY m_aryFiles;
     HACCEL m_hAcceleratorTable;
     CString m_strAddFilesBasePath;
     CMenu m_menuMain;
     HICON m_hIcon;
-    CFont m_Font;
-    CFont m_fontStart;
-    BOOL m_bLastLoadMenuAndToolbarProcessing;
+    bool m_bLastLoadMenuAndToolbarProcessing;
     CStringArrayEx * m_paryFiles;
+    UINT m_nMonitorDPI;
+    int m_nFontHeight;
 
     void LayoutWindow();
     void UpdateWindow();
-    BOOL AddToolbarButton(int nID, int nBitmap, const CString & strText = "", int nStyle = TBSTYLE_BUTTON);
-    BOOL SetAPECompressionLevel(int nAPECompressionLevel);
-    BOOL LoadMenuAndToolbar(BOOL bProcessing);
-    void SetToolbarButtonBitmap(int nID, int nBitmap);
+    bool AddToolbarButton(int nID, int nBitmap, const CString & strText = _T(""), int nStyle = TBSTYLE_BUTTON);
+    bool SetAPECompressionLevel(int nAPECompressionLevel);
+    bool LoadMenuAndToolbar(bool bProcessing);
+    void SetToolbarButtonBitmap(int nID, int nBitmap) const;
     void PlayDefaultSound();
-    void LoadScale();
+    void LoadScale(bool bForce = false);
+    void UpdateEnabledStates();
 };

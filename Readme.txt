@@ -8,6 +8,9 @@ http://monkeysaudio.com/license.html
 If you make any improvements, please consider submitting them back to the Monkey's Audio project.  Contact details here here:
 http://monkeysaudio.com/contact.html
 
-Thanks and good luck :)
+To build on Linux using Windows, run WSL from the SDK folder. Then issue these two commands:
 
-- All materials and programs copyrighted ©2000-2024 by Matthew T. Ashland -
+cmake .
+cmake --build .
+
+Thanks and good luck :)

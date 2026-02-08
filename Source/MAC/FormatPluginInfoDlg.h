@@ -14,7 +14,7 @@ public:
     CString    m_strDescription2;
 
 protected:
-    virtual void DoDataExchange(CDataExchange* pDX);
+    virtual void DoDataExchange(CDataExchange * pDX);
     virtual BOOL OnInitDialog();
 
     DECLARE_MESSAGE_MAP()

@@ -1,14 +1,15 @@
 #pragma once
 
-#include "resource.h"
 class CFormatArray;
 class CMACSettings;
 class CMACDlg;
 
 #pragma warning(push)
-// Clang warns on this in Win32 / Release about using memory after it is freed without the NOLINT marker
-#include <gdiplus.h> // NOLINT
+#include <gdiplus.h>
 #pragma warning(pop)
+
+#include "resource.h"
+#include "GDIBitmapPtr.h"
 
 class CMACApp : public CWinApp
 {
@@ -32,11 +33,14 @@ public:
     };
     void DeleteImageLists();
     CImageList * GetImageList(EImageList Image);
-    CSize GetSize(int x, int y, double dAdditional = 1.0) const;
+    int GetSize(int nSize, double dAdditional = 1.0) const;
     int GetSizeReverse(int nSize) const;
     double GetScale() const { return m_dScale; }
-    bool SetScale(double dScale);
+    CFont * GetFont() { return &m_Font; }
+    bool SetScale(double dScale, bool bForce = false);
     Gdiplus::Bitmap * GetMonkeyImage();
+    void LoadFont(bool bRebuild);
+    UINT & GetMonitorDPI() { return m_nMonitorDPI; }
 
     // message map
     DECLARE_MESSAGE_MAP()
@@ -48,12 +52,14 @@ private:
     CImageList m_ImageListToolbar;
     CImageList m_ImageListOptionsList;
     CImageList m_ImageListOptionsPages;
-    APE::CSmartPtr<Gdiplus::Bitmap> m_spButtons;
-    APE::CSmartPtr<Gdiplus::Bitmap> m_spMonkey;
+    CGDIBitmapPtr m_spbmpButtons;
+    CGDIBitmapPtr m_spbmpMonkey;
     double m_dScale;
     HANDLE m_hSingleInstance;
     bool m_bAnotherInstanceRunning;
     CMACDlg * m_pMACDlg;
+    CFont m_Font;
+    UINT m_nMonitorDPI;
 };
 
 extern CMACApp theApp;

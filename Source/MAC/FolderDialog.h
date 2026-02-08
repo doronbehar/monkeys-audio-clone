@@ -12,23 +12,23 @@ class CFolderDialog
 public:
     static int CALLBACK BrowseDirectoryCallback(HWND hWnd, UINT uMsg, LPARAM lParam, LPARAM lpData);
 
-    CFolderDialog(    LPCTSTR lpszFolderName = APE_NULL,
+    CFolderDialog(LPCTSTR lpszFolderName = APE_NULL,
                     DWORD dwFlags = 0/*BIF_RETURNONLYFSDIRS*/,
-                    CWnd* pParentWnd = APE_NULL);
+                    CWnd * pParentWnd = APE_NULL);
     virtual ~CFolderDialog();
     virtual int DoModal();
     CString GetPathName() const;
 
 protected:
     virtual void OnInitDialog();
-    virtual void OnSelChanged(ITEMIDLIST* pIdl);
+    virtual void OnSelChanged(ITEMIDLIST * pIdl);
     virtual void CallbackFunction(HWND hWnd, UINT uMsg, LPARAM lParam);
 
-    void EnableOK(BOOL bEnable = TRUE);
+    void EnableOK(bool bEnable = true);
     void SetSelection(LPCTSTR pszSelection);
-    void SetSelection(ITEMIDLIST* pIdl);
+    void SetSelection(ITEMIDLIST * pIdl);
     void SetStatusText(LPCTSTR pszStatusText);
-    CString ShortName(const CString& strName);
+    CString ShortName(const CString & strName);
 
 public:
     BROWSEINFO m_bi;
@@ -41,8 +41,6 @@ protected:
     TCHAR m_szPath[APE_MAX_PATH];
 
     HWND m_hDialogBox;
-
-
 };
 
 #endif // _CFolderDialog_

@@ -3,12 +3,14 @@
 #ifdef IO_USE_WIN_FILE_IO
 
 #include "WinFileIO.h"
+#ifndef _UNICODE
 #include "CharacterHelper.h"
+#endif
 
 namespace APE
 {
 
-CIO * CreateCIO()
+IAPEIO * CreateIAPEIO()
 {
     return new CWinFileIO;
 }
@@ -18,6 +20,7 @@ CWinFileIO::CWinFileIO()
     m_hFile = INVALID_HANDLE_VALUE;
     APE_CLEAR(m_cFileName);
     m_bReadOnly = false;
+    m_bPipe = false;
 }
 
 CWinFileIO::~CWinFileIO()
@@ -25,32 +28,35 @@ CWinFileIO::~CWinFileIO()
     APE_SAFE_FILE_CLOSE(m_hFile)
 }
 
-int CWinFileIO::Open(const wchar_t * pName, bool bOpenReadOnly)
+int CWinFileIO::Open(const str_utfn * pName, bool bOpenReadOnly)
 {
     Close();
 
-    if (wcslen(pName) >= APE_MAX_PATH)
+    size_t nNameLength = wcslen(pName);
+
+    if (nNameLength >= APE_MAX_PATH)
         return ERROR_UNDEFINED;
 
     #ifdef _UNICODE
-        wchar_t * pCopy = new wchar_t [wcslen(pName) + 1];
-        memcpy(pCopy, pName, sizeof(wchar_t) * wcslen(pName));
-        pCopy[wcslen(pName)] = 0;
-        CSmartPtr<wchar_t> spName(pCopy, true);
+        str_utfn * pCopy = new str_utfn [nNameLength + 1];
+        memcpy(pCopy, pName, sizeof(str_utfn) * nNameLength);
+        pCopy[nNameLength] = 0;
+        CSmartPtr<str_utfn> spName(pCopy, true);
     #else
-        CSmartPtr<char> spName(CAPECharacterHelper::GetANSIFromUTF16(pName), true);
+        CSmartPtr<char> spName(CAPECharacterHelper::GetANSIFromUTFN(pName), true);
     #endif
 
     // handle pipes vs files
     if (0 == wcscmp(pName, L"-"))
     {
+        // flag that we're a pipe
+        m_bPipe = true;
+
         // pipes are read-only
         m_hFile = GetStdHandle(STD_INPUT_HANDLE);
         m_bReadOnly = true;
         if (m_hFile == INVALID_HANDLE_VALUE)
-        {
             return ERROR_INVALID_INPUT_FILE;
-        }
     }
     else
     {
@@ -102,41 +108,43 @@ int CWinFileIO::Read(void * pBuffer, unsigned int nBytesToRead, unsigned int * p
 {
     bool bRetVal = true;
 
-    *pBytesRead = 0; // reset
-
     unsigned int nTotalBytesRead = 0;
     unsigned int nBytesLeft = nBytesToRead;
     unsigned char * pucBuffer = static_cast<unsigned char *>(pBuffer);
 
-    *pBytesRead = 1;
-    while ((nBytesLeft > 0) && (*pBytesRead > 0) && bRetVal)
+    // loop and read until we read all the data or have a failure
+    while ((nBytesLeft > 0) && bRetVal)
     {
         unsigned long nBytesRead = 0;
         bRetVal = ::ReadFile(m_hFile, &pucBuffer[nBytesToRead - nBytesLeft], nBytesLeft, &nBytesRead, APE_NULL) ? true : false;
-        *pBytesRead = nBytesRead;
-        if (bRetVal && (*pBytesRead <= 0))
+        if (bRetVal && (nBytesRead <= 0))
             bRetVal = false;
 
         if (bRetVal)
         {
-            nBytesLeft -= *pBytesRead;
-            nTotalBytesRead += *pBytesRead;
+            nBytesLeft -= nBytesRead;
+            nTotalBytesRead += nBytesRead;
         }
     }
 
-    *pBytesRead = nTotalBytesRead;
-
     // succeed if we actually read data then fail next call
-    if ((bRetVal == false) && (*pBytesRead > 0))
+    if ((bRetVal == false) && (nTotalBytesRead > 0))
         bRetVal = true;
+
+    // update the bytes read
+    if (pBytesRead != APE_NULL)
+        *pBytesRead = nTotalBytesRead;
 
     return bRetVal ? ERROR_SUCCESS : ERROR_IO_READ;
 }
 
 int CWinFileIO::Write(const void * pBuffer, unsigned int nBytesToWrite, unsigned int * pBytesWritten)
 {
-    const bool bRetVal = WriteFile(m_hFile, pBuffer, nBytesToWrite, reinterpret_cast<unsigned long *>(pBytesWritten), APE_NULL) ? true : false;
-    if ((bRetVal == 0) || (*pBytesWritten != nBytesToWrite))
+    unsigned long nBytesWritten = 0;
+    const bool bRetVal = WriteFile(m_hFile, pBuffer, nBytesToWrite, &nBytesWritten, APE_NULL) ? true : false;
+    if (pBytesWritten != APE_NULL)
+        *pBytesWritten = static_cast<unsigned int>(nBytesWritten);
+    if ((bRetVal == 0) || (nBytesWritten != nBytesToWrite))
         return ERROR_IO_WRITE;
     else
         return ERROR_SUCCESS;
@@ -162,9 +170,9 @@ int CWinFileIO::Seek(int64 nPosition, SeekMethod nMethod)
     const LONG Low = static_cast<LONG>(nPosition & 0xFFFFFFFF);
     LONG High = static_cast<LONG>(nPosition >> 32);
 
-    SetFilePointer(m_hFile, Low, &High, dwMoveMethod);
+    DWORD dwResult = SetFilePointer(m_hFile, Low, &High, dwMoveMethod);
 
-    return ERROR_SUCCESS;
+    return (dwResult == INVALID_SET_FILE_POINTER) ? ERROR_UNDEFINED : ERROR_SUCCESS;
 }
 
 int CWinFileIO::SetEOF()
@@ -183,38 +191,43 @@ int64 CWinFileIO::GetPosition()
 
 int64 CWinFileIO::GetSize()
 {
+    if (m_bPipe)
+        return APE_FILE_SIZE_UNDEFINED;
+
     DWORD dwFileSizeHigh = 0;
     const DWORD dwFileSizeLow = GetFileSize(m_hFile, &dwFileSizeHigh);
     return static_cast<int64>(dwFileSizeLow) + (static_cast<int64>(dwFileSizeHigh) << 32);
 }
 
-int CWinFileIO::GetName(wchar_t * pBuffer)
+int CWinFileIO::GetName(str_utfn * pBuffer)
 {
     wcscpy_s(pBuffer, APE_MAX_PATH, m_cFileName);
     return ERROR_SUCCESS;
 }
 
-int CWinFileIO::Create(const wchar_t * pName)
+int CWinFileIO::Create(const str_utfn * pName)
 {
     Close();
 
-    if (wcslen(pName) >= APE_MAX_PATH)
+    size_t nNameLength = wcslen(pName);
+
+    if (nNameLength >= APE_MAX_PATH)
         return ERROR_UNDEFINED;
 
     #ifdef _UNICODE
-        wchar_t * pCopy = new wchar_t [wcslen(pName) + 1];
-        memcpy(pCopy, pName, sizeof(wchar_t) * wcslen(pName));
-        pCopy[wcslen(pName)] = 0;
-        CSmartPtr<wchar_t> spName(pCopy, true);
+        str_utfn * pCopy = new str_utfn [nNameLength + 1];
+        memcpy(pCopy, pName, sizeof(str_utfn) * nNameLength);
+        pCopy[nNameLength] = 0;
+        CSmartPtr<str_utfn> spName(pCopy, true);
     #else
-        CSmartPtr<char> spName(CAPECharacterHelper::GetANSIFromUTF16(pName), true);
+        CSmartPtr<char> spName(CAPECharacterHelper::GetANSIFromUTFN(pName), true);
     #endif
 
     if (0 == wcscmp(pName, L"-"))
     {
         m_hFile = GetStdHandle(STD_OUTPUT_HANDLE);
         if (m_hFile == INVALID_HANDLE_VALUE)
-            return ERROR_IO_WRITE;
+            return ERROR_INVALID_OUTPUT_FILE;
 
         m_bReadOnly = false;
     }
@@ -222,7 +235,13 @@ int CWinFileIO::Create(const wchar_t * pName)
     {
         m_hFile = CreateFile(spName, GENERIC_WRITE | GENERIC_READ, 0, APE_NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, APE_NULL);
         if (m_hFile == INVALID_HANDLE_VALUE)
-            return ERROR_IO_WRITE;
+        {
+            DWORD dwError = GetLastError();
+            if (dwError == ERROR_ACCESS_DENIED)
+                return ERROR_UAC_PERMISSION;
+            else
+                return ERROR_INVALID_OUTPUT_FILE;
+        }
 
         m_bReadOnly = false;
     }
@@ -237,9 +256,9 @@ int CWinFileIO::Delete()
     Close();
 
     #ifdef _UNICODE
-        CSmartPtr<wchar_t> spName(m_cFileName, true, false);
+        CSmartPtr<str_utfn> spName(m_cFileName, true, false);
     #else
-        CSmartPtr<char> spName(CAPECharacterHelper::GetANSIFromUTF16(m_cFileName), true);
+        CSmartPtr<char> spName(CAPECharacterHelper::GetANSIFromUTFN(m_cFileName), true);
     #endif
 
     SetFileAttributes(spName, FILE_ATTRIBUTE_NORMAL);

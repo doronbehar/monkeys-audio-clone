@@ -1,6 +1,4 @@
 #include "All.h"
-#define APE_ADD_GET_TO_RANGE_OVERFLOW_TABLE
-#define APE_ADD_DECODE_BYTE
 #include "UnBitArray.h"
 
 namespace APE
@@ -11,7 +9,7 @@ const uint32 K_SUM_MIN_BOUNDARY[32] = {0,32,64,128,256,512,1024,2048,4096,8192,1
 /**************************************************************************************************
 CUnBitArray
 **************************************************************************************************/
-CUnBitArray::CUnBitArray(CIO * pIO, intn nVersion, int64 nFurthestReadByte) :
+CUnBitArray::CUnBitArray(IAPEIO * pIO, intn nVersion, int64 nFurthestReadByte) :
     CUnBitArrayBase(nFurthestReadByte)
 {
     // this bit array should only be used on modern files
@@ -125,7 +123,7 @@ int64 CUnBitArray::DecodeValueRange(UNBIT_ARRAY_STATE & BitArrayState)
     int64 nValue = 0;
 
     // figure the pivot value
-    uint32 nPivotValue = ape_max(BitArrayState.nKSum / 32, static_cast<uint32>(1));
+    uint32 nPivotValue = APE_MAX(BitArrayState.nKSum / 32, static_cast<uint32>(1));
 
     // get the overflow
     const uint32 nOverflow = DecodeOverflow(nPivotValue);

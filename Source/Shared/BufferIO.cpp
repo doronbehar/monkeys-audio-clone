@@ -8,12 +8,12 @@ namespace APE
 /**************************************************************************************************
 CBufferIO
 **************************************************************************************************/
-CBufferIO::CBufferIO(CIO * pSource, int nBufferBytes)
+CBufferIO::CBufferIO(IAPEIO * pSource, int nBufferBytes)
 {
     m_spSource.Assign(pSource);
     m_nBufferBytes = 0;
     m_nBufferTotalBytes = nBufferBytes;
-    m_spBuffer.Assign(new unsigned char [static_cast<size_t>(m_nBufferTotalBytes)], true);
+    m_spBuffer.AllocateArray(m_nBufferTotalBytes);
     m_bReadToBuffer = true;
 }
 
@@ -23,7 +23,7 @@ CBufferIO::~CBufferIO()
     m_spSource.Delete();
 }
 
-int CBufferIO::Open(const wchar_t * pName, bool bOpenReadOnly)
+int CBufferIO::Open(const str_utfn * pName, bool bOpenReadOnly)
 {
     return m_spSource->Open(pName, bOpenReadOnly);
 }
@@ -39,7 +39,7 @@ int CBufferIO::Read(void * pBuffer, unsigned int nBytesToRead, unsigned int * pB
 
     if (m_bReadToBuffer && (m_spBuffer != APE_NULL) && (*pBytesRead > 0))
     {
-        const int nBufferBytes = ape_min(m_nBufferTotalBytes - m_nBufferBytes, *reinterpret_cast<int *>(pBytesRead));
+        const int nBufferBytes = APE_MIN(m_nBufferTotalBytes - m_nBufferBytes, *reinterpret_cast<int *>(pBytesRead));
         if (nBufferBytes <= 0)
         {
             m_bReadToBuffer = false;
@@ -100,12 +100,12 @@ int64 CBufferIO::GetSize()
     return m_spSource->GetSize();
 }
 
-int CBufferIO::GetName(wchar_t * pBuffer)
+int CBufferIO::GetName(str_utfn * pBuffer)
 {
     return m_spSource->GetName(pBuffer);
 }
 
-int CBufferIO::Create(const wchar_t * pName)
+int CBufferIO::Create(const str_utfn * pName)
 {
     return m_spSource->Create(pName);
 }
@@ -118,7 +118,7 @@ int CBufferIO::Delete()
 /**************************************************************************************************
 CHeaderIO
 **************************************************************************************************/
-CHeaderIO::CHeaderIO(CIO * pSource)
+CHeaderIO::CHeaderIO(IAPEIO * pSource)
 {
     m_spSource.Assign(pSource);
     m_nPosition = 0; // start at position zero even though we read the header
@@ -132,22 +132,25 @@ CHeaderIO::~CHeaderIO()
     m_spSource.Delete();
 }
 
-bool CHeaderIO::ReadHeader(BYTE * paryHeader)
+bool CHeaderIO::ReadHeader(BYTE (& aryHeader)[64])
 {
     // zero out the entire header object
-    memset(paryHeader, 0, 64);
+    APE_CLEAR(aryHeader);
 
     // read but cap at the file size
-    m_nHeaderBytes = ape_min(64, GetSize());
+    int64 nFileSize = GetSize();
+    if ((nFileSize > 64) || (nFileSize == APE_FILE_SIZE_UNDEFINED))
+        nFileSize = 64;
+    m_nHeaderBytes = nFileSize;
     if (ReadSafe(m_spSource, m_aryHeader, static_cast<int>(m_nHeaderBytes)) != ERROR_SUCCESS)
         return false;
 
     // copy the header out
-    memcpy(paryHeader, m_aryHeader, static_cast<size_t>(m_nHeaderBytes));
+    memcpy(aryHeader, m_aryHeader, static_cast<size_t>(m_nHeaderBytes));
     return true;
 }
 
-int CHeaderIO::Open(const wchar_t * pName, bool bOpenReadOnly)
+int CHeaderIO::Open(const str_utfn * pName, bool bOpenReadOnly)
 {
     return m_spSource->Open(pName, bOpenReadOnly);
 }
@@ -163,13 +166,14 @@ int CHeaderIO::Read(void * pBuffer, unsigned int nBytesToRead, unsigned int * pB
     int nResult = ERROR_SUCCESS;
     if (m_nPosition < m_nHeaderBytes)
     {
-        int64 nBytesFromBuffer = ape_min(m_nHeaderBytes - m_nPosition, nBytesToRead);
+        int64 nBytesFromBuffer = APE_MIN(m_nHeaderBytes - m_nPosition, nBytesToRead);
         memcpy(pBuffer, &m_aryHeader[m_nPosition], static_cast<size_t>(nBytesFromBuffer));
         char * pBufferChar = reinterpret_cast<char *>(pBuffer);
         unsigned int nBytesFromReader = static_cast<unsigned int>(static_cast<int64>(nBytesToRead) - nBytesFromBuffer);
+        *pBytesRead = 0; // zero-out so if we read nothing it stays zero (and we pass a zero into read)
         if (nBytesFromReader > 0)
             nResult = m_spSource->Read(&pBufferChar[nBytesFromBuffer], nBytesFromReader, pBytesRead);
-        *pBytesRead = static_cast<unsigned int>(nBytesFromBuffer) + static_cast<unsigned int>(nBytesFromReader);
+        *pBytesRead += static_cast<unsigned int>(nBytesFromBuffer); // add the number of bytes we read from the buffer
     }
     else
     {
@@ -234,12 +238,12 @@ int64 CHeaderIO::GetSize()
     return m_spSource->GetSize();
 }
 
-int CHeaderIO::GetName(wchar_t* pBuffer)
+int CHeaderIO::GetName(str_utfn * pBuffer)
 {
     return m_spSource->GetName(pBuffer);
 }
 
-int CHeaderIO::Create(const wchar_t* pName)
+int CHeaderIO::Create(const str_utfn * pName)
 {
     return m_spSource->Create(pName);
 }

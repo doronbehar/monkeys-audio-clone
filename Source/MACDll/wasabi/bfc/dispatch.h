@@ -520,7 +520,7 @@ protected:
 #define CB(x, y) case (x): cb(&CBCLASS::y, retval, params); break;
 #define VCB(x, y) case (x): vcb(&CBCLASS::y, retval, params); break;
 
-#define RECVS_DISPATCH virtual int WASABICALL _dispatch(int msg, void *retval, void **params=0, int nparam=0) APE_OVERRIDE
+#define RECVS_DISPATCH virtual int WASABICALL _dispatch(int msg, void *retval, void **params=APE_NULL, int nparam=0) APE_OVERRIDE
 
 #define START_DISPATCH \
   int CBCLASS::_dispatch(int msg, void *retval, void **params, int nparam) { \

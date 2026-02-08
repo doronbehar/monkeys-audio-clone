@@ -5,8 +5,6 @@
 namespace APE
 {
 
-#pragma pack(push, 1)
-
 class IAPEDecompress;
 
 /**************************************************************************************************
@@ -16,7 +14,7 @@ class CUnBitArray : public CUnBitArrayBase
 {
 public:
     // construction/destruction
-    CUnBitArray(APE::CIO * pIO, intn nVersion, int64 nFurthestReadByte);
+    CUnBitArray(APE::IAPEIO * pIO, intn nVersion, int64 nFurthestReadByte);
     ~CUnBitArray();
 
     void GenerateArray(int * pOutputArray, int nElements, intn nBytesRequired) APE_OVERRIDE;
@@ -36,7 +34,5 @@ private:
     uint32 RangeDecodeFastWithUpdate(int nShift);
     void GenerateArrayRange(int * pOutputArray, int nElements);
 };
-
-#pragma pack(pop)
 
 }

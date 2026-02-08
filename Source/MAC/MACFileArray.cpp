@@ -1,8 +1,7 @@
 #include "stdafx.h"
-#include "MAC.h"
 #include "MACFileArray.h"
 
-MAC_FILE_ARRAY::MAC_FILE_ARRAY() : CArray<MAC_FILE, MAC_FILE &>()
+MAC_FILE_ARRAY::MAC_FILE_ARRAY() : CArray<MAC_FILE *, MAC_FILE *>()
 {
     m_dwStartProcessingTickCount = 0;
 }
@@ -12,16 +11,55 @@ MAC_FILE_ARRAY::~MAC_FILE_ARRAY()
     RemoveAll();
 }
 
-BOOL MAC_FILE_ARRAY::PrepareForProcessing(CMACProcessFiles * pProcessFiles)
+INT_PTR MAC_FILE_ARRAY::GetSize()
+{
+    return Parent::GetSize();
+}
+
+MAC_FILE * MAC_FILE_ARRAY::operator[](INT_PTR nIndex)
+{
+    return Parent::ElementAt(nIndex);
+}
+
+MAC_FILE * MAC_FILE_ARRAY::ElementAt(INT_PTR nIndex)
+{
+    return Parent::ElementAt(nIndex);
+}
+
+void MAC_FILE_ARRAY::Add(MAC_FILE * pFile)
+{
+    Parent::Add(pFile);
+}
+
+void MAC_FILE_ARRAY::RemoveAt(INT_PTR nIndex)
+{
+    delete Parent::ElementAt(nIndex);
+    Parent::RemoveAt(nIndex);
+}
+
+void MAC_FILE_ARRAY::RemoveAll()
 {
     for (int z = 0; z < GetSize(); z++)
-    {
-        ElementAt(z).PrepareForProcessing(pProcessFiles);
-    }
+        delete Parent::ElementAt(z);
+    Parent::RemoveAll();
+}
 
+MAC_FILE ** MAC_FILE_ARRAY::GetData()
+{
+    MAC_FILE ** ppFile = Parent::GetData();
+    return ppFile;
+}
+
+bool MAC_FILE_ARRAY::PrepareForProcessing(CMACProcessFiles * pProcessFiles)
+{
+    // prepare the files
+    for (int z = 0; z < GetSize(); z++)
+        ElementAt(z)->PrepareForProcessing(pProcessFiles);
+
+    // store the start time
     m_dwStartProcessingTickCount = GetTickCount64();
 
-    return TRUE;
+    return true;
 }
 
 double MAC_FILE_ARRAY::GetTotalInputBytes()
@@ -30,7 +68,7 @@ double MAC_FILE_ARRAY::GetTotalInputBytes()
 
     for (int z = 0; z < GetSize(); z++)
     {
-        dTotalBytes += ElementAt(z).dInputFileBytes;
+        dTotalBytes += ElementAt(z)->m_dInputFileBytes;
     }
 
     return dTotalBytes;
@@ -42,57 +80,57 @@ double MAC_FILE_ARRAY::GetTotalOutputBytes()
 
     for (int z = 0; z < GetSize(); z++)
     {
-        dTotalBytes += ElementAt(z).dOutputFileBytes;
+        dTotalBytes += ElementAt(z)->m_dOutputFileBytes;
     }
 
     return dTotalBytes;
 }
 
-BOOL MAC_FILE_ARRAY::GetProcessingInfo(BOOL bStopped, int & rnRunning, BOOL & rbAllDone)
+bool MAC_FILE_ARRAY::GetProcessingInfo(bool bStopped, int & rnRunning, bool & rbAllDone)
 {
     rnRunning = 0;
-    rbAllDone = TRUE;
+    rbAllDone = true;
 
     for (int z = 0; z < GetSize(); z++)
     {
-        MAC_FILE * pInfo = &ElementAt(z);
+        MAC_FILE * pInfo = ElementAt(z);
 
         // running
-        if (pInfo->bStarted && (pInfo->bDone == FALSE))
+        if (pInfo->m_bStarted && (pInfo->m_bDone == false))
             rnRunning++;
 
         // all done (if never started and we've stopped, don't reset rbAllDone to false)
-        if (pInfo->bStarted || (bStopped == FALSE))
+        if (pInfo->m_bStarted || (bStopped == false))
         {
-            if (pInfo->bDone == FALSE)
-                rbAllDone = FALSE;
+            if (pInfo->m_bDone == false)
+                rbAllDone = false;
         }
     }
 
-    return TRUE;
+    return true;
 }
 
-BOOL MAC_FILE_ARRAY::GetProcessingProgress(double & rdProgress, double & rdSecondsLeft, int nPausedTotalMS)
+bool MAC_FILE_ARRAY::GetProcessingProgress(double & rdProgress, double & rdSecondsLeft, int nPausedTotalMS)
 {
     double dTotal = 0;
     double dDone = 0;
 
     for (int z = 0; z < GetSize(); z++)
     {
-        MAC_FILE * pInfo = &ElementAt(z);
-        dTotal += pInfo->dInputFileBytes;
+        MAC_FILE * pInfo = ElementAt(z);
+        dTotal += pInfo->m_dInputFileBytes;
 
-        if (pInfo->bDone == FALSE)
+        if (pInfo->m_bDone == false)
         {
-            if (pInfo->bStarted)
+            if (pInfo->m_bStarted)
             {
                 double dProgress = pInfo->GetProgress();
-                dDone += pInfo->dInputFileBytes * dProgress;
+                dDone += pInfo->m_dInputFileBytes * dProgress;
             }
         }
         else
         {
-            dDone += pInfo->dInputFileBytes;
+            dDone += pInfo->m_dInputFileBytes;
         }
     }
 
@@ -101,17 +139,22 @@ BOOL MAC_FILE_ARRAY::GetProcessingProgress(double & rdProgress, double & rdSecon
     rdProgress = dDone / dTotal;
     rdSecondsLeft = ((dElapsed / rdProgress) - dElapsed) / 1000;
 
-    return TRUE;
+    return true;
 }
 
-BOOL MAC_FILE_ARRAY::GetContainsFile(const CString & strFilename)
+int MAC_FILE_ARRAY::GetFileIndex(const CString & strFilename)
 {
     for (int z = 0; z < GetSize(); z++)
     {
-        MAC_FILE * pInfo = &ElementAt(z);
-        if (pInfo->strInputFilename.CompareNoCase(strFilename) == 0)
-            return TRUE;
+        MAC_FILE * pInfo = ElementAt(z);
+        if (pInfo->m_strInputFilename.CompareNoCase(strFilename) == 0)
+            return z;
     }
 
-    return FALSE;
+    return -1;
+}
+
+bool MAC_FILE_ARRAY::GetContainsFile(const CString & strFilename)
+{
+    return (GetFileIndex(strFilename) >= 0);
 }

@@ -9,9 +9,9 @@
 
 using namespace APE;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declare to prevent Clang warnings
-////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 __declspec(dllexport) int FAR PASCAL FilterGetFileSize(HANDLE hInput);
 __declspec(dllexport) HANDLE FAR PASCAL OpenFilterInput(LPSTR lpstrFilename, int far * lSamprate, WORD far * wBitsPerSample, WORD far * wChannels, HWND, int far * lChunkSize);
 __declspec(dllexport) DWORD FAR PASCAL ReadFilterInput(HANDLE hInput, unsigned char far * buf, int lBytes);
@@ -21,12 +21,12 @@ __declspec(dllexport) DWORD FAR PASCAL FilterOptionsString(HANDLE hInput, LPSTR 
 __declspec(dllexport) DWORD FAR PASCAL FilterGetFirstSpecialData(HANDLE, SPECIALDATA *);
 __declspec(dllexport) DWORD FAR PASCAL FilterGetNextSpecialData(HANDLE, SPECIALDATA *);
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 // OpenFilterInput: Open the file for reading
-////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 __declspec(dllexport) int FAR PASCAL FilterGetFileSize(HANDLE hInput)
 {
-    IAPEDecompress* pAPEDecompress = static_cast<IAPEDecompress *>(hInput);
+    IAPEDecompress * pAPEDecompress = static_cast<IAPEDecompress *>(hInput);
     if (hInput == APE_NULL) return 0;
 
     int64 nBytesPerSample = pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BYTES_PER_SAMPLE);
@@ -37,11 +37,11 @@ __declspec(dllexport) int FAR PASCAL FilterGetFileSize(HANDLE hInput)
 __declspec(dllexport) HANDLE FAR PASCAL OpenFilterInput(LPSTR lpstrFilename, int far * lSamprate, WORD far * wBitsPerSample, WORD far * wChannels, HWND, int far * lChunkSize)
 {
 
-    ///////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////
     // open the APE file
-    ///////////////////////////////////////////////////////////////////////////////
-    CSmartPtr<wchar_t> spUTF16(CAPECharacterHelper::GetUTF16FromANSI(lpstrFilename), TRUE);
-    IAPEDecompress * pAPEDecompress = CreateIAPEDecompress(spUTF16, APE_NULL, true, true, false);
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    CSmartPtr<str_utfn> spUTFN(CAPECharacterHelper::GetUTFNFromANSI(lpstrFilename), true);
+    IAPEDecompress * pAPEDecompress = CreateIAPEDecompress(spUTFN, APE_NULL, true, true, false);
     if (pAPEDecompress == APE_NULL)
         return APE_NULL;
 
@@ -57,9 +57,9 @@ __declspec(dllexport) HANDLE FAR PASCAL OpenFilterInput(LPSTR lpstrFilename, int
     return static_cast<HANDLE>(pAPEDecompress);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 // ReadFilterInput: Effective Reading
-////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 __declspec(dllexport) DWORD FAR PASCAL ReadFilterInput(HANDLE hInput, unsigned char far * buf, int lBytes)
 {
     IAPEDecompress * pAPEDecompress = static_cast<IAPEDecompress *>(hInput);
@@ -68,14 +68,15 @@ __declspec(dllexport) DWORD FAR PASCAL ReadFilterInput(HANDLE hInput, unsigned c
     int64 nBlocksDecoded = 0;
     int64 nBlocksToDecode = lBytes / pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BLOCK_ALIGN);
 
+    // processing
     if (pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BYTES_PER_SAMPLE) == 3)
     {
-        ///////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////
         // 24 bit decode (convert to 32 bit in Cool Edit format)
-        //////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////
 
         nBlocksToDecode = (nBlocksToDecode * 3) / 4;
-        if (pAPEDecompress->GetData(reinterpret_cast<unsigned char *>(buf), nBlocksToDecode, &nBlocksDecoded) != ERROR_SUCCESS)
+        if (pAPEDecompress->GetData(reinterpret_cast<unsigned char *>(buf), nBlocksToDecode, &nBlocksDecoded, APE_NULL) != ERROR_SUCCESS)
             return 0;
 
         // expand to 32 bit
@@ -97,20 +98,19 @@ __declspec(dllexport) DWORD FAR PASCAL ReadFilterInput(HANDLE hInput, unsigned c
     }
     else if ((pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BYTES_PER_SAMPLE) == 4) && (pAPEDecompress->GetInfo(APE::IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_FLOATING_POINT))
     {
-        ///////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////
         // 32 bit float decode (convert to 32 bit in Cool Edit format)
-        //////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////
 
-        IAPEDecompress::APE_GET_DATA_PROCESSING GetDataProcessing = { true, false, false };
-        if (pAPEDecompress->GetData(reinterpret_cast<unsigned char*>(buf), nBlocksToDecode, &nBlocksDecoded, &GetDataProcessing) != ERROR_SUCCESS)
+        if (pAPEDecompress->GetData(reinterpret_cast<unsigned char *>(buf), nBlocksToDecode, &nBlocksDecoded, APE_NULL) != ERROR_SUCCESS)
             return 0;
 
         // expand to 32 bit
-        float* p32Bit = reinterpret_cast<float*>(&buf[(nBlocksDecoded * pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS) * 4) - 4]);
-        float* p32BitFloat = reinterpret_cast<float*>(p32Bit);
+        float * p32Bit = reinterpret_cast<float *>(&buf[(nBlocksDecoded * pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS) * 4) - 4]);
+        float * p32BitFloat = reinterpret_cast<float *>(p32Bit);
 
         const float fDivisor = float(256 * 128);
-        while (p32Bit >= reinterpret_cast<float*>(&buf[0]))
+        while (p32Bit >= reinterpret_cast<float *>(&buf[0]))
         {
             float fValue = static_cast<float>(float(*p32BitFloat) * fDivisor);
             *p32Bit = fValue;
@@ -121,11 +121,11 @@ __declspec(dllexport) DWORD FAR PASCAL ReadFilterInput(HANDLE hInput, unsigned c
     }
     else if (pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BYTES_PER_SAMPLE) == 4)
     {
-        ///////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////
         // 32 bit decode (convert to 32 bit in Cool Edit format)
-        //////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////
 
-        if (pAPEDecompress->GetData(reinterpret_cast<unsigned char *>(buf), nBlocksToDecode, &nBlocksDecoded) != ERROR_SUCCESS)
+        if (pAPEDecompress->GetData(reinterpret_cast<unsigned char *>(buf), nBlocksToDecode, &nBlocksDecoded, APE_NULL) != ERROR_SUCCESS)
             return 0;
 
         // expand to 32 bit
@@ -144,10 +144,10 @@ __declspec(dllexport) DWORD FAR PASCAL ReadFilterInput(HANDLE hInput, unsigned c
     }
     else
     {
-        ///////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////
         // 8 and 16 bits decode
-        //////////////////////
-        if (pAPEDecompress->GetData(reinterpret_cast<unsigned char *>(buf), nBlocksToDecode, &nBlocksDecoded) != ERROR_SUCCESS)
+        //////////////////////////////////////////////////////////////////////////////////////////////
+        if (pAPEDecompress->GetData(reinterpret_cast<unsigned char *>(buf), nBlocksToDecode, &nBlocksDecoded, APE_NULL) != ERROR_SUCCESS)
             return 0;
     }
 
@@ -156,9 +156,9 @@ __declspec(dllexport) DWORD FAR PASCAL ReadFilterInput(HANDLE hInput, unsigned c
     return DWORD(nBlocksDecoded * pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS) * BytesPerSample);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 // CloseFileInput: Closes the file after reading
-///////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 __declspec(dllexport) void FAR PASCAL CloseFilterInput(HANDLE hInput)
 {
     IAPEDecompress * pAPEDecompress = static_cast<IAPEDecompress *>(hInput);
@@ -168,9 +168,9 @@ __declspec(dllexport) void FAR PASCAL CloseFilterInput(HANDLE hInput)
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 // FilterOptions: Returns the compression level for this wave
-////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 __declspec(dllexport) DWORD FAR PASCAL FilterOptions(HANDLE hInput)
 {
     int nCompressionLevel = 2;
@@ -191,9 +191,9 @@ __declspec(dllexport) DWORD FAR PASCAL FilterOptions(HANDLE hInput)
     return static_cast<DWORD>(nCompressionLevel);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 // FilterOptionsString: Fills compression level in "File Info"
-/////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 __declspec(dllexport) DWORD FAR PASCAL FilterOptionsString(HANDLE hInput, LPSTR szString)
 {
     // the safe buffer size was found to be around 120 with the Cool Edit Pro 2 installed on my computer
@@ -212,29 +212,27 @@ __declspec(dllexport) DWORD FAR PASCAL FilterOptionsString(HANDLE hInput, LPSTR 
 
         str_utfn cCompressionLevel[16]; APE_CLEAR(cCompressionLevel);
         GetAPECompressionLevelName(static_cast<int>(pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_COMPRESSION_LEVEL)), cCompressionLevel, 16, true);
-        str_ansi * pCompressionLevelANSI = CAPECharacterHelper::GetANSIFromUTF16(cCompressionLevel);
-        strcat_s(Title, 256, pCompressionLevelANSI);
+        CSmartPtr<str_ansi> spCompressionLevelANSI(CAPECharacterHelper::GetANSIFromUTFN(cCompressionLevel), true);
+        strcat_s(Title, 256, spCompressionLevelANSI);
 
         strncpy_s(szString, 120, Title, _TRUNCATE);
-
-        delete [] pCompressionLevelANSI;
     }
 
     // return compression level
     return FilterOptions(hInput);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 // FilterGetFirstSpecialData:
-////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 __declspec(dllexport) DWORD FAR PASCAL FilterGetFirstSpecialData(HANDLE, SPECIALDATA *)
 {
     return 0;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 // FilterGetNextSpecialData:
-///////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 __declspec(dllexport) DWORD FAR PASCAL FilterGetNextSpecialData(HANDLE, SPECIALDATA *)
 {
     return 0;

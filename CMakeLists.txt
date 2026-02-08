@@ -1,10 +1,22 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.0...4.2)
 project("Monkey's Audio")
 
-set(CMAKE_CXX_STANDARD 98)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+include(CheckCXXCompilerFlag)
 
 option(BUILD_SHARED "Build libMAC as a shared library" ON)
 option(BUILD_UTIL "Build the mac command line tool" ON)
+
+check_cxx_compiler_flag(-Wpedantic HAVE_WPEDANTIC_FLAG)
+
+# Show all the warnings (hopefully there aren't any!)
+add_compile_options(-Wall -Wextra)
+
+if(HAVE_WPEDANTIC_FLAG)
+  add_compile_options(-Wpedantic)
+endif()
 
 #
 # Determine interface version
@@ -21,18 +33,22 @@ set(archdetect_c_code "
     #error cmake_ARCH x86
 #elif defined __x86_64__ || defined _M_AMD64
     #error cmake_ARCH x86_64
-#elif defined __arm__ || defined _M_ARM
+#elif defined __arm__ && (!defined __ARM_ARCH || __ARM_ARCH < 7 || !defined __ARM_FP)
     #error cmake_ARCH arm
+#elif (defined __arm__ && defined __ARM_ARCH && __ARM_ARCH >= 7 && defined __ARM_FP) || defined _M_ARM
+    #error cmake_ARCH armhf
 #elif defined __aarch64__ || defined _M_ARM64
     #error cmake_ARCH aarch64
 #elif defined __mips__
     #error cmake_ARCH mips
-#elif defined __ppc__
-    #error cmake_ARCH ppc
-#elif defined __ppc64__
+#elif defined __ppc64__ || defined __powerpc64__
     #error cmake_ARCH ppc64
-#elif defined __riscv
+#elif defined __ppc__ || defined __powerpc__
+    #error cmake_ARCH ppc
+#elif defined __riscv && __riscv_xlen == 32
     #error cmake_ARCH riscv
+#elif defined __riscv && __riscv_xlen == 64
+    #error cmake_ARCH riscv64
 #else
     #error cmake_ARCH unknown
 #endif
@@ -70,7 +86,7 @@ set(MAC_PUBLIC_HEADERS
         Shared/All.h
         Shared/APETag.h
         Shared/CharacterHelper.h
-        Shared/IO.h
+        Shared/IAPEIO.h
         Shared/MACDll.h
         Shared/MACLib.h
         Shared/NoWindows.h
@@ -88,14 +104,17 @@ set(MAC_SHARED_HEADERS
         Source/Shared/CRC.h
         Source/Shared/GlobalFunctions.h
         Source/Shared/ID3Genres.h
-        Source/Shared/IO.h
+        Source/Shared/IAPEIO.h
         Source/Shared/MACDll.h
+        Source/Shared/MemoryIO.h
         Source/Shared/MFCGlobals.h
         Source/Shared/MFCWarnings.h
         Source/Shared/NoWindows.h
         Source/Shared/RollBuffer.h
+        Source/Shared/Semaphore.h
         Source/Shared/SmartPtr.h
         Source/Shared/StdLibFileIO.h
+        Source/Shared/Thread.h
         Source/Shared/Version.h
         Source/Shared/Warnings.h
         Source/Shared/WholeFileIO.h
@@ -107,6 +126,7 @@ set(MAC_LIBRARY_HEADERS
         Source/MACLib/APECompressCore.h
         Source/MACLib/APECompressCreate.h
         Source/MACLib/APEDecompress.h
+        Source/MACLib/APEDecompressCore.h
         Source/MACLib/APEHeader.h
         Source/MACLib/APEInfo.h
         Source/MACLib/APELink.h
@@ -125,11 +145,11 @@ set(MAC_LIBRARY_HEADERS
         Source/MACLib/UnBitArray.h
         Source/MACLib/UnBitArrayBase.h
         Source/MACLib/WAVInputSource.h
-        Source/MACLib/Old/Anti-Predictor.h
-        Source/MACLib/Old/APEDecompressCore.h
+        Source/MACLib/Old/AntiPredictorOld.h
+        Source/MACLib/Old/APEDecompressCoreOld.h
         Source/MACLib/Old/APEDecompressOld.h
         Source/MACLib/Old/UnBitArrayOld.h
-        Source/MACLib/Old/UnMAC.h)
+        Source/MACLib/Old/UnMACOld.h)
 
 if(WIN32)
    set(MAC_OS_SRC
@@ -146,6 +166,9 @@ set(MAC_SHARED_SOURCE_FILES
         Source/Shared/CPUFeatures.cpp
         Source/Shared/CRC.cpp
         Source/Shared/GlobalFunctions.cpp
+        Source/Shared/MemoryIO.cpp
+        Source/Shared/Semaphore.cpp
+        Source/Shared/Thread.cpp
         Source/Shared/WholeFileIO.cpp
         ${MAC_OS_SRC})
 
@@ -155,6 +178,7 @@ set(MAC_LIBRARY_SOURCE_FILES
         Source/MACLib/APECompressCore.cpp
         Source/MACLib/APECompressCreate.cpp
         Source/MACLib/APEDecompress.cpp
+        Source/MACLib/APEDecompressCore.cpp
         Source/MACLib/APEHeader.cpp
         Source/MACLib/APEInfo.cpp
         Source/MACLib/APELink.cpp
@@ -171,15 +195,15 @@ set(MAC_LIBRARY_SOURCE_FILES
         Source/MACLib/UnBitArray.cpp
         Source/MACLib/UnBitArrayBase.cpp
         Source/MACLib/WAVInputSource.cpp
-        Source/MACLib/Old/Anti-Predictor.cpp
-        Source/MACLib/Old/AntiPredictorExtraHigh.cpp
-        Source/MACLib/Old/AntiPredictorFast.cpp
-        Source/MACLib/Old/AntiPredictorHigh.cpp
-        Source/MACLib/Old/AntiPredictorNormal.cpp
-        Source/MACLib/Old/APEDecompressCore.cpp
+        Source/MACLib/Old/AntiPredictorOld.cpp
+        Source/MACLib/Old/AntiPredictorExtraHighOld.cpp
+        Source/MACLib/Old/AntiPredictorFastOld.cpp
+        Source/MACLib/Old/AntiPredictorHighOld.cpp
+        Source/MACLib/Old/AntiPredictorNormalOld.cpp
+        Source/MACLib/Old/APEDecompressCoreOld.cpp
         Source/MACLib/Old/APEDecompressOld.cpp
         Source/MACLib/Old/UnBitArrayOld.cpp
-        Source/MACLib/Old/UnMAC.cpp)
+        Source/MACLib/Old/UnMACOld.cpp)
 
 if(${ARCHITECTURE} STREQUAL x86 OR ${ARCHITECTURE} STREQUAL x86_64)
     set(MAC_LIBRARY_SOURCE_FILES
@@ -190,10 +214,22 @@ if(${ARCHITECTURE} STREQUAL x86 OR ${ARCHITECTURE} STREQUAL x86_64)
         Source/MACLib/NNFilterSSE4.1.cpp)
 endif()
 
-if(${ARCHITECTURE} STREQUAL arm OR ${ARCHITECTURE} STREQUAL aarch64)
+if(${ARCHITECTURE} STREQUAL arm OR ${ARCHITECTURE} STREQUAL armhf OR ${ARCHITECTURE} STREQUAL aarch64)
     set(MAC_LIBRARY_SOURCE_FILES
         ${MAC_LIBRARY_SOURCE_FILES}
         Source/MACLib/NNFilterNeon.cpp)
+endif()
+
+if(${ARCHITECTURE} STREQUAL riscv OR ${ARCHITECTURE} STREQUAL riscv64)
+    set(MAC_LIBRARY_SOURCE_FILES
+        ${MAC_LIBRARY_SOURCE_FILES}
+        Source/MACLib/NNFilterRVV.cpp)
+endif()
+
+if(${ARCHITECTURE} STREQUAL ppc OR ${ARCHITECTURE} STREQUAL ppc64)
+    set(MAC_LIBRARY_SOURCE_FILES
+        ${MAC_LIBRARY_SOURCE_FILES}
+        Source/MACLib/NNFilterAltiVec.cpp)
 endif()
 
 #
@@ -249,6 +285,24 @@ if(${ARCHITECTURE} STREQUAL x86 OR ${ARCHITECTURE} STREQUAL x86_64)
     endif()
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set_source_files_properties(Source/MACLib/NNFilterSSE2.cpp PROPERTIES COMPILE_FLAGS "-msse2")
+    endif()
+endif()
+
+if(${ARCHITECTURE} STREQUAL armhf)
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        set_source_files_properties(Source/MACLib/NNFilterNeon.cpp PROPERTIES COMPILE_FLAGS "-march=armv7-a -mfpu=neon -mfloat-abi=hard")
+    endif()
+endif()
+
+if(${ARCHITECTURE} STREQUAL riscv)
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        set_source_files_properties(Source/MACLib/NNFilterRVV.cpp PROPERTIES COMPILE_FLAGS "-march=rv32gcv")
+    endif()
+endif()
+
+if(${ARCHITECTURE} STREQUAL riscv64)
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        set_source_files_properties(Source/MACLib/NNFilterRVV.cpp PROPERTIES COMPILE_FLAGS "-march=rv64gcv")
     endif()
 endif()
 

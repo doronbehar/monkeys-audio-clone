@@ -1,8 +1,7 @@
 #include "stdafx.h"
-#include "MAC.h"
 #include "All.h"
 #include "FLACTag.h"
-#include "IO.h"
+#include "IAPEIO.h"
 
 namespace APE
 {
@@ -20,12 +19,12 @@ CFLACTag::CFLACTag(const TCHAR * pFilename)
     m_nPictureBytes = 0;
 
     // open the file
-    CSmartPtr<APE::CIO> m_spIO;
-    m_spIO.Assign(CreateCIO());
+    CSmartPtr<APE::IAPEIO> m_spIO;
+    m_spIO.Assign(CreateIAPEIO());
     if (m_spIO->Open(pFilename) == ERROR_SUCCESS)
     {
         // read FLAC header
-        unsigned int nBytesRead = 4;
+        unsigned int nBytesRead = 0;
         char cFLAC[5] = { 0 };
         m_spIO->Read(cFLAC, 4, &nBytesRead);
         if (strcmp(cFLAC, "fLaC") == 0)
@@ -91,7 +90,7 @@ CFLACTag::CFLACTag(const TCHAR * pFilename)
                             memcpy(spChar, &spTag[nStartByte + 4], nBytes);
                             spChar[nBytes] = 0;
 
-                            CString strTag = CAPECharacterHelper::GetUTF16FromUTF8(spChar.GetPtr());
+                            CString strTag = CAPECharacterHelper::GetUTFNFromUTF8(spChar.GetPtr());
                             int nEqual = strTag.Find(_T("="), 0);
                             if (nEqual >= 0)
                             {
@@ -121,12 +120,20 @@ CFLACTag::CFLACTag(const TCHAR * pFilename)
                         memcpy(spMimeType, &spPicture[8], nMIMELength);
                         spMimeType[nMIMELength] = 0;
 
+                        // image extension
+                        m_strImageExtension.Empty();
                         if (_stricmp(spMimeType, "image/jpeg") == 0)
+                            m_strImageExtension = _T("jpg");
+                        else if (_stricmp(spMimeType, "image/png") == 0)
+                            m_strImageExtension = _T("png");
+
+                        // load the data if we understand the image extension
+                        if (m_strImageExtension.IsEmpty() == false)
                         {
                             // description
                             uint32 nDescriptionLength = ReadInteger(spPicture, 8 + nMIMELength);
                             // we don't read the description because it's not used
-                            
+
                             // width
                             //uint32 nWidth = ReadInteger(spPicture, 12 + nMIMELength + nDescriptionLength);
 
@@ -145,7 +152,7 @@ CFLACTag::CFLACTag(const TCHAR * pFilename)
                             // read data
                             if ((32 + nMIMELength + nDescriptionLength + m_nPictureBytes) <= nBufferBytes)
                             {
-                                m_spPicture.Assign(new char [m_nPictureBytes], true);
+                                m_spPicture.AllocateArray(m_nPictureBytes);
                                 memcpy(m_spPicture, &spPicture[32 + nMIMELength + nDescriptionLength], m_nPictureBytes);
                             }
                         }

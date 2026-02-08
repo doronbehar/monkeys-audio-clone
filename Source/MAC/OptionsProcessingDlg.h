@@ -13,6 +13,7 @@ public:
     CStatic m_ctrlErrorBehaviorPicture;
     CStatic m_ctrlVerifyPicture;
     CStatic m_ctrlGeneralPicture;
+    CStatic m_ctrlSizePicture;
     BOOL m_bCompletionSound;
     int m_nPriorityMode;
     int m_nSimultaneousFiles;
@@ -20,6 +21,8 @@ public:
     BOOL m_bShowExternalWindows;
     BOOL m_bAutoVerify;
     int m_nVerifyMode;
+    CComboBox m_ctrlProgramSize;
+    CComboBox m_ctrlFontSize;
 
 protected:
     virtual void DoDataExchange(CDataExchange * pDX);

@@ -11,7 +11,7 @@ CAPEInfoDlg::CAPEInfoDlg(CMACDlg * pMACDlg, CStringArray & aryFiles) :
     m_aryFiles.Copy(aryFiles);
 }
 
-void CAPEInfoDlg::DoDataExchange(CDataExchange* pDX)
+void CAPEInfoDlg::DoDataExchange(CDataExchange * pDX)
 {
     CDialog::DoDataExchange(pDX);
 
@@ -30,8 +30,8 @@ BOOL CAPEInfoDlg::OnInitDialog()
     CDialog::OnInitDialog();
 
     // set the font to all the controls
-    SetFont(&m_pMACDlg->GetFont());
-    SendMessageToDescendants(WM_SETFONT, reinterpret_cast<WPARAM>(m_pMACDlg->GetFont().GetSafeHandle()), MAKELPARAM(FALSE, 0), TRUE);
+    SetFont(theApp.GetFont());
+    SendMessageToDescendants(WM_SETFONT, reinterpret_cast<WPARAM>(theApp.GetFont()->GetSafeHandle()), MAKELPARAM(false, 0), true);
 
     CRect rectFiles; m_ctrlFiles.GetWindowRect(&rectFiles); ScreenToClient(&rectFiles);
     m_ctrlFiles.InsertColumn(0, _T("Files"), LVCFMT_LEFT, rectFiles.Width() - GetSystemMetrics(SM_CXVSCROLL) - 2);
@@ -46,17 +46,17 @@ BOOL CAPEInfoDlg::OnInitDialog()
 
     CRect rectTabs; m_ctrlTabs.GetWindowRect(&rectTabs); ScreenToClient(&rectTabs);
     CRect rectTab; m_ctrlTabs.GetItemRect(0, &rectTab);
-    int nTabTitleBarHeight = rectTab.Height() + theApp.GetSize(2, 0).cx;
+    int nTabTitleBarHeight = rectTab.Height() + theApp.GetSize(2);
 
     m_dlgFormat.Create(IDD_APE_INFO_FORMAT, this);
 
-    int nBorder = theApp.GetSize(8, 0).cx;
+    int nBorder = theApp.GetSize(8);
     m_dlgFormat.SetWindowPos(&m_ctrlTabs, rectTabs.left + nBorder, rectTabs.top + nTabTitleBarHeight + nBorder, rectTabs.Width() - (2 * nBorder), rectTabs.Height() - (2 * nBorder) - nTabTitleBarHeight, SWP_SHOWWINDOW);
     m_dlgFormat.Layout();
 
     m_dlgFormat.SetFiles(m_aryFiles);
 
-    return TRUE;  // return TRUE unless you set the focus to a control
+    return true;  // return TRUE unless you set the focus to a control
                   // EXCEPTION: OCX Property Pages should return FALSE
 }
 

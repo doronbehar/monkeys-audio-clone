@@ -1,5 +1,4 @@
-#ifndef APE_ALL_INCLUDE // use the ifdef because Clang warns about a pragma once in this file
-#define APE_ALL_INCLUDE
+#pragma once
 
 /**************************************************************************************************
 Platform
@@ -10,7 +9,7 @@ PLATFORM_APPLE
 PLATFORM_LINUX
 PLATFORM_ANDROID
 **************************************************************************************************/
-#if !defined(PLATFORM_WINDOWS) && !defined(PLATFORM_APPLE) && !defined(PLATFORM_LINUX)
+#if !defined(PLATFORM_WINDOWS) && !defined(PLATFORM_APPLE) && !defined(PLATFORM_LINUX) && !defined(PLATFORM_ANDROID)
     #pragma message("No platform set for MACLib, defaulting to Windows")
     #define PLATFORM_WINDOWS
 #endif
@@ -55,7 +54,7 @@ Global includes
 
 #if defined(PLATFORM_WINDOWS)
     #ifndef NOMINMAX
-        #define NOMINMAX // remove the global min / max macros so ape_min / ape_max will always be used
+        #define NOMINMAX // remove the global min / max macros so APE_MIN / APE_MAX will always be used
     #endif
     #include "WindowsEnvironment.h"
     #define WIN32_LEAN_AND_MEAN
@@ -77,23 +76,11 @@ Global includes
     #include <wchar.h>
     #include "NoWindows.h"
 #endif
-#define ape_max(a,b)    (((a) > (b)) ? (a) : (b))
-#define ape_min(a,b)    (((a) < (b)) ? (a) : (b))
+#define APE_MAX(a, b) (((a) > (b)) ? (a) : (b))
+#define APE_MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define APE_CAP(value, low, high) (((value) < (low)) ? (low) : ((value) > (high)) ? (high) : (value))
 #define APE_CLEAR(destination) memset(&destination, 0, sizeof(destination))
-
-/**************************************************************************************************
-Packing
-
-We need to pack to the next byte or else we get warning 4820.  We could also get around the
-warning by adding padding to all our structures that is unused, but this isn't as elegant.  The
-actual packing code is in each header and CPP file because doing it globally leads to compiler
-warnings on Linux.
-**************************************************************************************************/
-
-/**************************************************************************************************
-Smart pointer
-**************************************************************************************************/
-#include "SmartPtr.h"
+#define APE_CLEAR_ARRAY(destination, elements) memset(&destination[0], 0, sizeof(destination[0]) * static_cast<size_t>(elements))
 
 /**************************************************************************************************
 Version
@@ -101,7 +88,7 @@ Version
 #include "Version.h"
 
 // year in the copyright strings
-#define APE_YEAR 2024
+#define APE_YEAR 2026
 
 // build the version string
 #define STRINGIZE2(s) #s
@@ -114,37 +101,28 @@ Version
 #define APE_VERSION_STRING                              APE_VER_FILE_VERSION_STR
 #define APE_VERSION_NUMBER                              APE_VERSION_MAJOR APE_VERSION_REVISION
 #define APE_NAME                                        _T("Monkey's Audio ") APE_VER_FILE_VERSION_STR
-#define PLUGIN_NAME                                     "Monkey's Audio Player " APE_VER_FILE_VERSION_STR_NARROW
-#define MJ_PLUGIN_NAME                                  _T("APE Plugin (v") APE_VER_FILE_VERSION_STR _T(")")
+#define APE_PLUGIN_NAME                                 "Monkey's Audio Player " APE_VER_FILE_VERSION_STR_NARROW
+#define APE_MC_PLUGIN_NAME                              _T("APE Plugin (v") APE_VER_FILE_VERSION_STR _T(")")
 #define APE_RESOURCE_VERSION_COMMA                      APE_VERSION_MAJOR, APE_VERSION_REVISION, 0, 0
 #define APE_RESOURCE_VERSION_STRING                     APE_VER_FILE_VERSION_STR
-#define APE_RESOURCE_COPYRIGHT                          "Copyright (c) 2000-" STRINGIZE(APE_YEAR) " Matthew T. Ashland"
-#define CONSOLE_NAME                                    L"--- Monkey's Audio Console Front End (v " APE_VER_FILE_VERSION_STR_WIDE L") (c) Matthew T. Ashland ---\n"
-#define PLUGIN_ABOUT                                    _T("Monkey's Audio Player v") APE_VER_FILE_VERSION_STR _T("\nCopyrighted (c) 2000-") STRINGIZE(APE_YEAR) _T(" by Matthew T. Ashland")
+#define APE_RESOURCE_COPYRIGHT                          "Copyright 2000-" STRINGIZE(APE_YEAR) " Matthew T. Ashland"
+#define CONSOLE_NAME                                    L"--- Monkey's Audio Console Front End (v " APE_VER_FILE_VERSION_STR_WIDE L") Copyright 2000-" STRINGIZE(APE_YEAR) L" Matthew T. Ashland ---\n"
+#define PLUGIN_ABOUT                                    L"Monkey's Audio Player v" APE_VER_FILE_VERSION_STR L"\nCopyright 2000-" STRINGIZE(APE_YEAR) L" Matthew T. Ashland"
 
 /**************************************************************************************************
 Global compiler settings (useful for porting)
 **************************************************************************************************/
-// APE_BACKWARDS_COMPATIBILITY is only needed for decoding APE 3.92 or earlier files.  It
+// APE_BACKWARDS_COMPATIBILITY is only needed for decoding earlier than APE 3.99 files. It
 // has not been possible to make these files for over 10 years, so it's unlikely
-// that disabling APE_BACKWARDS_COMPATIBILITY would have any effect on a normal user.  For
+// that disabling APE_BACKWARDS_COMPATIBILITY would have any effect on a normal user. For
 // porting or third party usage, it's probably best to not bother with APE_BACKWARDS_COMPATIBILITY.
-// A future release of Monkey's Audio itself may remove support for these obsolete files.
-#if !defined(PLATFORM_ANDROID)
-    #define APE_BACKWARDS_COMPATIBILITY
-#endif
+#define APE_BACKWARDS_COMPATIBILITY
 
 // disable this to turn off compression code
 #define APE_SUPPORT_COMPRESS
 
 // flip this to enable float compression
 #define APE_SUPPORT_FLOAT_COMPRESSION
-
-// compression modes
-#define ENABLE_COMPRESSION_MODE_FAST
-#define ENABLE_COMPRESSION_MODE_NORMAL
-#define ENABLE_COMPRESSION_MODE_HIGH
-#define ENABLE_COMPRESSION_MODE_EXTRA_HIGH
 
 /**************************************************************************************************
 Global types
@@ -172,8 +150,18 @@ namespace APE
 }
 
 /**************************************************************************************************
+Smart pointer
+**************************************************************************************************/
+#include "SmartPtr.h"
+
+/**************************************************************************************************
 Global macros
 **************************************************************************************************/
+
+// use to set the thread count automatically using the system hardware
+#define APE_THREADS_AUTOMATIC -1
+
+// formats
 #define WAVE_FORMAT_PCM 1
 #define WAVE_FORMAT_IEEE_FLOAT 0x0003
 #define WAVE_FORMAT_EXTENSIBLE 0xFFFE
@@ -186,8 +174,13 @@ Global macros
 // we use more than the Windows system MAX_PATH since filenames can actually be longer
 #define APE_MAX_PATH 8192
 
-#define POINTER_TO_INT64(POINTER) static_cast<APE::int64>(reinterpret_cast<uintptr_t>(POINTER))
+// undefined file size (pipe, etc.)
+#define APE_FILE_SIZE_UNDEFINED -1
 
+// make a pointer into an int64
+#define APE_POINTER_TO_INT64(POINTER) static_cast<APE::int64>(reinterpret_cast<uintptr_t>(POINTER))
+
+// platform defines
 #if defined(PLATFORM_WINDOWS)
     #define IO_USE_WIN_FILE_IO
     #define DLLEXPORT                                   __declspec(dllexport)
@@ -274,8 +267,9 @@ WAVE format descriptor (binary compatible with Windows define, but in the APE na
 namespace APE
 {
     #pragma pack(push, 1)
-    struct WAVEFORMATEX
+    class WAVEFORMATEX
     {
+    public:
         WORD        wFormatTag;         /* format type */
         WORD        nChannels;          /* number of channels (i.e. mono, stereo...) */
         uint32      nSamplesPerSec;     /* sample rate */
@@ -284,6 +278,18 @@ namespace APE
         WORD        wBitsPerSample;     /* number of bits per sample of mono data */
         WORD        cbSize;             /* the count in bytes of the size of */
         /* extra information (after cbSize) */
+
+        WAVEFORMATEX()
+        {
+            // initialize everything to empty on construction (avoids the need to clear variables separately)
+            wFormatTag = 0;
+            nChannels = 0;
+            nSamplesPerSec = 0;
+            nAvgBytesPerSec = 0;
+            nBlockAlign = 0;
+            wBitsPerSample = 0;
+            cbSize = 0;
+        }
     };
     #pragma pack(pop)
 }
@@ -308,12 +314,12 @@ namespace APE
 /**************************************************************************************************
 Global defines
 **************************************************************************************************/
-#define ONE_MILLION                  1000000
 #ifdef PLATFORM_WINDOWS
     #define APE_FILENAME_SLASH '\\'
 #else
     #define APE_FILENAME_SLASH '/'
 #endif
+#define APE_ONE_MILLION                  1000000
 #define APE_BYTES_IN_KILOBYTE            1024
 #define APE_BYTES_IN_MEGABYTE            1048576
 #define APE_BYTES_IN_GIGABYTE            APE::int64(1073741824)
@@ -325,7 +331,12 @@ Byte order
 **************************************************************************************************/
 #define APE_LITTLE_ENDIAN     1234
 #define APE_BIG_ENDIAN        4321
+
+#if defined(_BIG_ENDIAN) || defined(__BIG_ENDIAN__) || (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__))
+#define APE_BYTE_ORDER        APE_BIG_ENDIAN
+#else
 #define APE_BYTE_ORDER        APE_LITTLE_ENDIAN
+#endif
 
 /**************************************************************************************************
 Channels
@@ -383,6 +394,7 @@ Error Codes
 #define ERROR_UNSUPPORTED_FILE_TYPE                     1013
 #define ERROR_UNSUPPORTED_FILE_VERSION                  1014
 #define ERROR_OPENING_FILE_IN_USE                       1015
+#define ERROR_UAC_PERMISSION                            1016
 
 // memory errors (2000's)
 #define ERROR_INSUFFICIENT_MEMORY                       2000
@@ -404,5 +416,3 @@ Error Codes
 
 // unknown error
 #define ERROR_UNDEFINED                                -1
-
-#endif

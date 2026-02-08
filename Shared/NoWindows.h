@@ -35,9 +35,6 @@ typedef struct _GUID {
     unsigned char  Data4[8];
 } GUID;
 
-#undef ZeroMemory
-#define ZeroMemory(POINTER, BYTES) memset(POINTER, 0, BYTES);
-
 #define TRUE 1
 #define FALSE 0
 
@@ -49,11 +46,15 @@ typedef struct _GUID {
 #ifdef PLATFORM_APPLE
     #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
         #define _wcsicmp wcscasecmp
+        #define _wcsnicmp wcsncasecmp
     #else
-        #define _wcsicmp wcscmp // fall back to case sensitive comparison on Mac OS X 10.6.x and earlier
+         // fall back to case sensitive comparison on Mac OS X 10.6.x and earlier
+        #define _wcsicmp wcscmp
+        #define _wcsnicmp wcsncmp
     #endif
 #else
     #define _wcsicmp wcscasecmp
+    #define _wcsnicmp wcsncasecmp
 #endif
 
 #define MAX_PATH    4096
@@ -63,4 +64,4 @@ typedef struct _GUID {
 #include <wctype.h>
 #include <string.h>
 
-#endif // #ifndef _WIN32
+#endif // #if !defined(PLATFORM_WINDOWS)

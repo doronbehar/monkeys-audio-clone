@@ -7,7 +7,6 @@
 #include "api/service/waservicefactory.h"
 #include "Winamp/IN2.H"
 #include "Winamp/wa_ipc.h"
-#include "api/service/waservicefactory.h"
 #include "Agave/AlbumArt/svc_albumArtProvider.h"
 #include "Wasabi.h"
 
@@ -32,18 +31,18 @@ protected:
 //extern "C" extern In_Module mod; // TODO: change if you called yours something else
 #define WASABI_API_MEMMGR memmgr
 
-static api_config *AGAVE_API_CONFIG = 0;
-static api_service *WASABI_API_SVC = 0;
-static api_memmgr *WASABI_API_MEMMGR = 0;
+static api_config *AGAVE_API_CONFIG = APE_NULL;
+static api_service *WASABI_API_SVC = APE_NULL;
+static api_memmgr *WASABI_API_MEMMGR = APE_NULL;
 
 static AlbumArtFactory albumArtFactory;
 void Wasabi_Init()
 {
     WASABI_API_SVC = reinterpret_cast<api_service *>(SendMessage(g_APEWinampPluginModule.hMainWindow, WM_WA_IPC, 0, IPC_GET_API_SERVICE));
 
-    if (WASABI_API_SVC == 0 || WASABI_API_SVC == reinterpret_cast<api_service *>(1))
+    if (WASABI_API_SVC == APE_NULL || WASABI_API_SVC == reinterpret_cast<api_service *>(1))
     {
-        WASABI_API_SVC = 0;
+        WASABI_API_SVC = APE_NULL;
         return;
     }
 
@@ -125,7 +124,7 @@ static const wchar_t *scanstr_backW(const wchar_t *str, const wchar_t *toscan, c
 
 static const wchar_t *extensionW(const wchar_t *fn)
 {
-    const wchar_t *end = scanstr_backW(fn, L"./\\", 0);
+    const wchar_t *end = scanstr_backW(fn, L"./\\", APE_NULL);
     if (!end)
         return (fn+lstrlenW(fn));
 
@@ -222,7 +221,7 @@ int AlbumArtFactory::ReleaseInterface(void *ifc)
 
 const char *AlbumArtFactory::GetTestString()
 {
-    return 0;
+    return APE_NULL;
 }
 
 int AlbumArtFactory::ServiceNotify(int msg, int param1, int param2)

@@ -10,17 +10,17 @@
 
 using namespace APE;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 //Forward declares to avoid Clang warnings
-///////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 __declspec(dllexport) short FAR PASCAL QueryCoolFilter(COOLQUERY far * cq);
 __declspec(dllexport) BOOL FAR PASCAL FilterUnderstandsFormat(LPSTR filename);
 __declspec(dllexport) INT_PTR FAR PASCAL DIALOGMsgProc(HWND hWndDlg, UINT Message, WPARAM wParam, LPARAM lParam);
 __declspec(dllexport) DWORD FAR PASCAL FilterGetOptions(HWND hWnd, HINSTANCE hInst, long, WORD, WORD, DWORD dwOptions);
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 //QueryCoolFilter: Setup the filter
-///////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 __declspec(dllexport) short FAR PASCAL QueryCoolFilter(COOLQUERY far * cq)
 {
     strcpy_s(cq->szName, 24, "Monkey's Audio");
@@ -43,25 +43,25 @@ __declspec(dllexport) short FAR PASCAL QueryCoolFilter(COOLQUERY far * cq)
      return C_VALIDLIBRARY;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 //FilterUnderstandsFormat: Check if the file is a real .ape
-///////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 __declspec(dllexport) BOOL FAR PASCAL FilterUnderstandsFormat(LPSTR filename)
 {
-    BOOL bValid = FALSE;
+    bool bValid = false;
 
     APE_CATCH_ERRORS
     (
-        CSmartPtr<wchar_t> spFilenameUTF16(CAPECharacterHelper::GetUTF16FromANSI(filename), TRUE);
+        CSmartPtr<str_utfn> spFilenameUTFN(CAPECharacterHelper::GetUTFNFromANSI(filename), true);
         int nErrorCode = ERROR_SUCCESS;
-        IAPEDecompress * pAPEDecompress = CreateIAPEDecompress(spFilenameUTF16, &nErrorCode, true, true, false);
-        if (pAPEDecompress != APE_NULL)
+        CSmartPtr<IAPEDecompress> spAPEDecompress(CreateIAPEDecompress(spFilenameUTFN, &nErrorCode, true, true, false));
+        if (spAPEDecompress != APE_NULL)
         {
             if (nErrorCode == ERROR_SUCCESS)
             {
-                bValid = TRUE;
+                bValid = true;
             }
-            delete pAPEDecompress;
+            spAPEDecompress.Delete();
         }
     )
 
@@ -69,26 +69,26 @@ __declspec(dllexport) BOOL FAR PASCAL FilterUnderstandsFormat(LPSTR filename)
 }
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 //DIALOGMsgProc: All Dialog stuff here
-//////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 __declspec(dllexport) INT_PTR FAR PASCAL DIALOGMsgProc(HWND hWndDlg, UINT Message, WPARAM wParam, LPARAM lParam)
 {
     switch (Message)
     {
-        ///////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////
         //Initialize Dialog
-        ///////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////
     case WM_INITDIALOG:
     {
         long nDialogReturn = 0;
 
         nDialogReturn = static_cast<long>(lParam);
-        if (nDialogReturn == 1) CheckDlgButton(hWndDlg, IDC_R1, TRUE);
-        else if (nDialogReturn == 2) CheckDlgButton(hWndDlg, IDC_R2, TRUE);
-        else if (nDialogReturn == 3) CheckDlgButton(hWndDlg, IDC_R3, TRUE);
-        else if (nDialogReturn == 4) CheckDlgButton(hWndDlg, IDC_R4, TRUE);
-        else if (nDialogReturn == 5) CheckDlgButton(hWndDlg, IDC_R5, TRUE);
+        if (nDialogReturn == 1) CheckDlgButton(hWndDlg, IDC_R1, true);
+        else if (nDialogReturn == 2) CheckDlgButton(hWndDlg, IDC_R2, true);
+        else if (nDialogReturn == 3) CheckDlgButton(hWndDlg, IDC_R3, true);
+        else if (nDialogReturn == 4) CheckDlgButton(hWndDlg, IDC_R4, true);
+        else if (nDialogReturn == 5) CheckDlgButton(hWndDlg, IDC_R5, true);
     }
     break;
 
@@ -96,9 +96,9 @@ __declspec(dllexport) INT_PTR FAR PASCAL DIALOGMsgProc(HWND hWndDlg, UINT Messag
         PostMessage(hWndDlg, WM_COMMAND, IDCANCEL, 0L);
         break;
 
-        ///////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////
         //All WM_COMMAND here
-        /////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////
     case WM_COMMAND:
     {
         switch (LOWORD(wParam))
@@ -118,22 +118,22 @@ __declspec(dllexport) INT_PTR FAR PASCAL DIALOGMsgProc(HWND hWndDlg, UINT Messag
         break;
 
         case IDCANCEL:
-            EndDialog(hWndDlg, FALSE);
+            EndDialog(hWndDlg, false);
             break;
         }
         break;
     }
 
     default:
-        return FALSE;
+        return false;
     }
 
-    return TRUE;
+    return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 //FilterGetOptions: Show Dialog to select Compression Level
-///////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 __declspec(dllexport) DWORD FAR PASCAL FilterGetOptions(HWND hWnd, HINSTANCE hInst, long, WORD, WORD, DWORD dwOptions)
 {
     DWORD dwDialogReturn = 0L;

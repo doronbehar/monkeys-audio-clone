@@ -1,18 +1,18 @@
 #pragma once
 
 #include "APEDecompress.h"
-#include "UnMAC.h"
+#include "UnMACOld.h"
 
 namespace APE
 {
-
-#pragma pack(push, 1)
 
 class CAPEDecompressOld : public IAPEDecompress
 {
 public:
     CAPEDecompressOld(int * pErrorCode, CAPEInfo * pAPEInfo, int nStartBlock = -1, int nFinishBlock = -1);
     ~CAPEDecompressOld();
+
+    int SetNumberOfThreads(int nThreads) APE_OVERRIDE;
 
     int GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlocksRetrieved, APE_GET_DATA_PROCESSING * pProcessing = APE_NULL) APE_OVERRIDE;
     int Seek(int64 nBlockOffset) APE_OVERRIDE;
@@ -34,7 +34,7 @@ protected:
     int64 m_nCurrentBlock;
 
     // decoding tools
-    CUnMAC m_UnMAC;
+    CUnMACOld m_UnMAC;
     CSmartPtr<CAPEInfo> m_spAPEInfo;
 
     // booleans at the end for alignment
@@ -43,7 +43,5 @@ protected:
 
     int InitializeDecompressor();
 };
-
-#pragma pack(pop)
 
 }

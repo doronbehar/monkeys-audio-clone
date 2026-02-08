@@ -2,12 +2,12 @@
 
 #pragma once
 
-#include "IO.h"
+#include "IAPEIO.h"
 
 namespace APE
 {
 
-class CStdLibFileIO : public CIO
+class CStdLibFileIO : public IAPEIO
 {
 public:
     // construction / destruction
@@ -15,12 +15,12 @@ public:
     ~CStdLibFileIO();
 
     // open / close
-    int Open(const wchar_t * pName, bool bOpenReadOnly = false);
+    int Open(const str_utfn * pName, bool bOpenReadOnly = false);
     int Close();
 
     // read / write
     int Read(void * pBuffer, unsigned int nBytesToRead, unsigned int * pBytesRead);
-    int Write(const void * pBuffer, unsigned int nBytesToWrite, unsigned int * pBytesWritten);
+    int Write(const void * pBuffer, unsigned int nBytesToWrite, unsigned int * pBytesWritten = APE_NULL);
 
     // seek
     int Seek(int64 nPosition, SeekMethod nMethod);
@@ -30,18 +30,19 @@ public:
     unsigned char * GetBuffer(int *) { return APE_NULL; }
 
     // creation / destruction
-    int Create(const wchar_t * pName);
+    int Create(const str_utfn * pName);
     int Delete();
 
     // attributes
     int64 GetPosition();
     int64 GetSize();
-    int GetName(wchar_t * pBuffer);
+    int GetName(str_utfn * pBuffer);
     int GetHandle();
 
 private:
-    wchar_t m_cFileName[MAX_PATH];
+    str_utfn m_cFileName[MAX_PATH];
     bool m_bReadOnly;
+    bool m_bPipe;
     FILE * m_pFile;
 };
 

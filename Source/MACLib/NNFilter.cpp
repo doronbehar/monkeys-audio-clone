@@ -56,6 +56,22 @@ template <class INTTYPE, class DATATYPE> CNNFilter<INTTYPE, DATATYPE>::CNNFilter
     }
 #endif
 
+#if defined(__riscv)
+    if (GetRVVAvailable() && GetRVVSupported())
+    {
+        CompressImpl = &CNNFilter::CompressRVV;
+        DecompressImpl = &CNNFilter::DecompressRVV;
+    }
+#endif
+
+#if defined(__ppc__) || defined(__powerpc__)
+    if (GetAltiVecAvailable() && GetAltiVecSupported())
+    {
+        CompressImpl = &CNNFilter::CompressAltiVec;
+        DecompressImpl = &CNNFilter::DecompressAltiVec;
+    }
+#endif
+
     m_paryM = static_cast<DATATYPE *>(AllocateAligned(static_cast<intn>(sizeof(DATATYPE)) * m_nOrder, 64)); // align for possible SSE/AVX usage
 }
 
@@ -70,7 +86,7 @@ template <class INTTYPE, class DATATYPE> CNNFilter<INTTYPE, DATATYPE>::~CNNFilte
 
 template <class INTTYPE, class DATATYPE> void CNNFilter<INTTYPE, DATATYPE>::Flush()
 {
-    memset(&m_paryM[0], 0, static_cast<size_t>(m_nOrder) * sizeof(DATATYPE));
+    APE_CLEAR_ARRAY(m_paryM, m_nOrder);
     m_rbInput.Flush();
     m_rbDeltaM.Flush();
     m_nRunningAverage = 0;

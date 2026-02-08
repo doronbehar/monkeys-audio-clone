@@ -9,9 +9,9 @@ public:
     CMACStatusBar(CMACDlg * pMACDlg);
     virtual ~CMACStatusBar();
 
-    BOOL UpdateProgress(double dProgress, double dSecondsLeft);
-    BOOL UpdateFiles(MAC_FILE_ARRAY * paryFiles);
-    BOOL SetLastProcessTotalMS(int nMilliseconds);
+    bool UpdateProgress(double dProgress, double dSecondsLeft);
+    bool UpdateFiles(MAC_FILE_ARRAY * paryFiles);
+    bool SetLastProcessTotalMS(int nMilliseconds);
     void StartProcessing();
     void EndProcessing();
 
@@ -22,6 +22,7 @@ protected:
     afx_msg void OnRButtonUp(UINT nFlags, CPoint pt);
     DECLARE_MESSAGE_MAP()
 
+    void UpdateStatusbarSizes();
     void ShowFreeSpaceDrivePopup();
     void SizeStatusbar();
 
@@ -31,7 +32,7 @@ protected:
     bool m_bShowProgress;
     int m_nProcessTotalMS;
     CString m_strFreeSpaceDrive;
-    ITaskbarList3 * m_pTaskBarlist;
+    ITaskbarList3 * m_pTaskbarList;
     bool m_bDisableSleep;
     bool m_bProcessing;
 };

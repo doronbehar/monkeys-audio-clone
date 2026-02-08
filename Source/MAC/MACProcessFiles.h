@@ -1,7 +1,6 @@
 #pragma once
 
 #include "MACFileArray.h"
-#include <thread>
 
 class CMACProcessFiles
 {
@@ -9,17 +8,18 @@ public:
     CMACProcessFiles();
     virtual ~CMACProcessFiles();
 
-    BOOL Process(MAC_FILE_ARRAY * paryFiles);
-    BOOL ProcessFile(int nIndex);
+    bool Process(MAC_FILE_ARRAY * paryFiles);
+    bool ProcessFile(int nIndex);
 
-    BOOL UpdateProgress(double dPercentageDone);
+    bool UpdateProgress(double dPercentageDone);
 
-    BOOL Pause(BOOL bPause);
-    BOOL Stop(BOOL bImmediately);
+    bool Pause(bool bPause);
+    bool Stop(bool bImmediately);
 
-    inline BOOL GetPaused() const { return m_bPaused; }
-    inline BOOL GetStopped() const { return m_bStopped; }
+    inline bool GetPaused() const { return m_bPaused; }
+    inline bool GetStopped() const { return m_bStopped; }
     int GetPausedTotalMS() const;
+    int GetSize() const { return static_cast<int>(m_paryFiles->GetSize()); }
 
 protected:
     // helpers
@@ -27,8 +27,8 @@ protected:
 
     // data
     MAC_FILE_ARRAY * m_paryFiles;
-    BOOL m_bStopped;
-    BOOL m_bPaused;
+    bool m_bStopped;
+    bool m_bPaused;
     unsigned long long m_nPausedStartTickCount;
     APE::int64 m_nPausedTotalMS;
 

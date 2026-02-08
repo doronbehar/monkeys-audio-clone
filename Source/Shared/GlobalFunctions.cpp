@@ -1,10 +1,11 @@
 #include "All.h"
 #include "GlobalFunctions.h"
-#include "IO.h"
-#include "CharacterHelper.h"
-
-#ifdef _MSC_VER
-    #include <intrin.h>
+#include "IAPEIO.h"
+#if __cplusplus >= 201103L
+    #include <thread>
+#endif
+#ifndef PLATFORM_WINDOWS
+    #include "CharacterHelper.h"
 #endif
 
 #ifdef PLATFORM_APPLE
@@ -18,7 +19,7 @@
 namespace APE
 {
 
-int ReadSafe(CIO * pIO, void * pBuffer, int nBytes)
+int ReadSafe(IAPEIO * pIO, void * pBuffer, int nBytes)
 {
     unsigned int nBytesRead = 0;
     int nResult = pIO->Read(pBuffer, static_cast<unsigned int>(nBytes), &nBytesRead);
@@ -31,35 +32,21 @@ int ReadSafe(CIO * pIO, void * pBuffer, int nBytes)
     return nResult;
 }
 
-intn WriteSafe(CIO * pIO, void * pBuffer, intn nBytes)
-{
-    unsigned int nBytesWritten = 0;
-    intn nResult = pIO->Write(pBuffer, static_cast<unsigned int>(nBytes), &nBytesWritten);
-    if (nResult == ERROR_SUCCESS)
-    {
-        if (nBytes != static_cast<int>(nBytesWritten))
-            nResult = ERROR_IO_WRITE;
-    }
-
-    return nResult;
-}
-
-bool FileExists(const wchar_t * pFilename)
+bool FileExists(const str_utfn * pFilename)
 {
     if (pFilename == APE_NULL)
         return false;
     if (0 == wcscmp(pFilename, L"-")  ||  0 == wcscmp(pFilename, L"/dev/stdin"))
         return true;
 
-#ifdef _WIN32
-
+#ifdef PLATFORM_WINDOWS
     bool bFound = false;
-
     WIN32_FIND_DATA WFD;
 #ifdef UNICODE
     HANDLE hFind = FindFirstFile(pFilename, &WFD);
 #else
-    HANDLE hFind = FindFirstFile(CAPECharacterHelper::GetANSIFromUTF16(pFilename), &WFD);
+    CSmartPtr<char> spFilename(CAPECharacterHelper::GetANSIFromUTFN(pFilename), true);
+    HANDLE hFind = FindFirstFile(spFilename, &WFD);
 #endif
     if (hFind != INVALID_HANDLE_VALUE)
     {
@@ -68,10 +55,8 @@ bool FileExists(const wchar_t * pFilename)
     }
 
     return bFound;
-
 #else
-
-    CSmartPtr<char> spFilenameUTF8((char *) CAPECharacterHelper::GetUTF8FromUTF16(pFilename), true);
+    CSmartPtr<char> spFilenameUTF8((char *) CAPECharacterHelper::GetUTF8FromUTFN(pFilename), true);
 
     struct stat b;
 
@@ -82,7 +67,6 @@ bool FileExists(const wchar_t * pFilename)
         return false;
 
     return true;
-
 #endif
 }
 
@@ -106,7 +90,7 @@ void * AllocateAligned(intn nBytes, intn nAlignment)
 
 void FreeAligned(void * pMemory)
 {
-#ifdef _WIN32
+#ifdef PLATFORM_WINDOWS
     _aligned_free(pMemory);
 #else
     free(pMemory);
@@ -146,6 +130,46 @@ bool StringIsEqual(const str_utfn * pString1, const str_utfn * pString2, bool bC
     }
 
     return bResult;
+}
+
+void SwitchBufferBytes(void * pBuffer, int nBytesPerBlock, int nBlocks)
+{
+    if (nBytesPerBlock == 2)
+    {
+        uint16 * pShortBuffer = static_cast<uint16 *>(pBuffer);
+        for (int i = 0; i < nBlocks; i++)
+            pShortBuffer[i] = Switch2Bytes(pShortBuffer[i]);
+    }
+    else if (nBytesPerBlock == 3)
+    {
+        uint8 * pByteBuffer = static_cast<uint8 *>(pBuffer);
+        for (int i = 0; i < nBlocks * nBytesPerBlock; i += nBytesPerBlock)
+        {
+            uint8 nTemp = pByteBuffer[i];
+            pByteBuffer[i    ] = pByteBuffer[i + 2];
+            pByteBuffer[i + 2] = nTemp;
+        }
+    }
+    else if (nBytesPerBlock == 4)
+    {
+        uint32 * pLongBuffer = static_cast<uint32 *>(pBuffer);
+        for (int i = 0; i < nBlocks; i++)
+            pLongBuffer[i] = Switch4Bytes(pLongBuffer[i]);
+    }
+}
+
+int GetNumberThreads(int nThreads)
+{
+    if (nThreads == APE_THREADS_AUTOMATIC)
+    {
+        #if __cplusplus >= 201103L
+            nThreads = APE_MAX(1, static_cast<int>(std::thread::hardware_concurrency()) / 2);
+        #else
+            nThreads = 1;
+        #endif
+    }
+    nThreads = APE_CAP(nThreads, 1, 32);
+    return nThreads;
 }
 
 }

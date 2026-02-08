@@ -11,10 +11,10 @@ COptionsOutputDlg::COptionsOutputDlg(CMACDlg * pMACDlg, OPTIONS_PAGE * pPage, CW
 {
     m_pPage = pPage;
     m_pMACDlg = pMACDlg;
-    m_bMirrorTimeStamp = FALSE;
+    m_bMirrorTimeStamp = false;
 }
 
-void COptionsOutputDlg::DoDataExchange(CDataExchange* pDX)
+void COptionsOutputDlg::DoDataExchange(CDataExchange * pDX)
 {
     CDialog::DoDataExchange(pDX);
     DDX_Control(pDX, IDC_OTHER_PICTURE, m_ctrlOtherPicture);
@@ -47,8 +47,8 @@ BOOL COptionsOutputDlg::OnInitDialog()
     CDialog::OnInitDialog();
 
     // set the font to all the controls
-    SetFont(&m_pMACDlg->GetFont());
-    SendMessageToDescendants(WM_SETFONT, reinterpret_cast<WPARAM>(m_pMACDlg->GetFont().GetSafeHandle()), MAKELPARAM(FALSE, 0), TRUE);
+    SetFont(theApp.GetFont());
+    SendMessageToDescendants(WM_SETFONT, reinterpret_cast<WPARAM>(theApp.GetFont()->GetSafeHandle()), MAKELPARAM(false, 0), true);
 
     // images
     HICON hIcon = theApp.GetImageList(CMACApp::Image_OptionsPages)->ExtractIcon(TBB_OPTIONS_OUTPUT_LOCATION);
@@ -64,7 +64,7 @@ BOOL COptionsOutputDlg::OnInitDialog()
     m_aryIcons.Add(hIcon);
 
     // output location settings
-    (static_cast<CButton *>(GetDlgItem(IDC_OUTPUT_LOCATION_SAME_DIRECTORY + theApp.GetSettings()->m_nOutputLocationMode)))->SetCheck(TRUE);
+    (static_cast<CButton *>(GetDlgItem(IDC_OUTPUT_LOCATION_SAME_DIRECTORY + theApp.GetSettings()->m_nOutputLocationMode)))->SetCheck(true);
     m_ctrlOutputLocationDirectoryCombo.SetWindowText(theApp.GetSettings()->m_strOutputLocationDirectory);
     if (theApp.GetSettings()->m_bOutputLocationRecreateDirectoryStructure == false)
         m_ctrlOutputLocationDirectoryRecreate.SetCurSel(0);
@@ -82,15 +82,11 @@ BOOL COptionsOutputDlg::OnInitDialog()
     // layout
     Layout();
 
-    // update our size
-    //CRect rectWindow; GetWindowRect(&rectWindow);
-    //SetWindowPos(APE_NULL, 0, 0, rectWindow.Width(), m_pPage->m_nIdealHeight + theApp.GetSize(128, 0).cx, SWP_NOMOVE);
-
     // update
-    UpdateData(FALSE);
+    UpdateData(false);
     UpdateDialogState();
 
-    return TRUE;  // return TRUE unless you set the focus to a control
+    return true;  // return TRUE unless you set the focus to a control
                   // EXCEPTION: OCX Property Pages should return FALSE
 }
 
@@ -120,7 +116,7 @@ void COptionsOutputDlg::OnDestroy()
 
 LRESULT COptionsOutputDlg::OnSaveOptions(WPARAM, LPARAM)
 {
-    UpdateData(TRUE);
+    UpdateData(true);
 
     // output location
     theApp.GetSettings()->m_nOutputLocationMode = GetCheckedRadioButton(IDC_OUTPUT_LOCATION_SAME_DIRECTORY, IDC_OUTPUT_LOCATION_SPECIFIED_DIRECTORY) - IDC_OUTPUT_LOCATION_SAME_DIRECTORY;
@@ -143,7 +139,7 @@ LRESULT COptionsOutputDlg::OnSaveOptions(WPARAM, LPARAM)
     theApp.GetSettings()->m_bOutputMirrorTimeStamp = m_bMirrorTimeStamp;
     theApp.GetSettings()->m_strAPLFilenameTemplate = m_strAPLFilenameTemplate;
 
-    return TRUE;
+    return true;
 }
 
 void COptionsOutputDlg::OnAplFilenameTemplateHelp()
@@ -192,18 +188,16 @@ void COptionsOutputDlg::OnOutputLocationRecreateDirectoryStructureCheck()
 
 void COptionsOutputDlg::OnOK()
 {
-
 }
 
 void COptionsOutputDlg::OnCancel()
 {
-
 }
 
 void COptionsOutputDlg::Layout()
 {
     CRect rectLayout; GetClientRect(&rectLayout);
-    int nBorder = theApp.GetSize(8, 0).cx;
+    int nBorder = theApp.GetSize(8);
     rectLayout.DeflateRect(nBorder, nBorder, nBorder, nBorder);
     int nLeft = rectLayout.left;
 

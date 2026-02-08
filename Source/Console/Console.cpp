@@ -3,7 +3,6 @@ MAC Console Frontend (MAC.exe)
 
 Pretty simple and straightforward console front end.
 **************************************************************************************************/
-#define _NO_CRT_STDIO_INLINE // this suppresses warning 4710
 #include "Console.h"
 #include <stdio.h>
 #include "GlobalFunctions.h"
@@ -25,12 +24,155 @@ using namespace APE;
 #define UNDEFINED_MODE        -1
 
 // global variables
-TICK_COUNT_TYPE g_nInitialTickCount = 0;
+static TICK_COUNT_TYPE g_nInitialTickCount = 0;
+
+/**************************************************************************************************
+Data holder for the arguments so we always have the argument count
+**************************************************************************************************/
+class CArguments
+{
+public:
+#ifndef PLATFORM_WINDOWS
+    CArguments(int argc, char ** argv)
+#else
+    CArguments(int argc, TCHAR ** argv)
+#endif
+    {
+        m_argv = argv;
+        m_argc = argc;
+    }
+
+    // data
+#ifndef PLATFORM_WINDOWS
+    char ** m_argv;
+#else
+    TCHAR ** m_argv;
+#endif
+    int m_argc;
+
+    /**************************************************************************************************
+    Get an argument
+    **************************************************************************************************/
+    void GetArgument(int nArgument, APE::CSmartPtr<APE::str_utfn> & rspString) const
+    {
+        if ((nArgument >= 0) && (nArgument < m_argc))
+        {
+            #ifdef PLATFORM_WINDOWS
+                #ifdef _UNICODE
+                    // make a copy of the string
+                    //rspString.Assign(new APE::str_utfn [wcslen(m_argv[nArgument]) + 1], true);
+                    //wcscpy_s(rspString, wcslen(m_argv[nArgument]) + 1, m_argv[nArgument]);
+
+                    // simply return the string from the buffer and tell the pointer not to delete
+                    rspString.Assign(m_argv[nArgument], true, false);
+                #else
+                    // convert from ANSI
+                    rspString.Assign(CAPECharacterHelper::GetUTFNFromANSI(m_argv[nArgument]), true);
+                #endif
+            #else
+                // convert from UTF-8
+                rspString.Assign(CAPECharacterHelper::GetUTFNFromUTF8((str_utf8 *) m_argv[nArgument]), true);
+            #endif
+        }
+        else
+        {
+            // undefined so we'll just return NULL
+            rspString.Delete();
+        }
+    }
+
+    /**************************************************************************************************
+    Get arguments
+    **************************************************************************************************/
+    void GetOptions(int & rnMode, int & rnCompressionLevel, int & rnThreads, bool & rbReadFullInput, APE::CSmartPtr<APE::str_utfn> & rspTagSwitch, APE::CSmartPtr<APE::str_utfn> & rspInputFilename, APE::CSmartPtr<APE::str_utfn> & rspOutputFilename) const
+    {
+        // defaults (these are already set by the caller, but just here for good form)
+        rnMode = UNDEFINED_MODE;
+        rnCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL;
+        rnThreads = 1;
+        rbReadFullInput = false;
+        rspTagSwitch.Delete();
+        rspInputFilename.Delete();
+        rspOutputFilename.Delete();
+
+        // load
+        for (int z = 1; ; z++)
+        {
+            // get the argument
+            CSmartPtr<str_utfn> spOption;
+            GetArgument(z, spOption);
+            if (spOption == APE_NULL)
+                break; // we reached the end
+
+            // check for known arguments
+            // put full words before short stuff like -r since that can also be in the full words
+            if (_wcsnicmp(spOption, L"-threads=", 9) == 0)
+            {
+                rnThreads = _wtoi(&spOption[9]);
+            }
+            else if (_wcsnicmp(spOption, L"-readfullinput", 14) == 0)
+            {
+                rbReadFullInput = true;
+            }
+            else if (_wcsnicmp(spOption, L"-c", 2) == 0)
+            {
+                rnMode = COMPRESS_MODE;
+                rnCompressionLevel = _wtoi(&spOption[2]);
+            }
+            else if (_wcsnicmp(spOption, L"-d", 2) == 0)
+            {
+                rnMode = DECOMPRESS_MODE;
+            }
+            else if (wcsncmp(spOption, L"-V", 2) == 0)
+            {
+                rnMode = VERIFY_FULL_MODE;
+            }
+            else if (wcsncmp(spOption, L"-v", 2) == 0)
+            {
+                rnMode = VERIFY_MODE;
+            }
+            else if (_wcsnicmp(spOption, L"-n", 2) == 0)
+            {
+                rnMode = CONVERT_MODE;
+                rnCompressionLevel = _wtoi(&spOption[2]);
+            }
+            else if (_wcsnicmp(spOption, L"-r", 2) == 0)
+            {
+                rnMode = REMOVE_TAG_MODE;
+            }
+            else if (_wcsnicmp(spOption, L"-t", 2) == 0)
+            {
+                if (rnMode == UNDEFINED_MODE)
+                    rnMode = TAG_MODE;
+                GetArgument(z + 1, rspTagSwitch);
+                z++;
+            }
+            else if (_wcsnicmp(spOption, L"-L", 2) == 0)
+            {
+                rnMode = CONVERT_TAG_TO_LEGACY;
+            }
+            else if (rspInputFilename == APE_NULL)
+            {
+                GetArgument(z, rspInputFilename);
+            }
+            else if (rspOutputFilename == APE_NULL)
+            {
+                GetArgument(z, rspOutputFilename);
+            }
+        }
+
+        // validate
+        if ((rspInputFilename != APE_NULL) && (FileExists(rspInputFilename) == false))
+        {
+            rspInputFilename.Delete();
+        }
+    }
+};
 
 /**************************************************************************************************
 Gets a parameter from an array
 **************************************************************************************************/
-str_utfn * GetParameterFromList(const str_utfn * pList, const str_utfn * pDelimiter, int nCount)
+static str_utfn * GetParameterFromList(const str_utfn * pList, const str_utfn * pDelimiter, int nCount)
 {
     const str_utfn * pHead = pList;
     const str_utfn * pTail = wcsstr(pHead, pDelimiter);
@@ -70,7 +212,7 @@ static void DisplayProperUsage(FILE * pFile)
 {
     fwprintf(pFile, L"Proper Usage: [EXE] [Input File] [Output File] [Mode]\n\n");
 
-    fwprintf(pFile, L"Modes: \n");
+    fwprintf(pFile, L"Modes:\n");
     fwprintf(pFile, L"    Compress (fast): '-c1000'\n");
     fwprintf(pFile, L"    Compress (normal): '-c2000'\n");
     fwprintf(pFile, L"    Compress (high): '-c3000'\n");
@@ -84,13 +226,19 @@ static void DisplayProperUsage(FILE * pFile)
     fwprintf(pFile, L"    Remove Tag: '-r'\n");
     fwprintf(pFile, L"    Convert to ID3v1 (needed by some players, etc.): '-L'\n\n");
 
+    fwprintf(pFile, L"Options:\n");
+    fwprintf(pFile, L"    Set the number of threads when compressing or decompressing: -threads=#'\n\n");
+    fwprintf(pFile, L"    Read the entire file until the end of file if it's unknown length so the seek table can be made perfect: -readfullinput'\n\n");
+
     fwprintf(pFile, L"Examples:\n");
     fwprintf(pFile, L"    Compress: mac.exe \"Metallica - One.wav\" \"Metallica - One.ape\" -c2000\n");
+    fwprintf(pFile, L"    Compress: mac.exe \"Metallica - One.wav\" \"Metallica - One.ape\" -c2000 -threads=16 -t \"Artist=Metallica|Album=Black|Name=One\"\n");
     fwprintf(pFile, L"    Compress: mac.exe \"Metallica - One.wav\" \"Metallica - One.ape\" -c2000 -t \"Artist=Metallica|Album=Black|Name=One\"\n");
     fwprintf(pFile, L"    Compress: mac.exe \"Metallica - One.wav\" auto -c2000\n");
     fwprintf(pFile, L"    Transcode from pipe: ffmpeg.exe -i \"Metallica - One.flac\" -f wav - | mac.exe - \"Metallica - One.ape\" -c2000\n");
     fwprintf(pFile, L"    Decompress: mac.exe \"Metallica - One.ape\" \"Metallica - One.wav\" -d\n");
     fwprintf(pFile, L"    Decompress: mac.exe \"Metallica - One.ape\" auto -d\n");
+    fwprintf(pFile, L"    Decompress: mac.exe \"Metallica - One.ape\" \"Metallica - One.wav\" -d -threads=16\n");
     fwprintf(pFile, L"    Verify: mac.exe \"Metallica - One.ape\" -v\n");
     fwprintf(pFile, L"    Full Verify: mac.exe \"Metallica - One.ape\" -V\n");
     fwprintf(pFile, L"    Tag: mac.exe \"Metallica - One.ape\" -t \"Artist=Metallica|Album=Black|Name=One|Comment=\\\"This is in quotes\\\"\"\n");
@@ -107,9 +255,9 @@ static void CALLBACK ProgressCallback(int nPercentageDone)
     TICK_COUNT_READ(nTickCount);
 
     // calculate the progress
-    double dProgress = nPercentageDone / 1.e5;                                          // [0...1]
+    double dProgress = nPercentageDone / 1.e5;                                                    // [0...1]
     double dElapsed = static_cast<double>(nTickCount - g_nInitialTickCount) / TICK_COUNT_FREQ;    // seconds
-    double dRemaining = (nPercentageDone > 0) ? dElapsed * ((1.0 / dProgress) - 1.0) : 0;            // seconds
+    double dRemaining = (nPercentageDone > 0) ? dElapsed * ((1.0 / dProgress) - 1.0) : 0;         // seconds
 
     // output the progress
     fwprintf(stderr, L"Progress: %.1f%% (%.1f seconds remaining, %.1f seconds total)          \r",
@@ -117,6 +265,13 @@ static void CALLBACK ProgressCallback(int nPercentageDone)
 
     // don't forget to flush!
     fflush(stderr);
+
+    // update the title
+    #ifdef PLATFORM_WINDOWS
+        TCHAR cTitle[1024];
+        _stprintf_s(cTitle, L"%.1f%% - Monkey's Audio", dProgress * 100);
+        SetConsoleTitle(cTitle);
+    #endif
 }
 
 /**************************************************************************************************
@@ -134,7 +289,7 @@ static BOOL CALLBACK CtrlHandlerCallback(DWORD dwCtrlTyp)
         _fputts(_T("\n\nBreak: MAC has been interrupted !!!\n"), stderr);
         break;
     default:
-        return FALSE;
+        return false;
     }
 
     fflush(stderr);
@@ -145,8 +300,12 @@ static BOOL CALLBACK CtrlHandlerCallback(DWORD dwCtrlTyp)
 /**************************************************************************************************
 Tag
 **************************************************************************************************/
-int Tag(const str_utfn * pFilename, const str_utfn * pTagString)
+static int Tag(const str_utfn * pFilename, const str_utfn * pTagString)
 {
+    // check for NULL
+    if ((pFilename == APE_NULL) || (pTagString == APE_NULL))
+        return ERROR_INVALID_FUNCTION_PARAMETER;
+
     int nRetVal = ERROR_UNDEFINED;
 
     // create the decoder
@@ -169,16 +328,16 @@ int Tag(const str_utfn * pFilename, const str_utfn * pTagString)
         // set fields
         for (int nCount = 0; true; nCount++)
         {
-            str_utfn * pParameter = GetParameterFromList(pTagString, L"|", nCount);
-            if (pParameter == APE_NULL)
+            CSmartPtr<str_utfn> spParameter(GetParameterFromList(pTagString, L"|", nCount), true);
+            if (spParameter == APE_NULL)
                 break;
 
-            str_utfn * pEqual = wcsstr(pParameter, L"=");
+            str_utfn * pEqual = wcsstr(spParameter, L"=");
             if (pEqual != APE_NULL)
             {
-                int nCharacters = static_cast<int>(pEqual - pParameter);
+                int nCharacters = static_cast<int>(pEqual - spParameter);
                 CSmartPtr<str_utfn> spLeft(new str_utfn [static_cast<size_t>(nCharacters) + 1], true);
-                wcsncpy_s(spLeft, static_cast<size_t>(nCharacters) + 1, pParameter, static_cast<size_t>(nCharacters));
+                wcsncpy_s(spLeft, static_cast<size_t>(nCharacters) + 1, spParameter, static_cast<size_t>(nCharacters));
                 spLeft[nCharacters] = 0;
 
                 nCharacters = static_cast<int>(wcslen(&pEqual[1]));
@@ -188,10 +347,39 @@ int Tag(const str_utfn * pFilename, const str_utfn * pTagString)
 
                 fwprintf(stderr, L"%s -> %s\r\n", spLeft.GetPtr(), spRight.GetPtr());
 
-                pTag->SetFieldString(spLeft, spRight);
-            }
+                if (_wcsicmp(spLeft, L"cover") == 0)
+                {
+                    // open the file
+                    APE::CSmartPtr<IAPEIO> spIO(CreateIAPEIO());
+                    if (spIO->Open(spRight) == ERROR_SUCCESS)
+                    {
+                        // get the extension
+                        const str_utfn * pExtension = &spRight[wcslen(spRight)];
+                        while ((pExtension > spRight) && (*pExtension != '.'))
+                            pExtension--;
 
-            delete[] pParameter;
+                        // read the file
+                        size_t nBufferBytes = wcslen(pExtension) + 1 + static_cast<size_t>(spIO->GetSize());
+                        APE::CSmartPtr<char> spBuffer(new char [nBufferBytes], true);
+
+                        // copy extension (and NULL terminate)
+                        for (int z = 0; z < static_cast<int>(wcslen(pExtension)) + 1; z++)
+                            spBuffer[z] = static_cast<char>(pExtension[z]);
+
+                        // read data
+                        unsigned int nBytesRead = 0;
+                        spIO->Read(&spBuffer[wcslen(pExtension) + 1], static_cast<unsigned int>(spIO->GetSize()), &nBytesRead);
+
+                        // set
+                        pTag->SetFieldBinary(APE_TAG_FIELD_COVER_ART_FRONT, spBuffer, static_cast<intn>(nBufferBytes), TAG_FIELD_FLAG_DATA_TYPE_BINARY);
+                    }
+
+                }
+                else
+                {
+                    pTag->SetFieldString(spLeft, spRight);
+                }
+            }
         }
 
         // save
@@ -211,7 +399,7 @@ int Tag(const str_utfn * pFilename, const str_utfn * pTagString)
 /**************************************************************************************************
 Remove tags
 **************************************************************************************************/
-int RemoveTags(const str_utfn * pFilename)
+static int RemoveTags(const str_utfn * pFilename)
 {
     int nRetVal = ERROR_UNDEFINED;
 
@@ -245,7 +433,7 @@ int RemoveTags(const str_utfn * pFilename)
 /**************************************************************************************************
 Convert to legacy
 **************************************************************************************************/
-int ConvertTagsToLegacy(const str_utfn * pFilename)
+static int ConvertTagsToLegacy(const str_utfn * pFilename)
 {
     int nRetVal = ERROR_UNDEFINED;
 
@@ -262,9 +450,14 @@ int ConvertTagsToLegacy(const str_utfn * pFilename)
         if (pTag == APE_NULL)
             throw(ERROR_UNDEFINED);
 
-        // remove the tag
-        if (pTag->Save(true) == ERROR_SUCCESS)
+        if (pTag->GetHasID3Tag())
         {
+            // already done
+            nRetVal = ERROR_SUCCESS;
+        }
+        else if (pTag->Save(true) == ERROR_SUCCESS)
+        {
+            // converted the tag
             nRetVal = ERROR_SUCCESS;
         }
     }
@@ -279,18 +472,18 @@ int ConvertTagsToLegacy(const str_utfn * pFilename)
 /**************************************************************************************************
 Handle auto for an output filename
 **************************************************************************************************/
-void HandleAuto(CSmartPtr<wchar_t> & spInputFilename, CSmartPtr<wchar_t> & spOutputFilename, bool bAPEType)
+static void HandleAuto(CSmartPtr<str_utfn> & rspInputFilename, CSmartPtr<str_utfn> & rspOutputFilename, bool bAPEType)
 {
     // build the output filename
-    const wchar_t * AUTO = L"auto";
-    if ((spOutputFilename == NULL) || (wcslen(spOutputFilename) == 0) || (_wcsicmp(spOutputFilename, AUTO) == 0))
+    const str_utfn * AUTO = L"auto";
+    if ((rspOutputFilename == APE_NULL) || (wcslen(rspOutputFilename) == 0) || (_wcsicmp(rspOutputFilename, AUTO) == 0))
     {
         // build the output filename
-        spOutputFilename.Assign(new wchar_t[APE_MAX_PATH], true);
-        wcscpy_s(spOutputFilename, APE_MAX_PATH, spInputFilename);
+        rspOutputFilename.AllocateArray(APE_MAX_PATH);
+        wcscpy_s(rspOutputFilename, APE_MAX_PATH, rspInputFilename);
 
         // remove the extension
-        wchar_t* pExtension = wcsrchr(spOutputFilename, '.');
+        str_utfn * pExtension = wcsrchr(rspOutputFilename, '.');
         if (pExtension != APE_NULL)
             *pExtension = 0; // switch to NULL so we don't have an extension
 
@@ -298,17 +491,17 @@ void HandleAuto(CSmartPtr<wchar_t> & spInputFilename, CSmartPtr<wchar_t> & spOut
         if (bAPEType)
         {
             // add the .ape extension
-            wcscat_s(spOutputFilename, APE_MAX_PATH, L".ape");
+            wcscat_s(rspOutputFilename, APE_MAX_PATH, L".ape");
         }
         else
         {
             // add the new extension
             APE::str_ansi cFileType[8] = { 0 };
-            GetAPEFileType(spInputFilename, cFileType);
-            CSmartPtr<APE::str_utfn> spFileTypeUTF16(CAPECharacterHelper::GetUTF16FromANSI(cFileType), true);
+            GetAPEFileType(rspInputFilename, cFileType);
+            CSmartPtr<APE::str_utfn> spFileTypeUTF16(CAPECharacterHelper::GetUTFNFromANSI(cFileType), true);
 
             // put together and fill spOutputFilename
-            wcscat_s(spOutputFilename, APE_MAX_PATH, spFileTypeUTF16);
+            wcscat_s(rspOutputFilename, APE_MAX_PATH, spFileTypeUTF16);
         }
     }
 }
@@ -323,111 +516,44 @@ int _tmain(int argc, TCHAR * argv[])
 #endif
 {
     // variable declares
-    CSmartPtr<wchar_t> spInputFilename; CSmartPtr<wchar_t> spOutputFilename;
     int nRetVal = ERROR_UNDEFINED;
-    int nMode = UNDEFINED_MODE;
-    int nCompressionLevel = 0;
     int nPercentageDone;
 
     // initialize
     #ifdef PLATFORM_WINDOWS
         SetErrorMode(SetErrorMode(0x0003) | 0x0003);
-        SetConsoleCtrlHandler(CtrlHandlerCallback, TRUE);
+        SetConsoleCtrlHandler(CtrlHandlerCallback, true);
     #endif
+
+    // arguments
+    CArguments Arguments(argc, argv);
 
     // output the header
     fwprintf(stderr, CONSOLE_NAME);
 
-    // make sure there are at least four arguments (could be more for EAC compatibility)
+    // make sure there are at least four arguments
     if (argc < 3)
     {
         DisplayProperUsage(stderr);
         exit(-1);
     }
 
-    // store the filenames
-    #ifdef PLATFORM_WINDOWS
-        #ifdef _UNICODE
-            spInputFilename.Assign(argv[1], TRUE, FALSE);
-            spOutputFilename.Assign(argv[2], TRUE, FALSE);
-        #else
-            spInputFilename.Assign(CAPECharacterHelper::GetUTF16FromANSI(argv[1]), TRUE);
-            spOutputFilename.Assign(CAPECharacterHelper::GetUTF16FromANSI(argv[2]), TRUE);
-        #endif
-    #else
-        spInputFilename.Assign(CAPECharacterHelper::GetUTF16FromUTF8((str_utf8 *) argv[1]), TRUE);
-        spOutputFilename.Assign(CAPECharacterHelper::GetUTF16FromUTF8((str_utf8 *) argv[2]), TRUE);
-    #endif
+    // get the arguments
+    int nMode = UNDEFINED_MODE;
+    int nCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL;
+    int nThreads = 1;
+    bool bReadFullInput = false;
+    APE::CSmartPtr<APE::str_utfn> spTagSwitch;
+    APE::CSmartPtr<APE::str_utfn> spInputFilename;
+    APE::CSmartPtr<APE::str_utfn> spOutputFilename;
+    Arguments.GetOptions(nMode, nCompressionLevel, nThreads, bReadFullInput, spTagSwitch, spInputFilename, spOutputFilename);
 
-    // verify that the input file exists
-    if (!FileExists(spInputFilename))
+    // verify that the input file exists (we check existence when we parse the options)
+    if (spInputFilename == APE_NULL)
     {
-        fwprintf(stderr, L"Input File Not Found...\n\n");
+        fwprintf(stderr, L"Input file not found...\n\n");
         exit(-1);
     }
-
-    // if the output file equals '-v', then use this as the next argument
-    CSmartPtr<wchar_t> spMode;
-    #ifdef PLATFORM_WINDOWS
-        #ifdef _UNICODE
-            spMode.Assign(argv[2], TRUE, FALSE);
-        #else
-            spMode.Assign(CAPECharacterHelper::GetUTF16FromANSI(argv[2]), TRUE);
-        #endif
-    #else
-        spMode.Assign(CAPECharacterHelper::GetUTF16FromUTF8((str_utf8 *) argv[2]), TRUE);
-    #endif
-
-    wchar_t cMode[3];
-    APE_CLEAR(cMode);
-    cMode[0] = spMode[0];
-    cMode[1] = (spMode[0] == 0) ? wchar_t(0) : spMode[1];
-
-    if ((_wcsicmp(cMode, L"-v") != 0) &&
-        (_wcsicmp(cMode, L"-t") != 0) &&
-        (_wcsicmp(cMode, L"-r") != 0) &&
-        (_wcsicmp(cMode, L"-L") != 0))
-    {
-        // verify, tag, and remove tag don't use at least the third argument
-        if (argc < 4)
-        {
-            DisplayProperUsage(stderr);
-            exit(-1);
-        }
-
-        // check for and skip if necessary the -b XXXXXX arguments (3,4)
-        spMode.Assign(new wchar_t [256], true, true);
-        #ifdef PLATFORM_WINDOWS
-            #ifdef _UNICODE
-                wcsncpy_s(spMode, 256, argv[3], 255);
-            #else
-                spMode.Assign(CAPECharacterHelper::GetUTF16FromANSI((str_ansi *) argv[3]), TRUE);
-            #endif
-        #else
-            spMode.Assign(CAPECharacterHelper::GetUTF16FromUTF8((str_utf8 *) argv[3]), TRUE);
-        #endif
-        cMode[0] = spMode[0];
-        cMode[1] = (spMode[0] == 0) ? wchar_t(0) : spMode[1];
-    }
-
-    // get the mode
-    nMode = UNDEFINED_MODE;
-    if (_wcsicmp(cMode, L"-c") == 0)
-        nMode = COMPRESS_MODE;
-    else if (_wcsicmp(cMode, L"-d") == 0)
-        nMode = DECOMPRESS_MODE;
-    else if (wcscmp(cMode, L"-V") == 0)
-        nMode = VERIFY_FULL_MODE;
-    else if (wcscmp(cMode, L"-v") == 0)
-        nMode = VERIFY_MODE;
-    else if (_wcsicmp(cMode, L"-n") == 0)
-        nMode = CONVERT_MODE;
-    else if (_wcsicmp(cMode, L"-r") == 0)
-        nMode = REMOVE_TAG_MODE;
-    else if (_wcsicmp(cMode, L"-t") == 0)
-        nMode = TAG_MODE;
-    else if (_wcsicmp(cMode, L"-L") == 0)
-        nMode = CONVERT_TAG_TO_LEGACY;
 
     // error check the mode
     if (nMode == UNDEFINED_MODE)
@@ -439,10 +565,11 @@ int _tmain(int argc, TCHAR * argv[])
     // get and error check the compression level
     if (nMode == COMPRESS_MODE || nMode == CONVERT_MODE)
     {
-        nCompressionLevel = _wtoi(&spMode[2]);
-        if (nCompressionLevel != 1000 && nCompressionLevel != 2000 &&
-            nCompressionLevel != 3000 && nCompressionLevel != 4000 &&
-            nCompressionLevel != 5000)
+        if (nCompressionLevel != APE_COMPRESSION_LEVEL_FAST &&
+            nCompressionLevel != APE_COMPRESSION_LEVEL_NORMAL &&
+            nCompressionLevel != APE_COMPRESSION_LEVEL_HIGH &&
+            nCompressionLevel != APE_COMPRESSION_LEVEL_EXTRA_HIGH &&
+            nCompressionLevel != APE_COMPRESSION_LEVEL_INSANE)
         {
             DisplayProperUsage(stderr);
             return ERROR_UNDEFINED;
@@ -466,29 +593,14 @@ int _tmain(int argc, TCHAR * argv[])
         HandleAuto(spInputFilename, spOutputFilename, true);
 
         // compress
-        nRetVal = CompressFileW(spInputFilename, spOutputFilename, nCompressionLevel, &nPercentageDone, ProgressCallback, &nKillFlag);
+        nRetVal = CompressFileW(spInputFilename, spOutputFilename, nCompressionLevel, &nPercentageDone, ProgressCallback, &nKillFlag, nThreads, APE_NULL, bReadFullInput);
 
         // tag
-        #ifdef PLATFORM_WINDOWS
-        if ((nRetVal == ERROR_SUCCESS) && (argc > 5) && (_tcsicmp(argv[4], _T("-t")) == 0))
-        #else
-        if ((nRetVal == ERROR_SUCCESS) && (argc > 5) && (strcasecmp(argv[4], "-t") == 0))
-        #endif
+        if ((nRetVal == ERROR_SUCCESS) && (spTagSwitch != APE_NULL))
         {
             fwprintf(stderr, L"\nTagging...\n");
-            #ifdef PLATFORM_WINDOWS
-                #ifdef _UNICODE
-                    nRetVal = Tag(spOutputFilename, argv[5]);
-                #else
-                    CSmartPtr<wchar_t> spTag;
-                    spTag.Assign(CAPECharacterHelper::GetUTF16FromANSI((str_ansi *) argv[5]), TRUE);
-                    nRetVal = Tag(spOutputFilename, spTag);
-                #endif
-            #else
-                CSmartPtr<wchar_t> spTag;
-                spTag.Assign(CAPECharacterHelper::GetUTF16FromUTF8((str_utf8 *) argv[5]), TRUE);
-                nRetVal = Tag(spOutputFilename, spTag);
-            #endif
+
+            nRetVal = Tag(spOutputFilename, spTagSwitch);
         }
     }
     else
@@ -501,39 +613,27 @@ int _tmain(int argc, TCHAR * argv[])
         HandleAuto(spInputFilename, spOutputFilename, false);
 
         // decompress
-        nRetVal = DecompressFileW(spInputFilename, spOutputFilename, &nPercentageDone, ProgressCallback, &nKillFlag);
+        nRetVal = DecompressFileW(spInputFilename, spOutputFilename, &nPercentageDone, ProgressCallback, &nKillFlag, nThreads);
     }
     else if (nMode == VERIFY_MODE)
     {
         fwprintf(stderr, L"Verifying...\n");
-        nRetVal = VerifyFileW(spInputFilename, &nPercentageDone, ProgressCallback, &nKillFlag, true);
+        nRetVal = VerifyFileW(spInputFilename, &nPercentageDone, ProgressCallback, &nKillFlag, true, nThreads);
     }
     else if (nMode == VERIFY_FULL_MODE)
     {
         fwprintf(stderr, L"Full verifying...\n");
-        nRetVal = VerifyFileW(spInputFilename, &nPercentageDone, ProgressCallback, &nKillFlag, false);
+        nRetVal = VerifyFileW(spInputFilename, &nPercentageDone, ProgressCallback, &nKillFlag, false, nThreads);
     }
     else if (nMode == CONVERT_MODE)
     {
         fwprintf(stderr, L"Converting...\n");
-        nRetVal = ConvertFileW(spInputFilename, spOutputFilename, nCompressionLevel, &nPercentageDone, ProgressCallback, &nKillFlag);
+        nRetVal = ConvertFileW(spInputFilename, spOutputFilename, nCompressionLevel, &nPercentageDone, ProgressCallback, &nKillFlag, nThreads);
     }
     else if (nMode == TAG_MODE)
     {
         fwprintf(stderr, L"Tagging...\n");
-        #ifdef PLATFORM_WINDOWS
-            #ifdef _UNICODE
-                nRetVal = Tag(spInputFilename, argv[3]);
-            #else
-                CSmartPtr<wchar_t> spTag;
-                spTag.Assign(CAPECharacterHelper::GetUTF16FromANSI((str_ansi *) argv[3]), TRUE);
-                nRetVal = Tag(spInputFilename, spTag);
-            #endif
-        #else
-            CSmartPtr<wchar_t> spTag;
-            spTag.Assign(CAPECharacterHelper::GetUTF16FromUTF8((str_utf8 *) argv[3]), TRUE);
-            nRetVal = Tag(spInputFilename, spTag);
-        #endif
+        nRetVal = Tag(spInputFilename, spTagSwitch);
     }
     else if (nMode == REMOVE_TAG_MODE)
     {

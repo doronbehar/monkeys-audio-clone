@@ -1,12 +1,7 @@
 #pragma once
 
-#include "IO.h"
-#include "APEInfo.h"
-
 namespace APE
 {
-
-#pragma pack(push, 1)
 
 class CAPELink
 {
@@ -15,10 +10,10 @@ public:
     CAPELink(const char * pData, const str_utfn * pFilename);
     virtual ~CAPELink();
 
-    bool GetIsLinkFile();
-    int GetStartBlock();
-    int GetFinishBlock();
-    const wchar_t * GetImageFilename();
+    int GetStartBlock() const;
+    int GetFinishBlock() const;
+    bool GetIsLinkFile() const;
+    const str_utfn * GetImageFilename();
 
 protected:
     int m_nStartBlock;
@@ -28,7 +23,5 @@ protected:
 
     void ParseData(const char * pData, const str_utfn * pFilename);
 };
-
-#pragma pack(pop)
 
 }

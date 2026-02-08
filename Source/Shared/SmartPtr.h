@@ -3,8 +3,6 @@
 namespace APE
 {
 
-#pragma pack(push, 1)
-
 /**************************************************************************************************
 CSmartPtr - a simple smart pointer class that can automatically initialize and free memory
     note: (doesn't do garbage collection / reference counting because of the many pitfalls)
@@ -29,6 +27,13 @@ public:
         m_bArray = false;
         Assign(pObject, bArray, bDelete);
     }
+    __forceinline CSmartPtr(int64 nElements, bool bEmpty = false)
+    {
+        m_bDelete = true;
+        m_pObject = APE_NULL;
+        m_bArray = false;
+        AllocateArray(nElements, bEmpty);
+    }
 
     __forceinline ~CSmartPtr()
     {
@@ -44,17 +49,32 @@ public:
         m_pObject = pObject;
     }
 
+    __forceinline void AllocateArray(int64 nElements, bool bEmpty = false)
+    {
+        Delete();
+
+        Assign(new TYPE [static_cast<size_t>(nElements)], true);
+
+        if (bEmpty)
+        {
+            memset(GetPtr(), 0, static_cast<size_t>(nElements) * sizeof(TYPE));
+        }
+    }
+
     __forceinline void Delete()
     {
-        if (m_bDelete && m_pObject)
+        if (m_pObject)
         {
             TYPE * pObject = m_pObject;
             m_pObject = APE_NULL;
 
-            if (m_bArray)
-                delete [] pObject;
-            else
-                delete pObject;
+            if (m_bDelete)
+            {
+                if (m_bArray)
+                    delete [] pObject;
+                else
+                    delete pObject;
+            }
         }
     }
 
@@ -78,11 +98,10 @@ public:
         return m_pObject;
     }
 
-    // declare assignment, but don't implement (compiler error if we try to use)
+private:
+    // declare assignment, but mark it private so it can't be used
     // that way we can't carelessly mix smart pointers and regular pointers
-    __forceinline void * operator =(void *) const;
+    __forceinline void * operator =(void *) const { return APE_NULL; }
 };
-
-#pragma pack(pop)
 
 }

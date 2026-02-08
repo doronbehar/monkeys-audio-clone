@@ -4,7 +4,7 @@ CAPEInfo:
 **************************************************************************************************/
 #include "All.h"
 #include "APEInfo.h"
-#include "IO.h"
+#include "IAPEIO.h"
 #include "APEHeader.h"
 #include "GlobalFunctions.h"
 #include "WholeFileIO.h"
@@ -39,7 +39,6 @@ APE_FILE_INFO::APE_FILE_INFO()
     nDecompressedBitrate = 0;
     nJunkHeaderBytes = 0;
     nSeekTableElements = 0;
-    nMD5Invalid = 0;
 }
 
 APE_FILE_INFO::~APE_FILE_INFO()
@@ -49,7 +48,7 @@ APE_FILE_INFO::~APE_FILE_INFO()
 /**************************************************************************************************
 Construction
 **************************************************************************************************/
-CAPEInfo::CAPEInfo(int * pErrorCode, const wchar_t * pFilename, CAPETag * pTag, bool bAPL, bool bReadOnly, bool bAnalyzeTagNow, bool bReadWholeFile)
+CAPEInfo::CAPEInfo(int * pErrorCode, const str_utfn * pFilename, CAPETag * pTag, bool bAPL, bool bReadOnly, bool bAnalyzeTagNow, bool bReadWholeFile)
 {
     *pErrorCode = ERROR_SUCCESS;
     CloseFile();
@@ -58,7 +57,7 @@ CAPEInfo::CAPEInfo(int * pErrorCode, const wchar_t * pFilename, CAPETag * pTag, 
     m_bAPL = bAPL;
 
     // open the file
-    m_spIO.Assign(CreateCIO());
+    m_spIO.Assign(CreateIAPEIO());
 
     *pErrorCode = m_spIO->Open(pFilename, bReadOnly);
     if (*pErrorCode != ERROR_SUCCESS)
@@ -98,7 +97,7 @@ CAPEInfo::CAPEInfo(int * pErrorCode, const wchar_t * pFilename, CAPETag * pTag, 
     if (pTag == APE_NULL)
     {
         // we don't want to analyze right away for non-local files
-        // since a single I/O object is shared, we can't tag and read at the same time(i.e.in multiple threads)
+        // since a single I/O object is shared, we can't tag and read at the same time (i.e. in multiple threads)
         if (StringIsEqual(pFilename, L"http://", false, 7) ||
             StringIsEqual(pFilename, L"m01p://", false, 7) ||
             StringIsEqual(pFilename, L"https://", false, 8) ||
@@ -112,12 +111,9 @@ CAPEInfo::CAPEInfo(int * pErrorCode, const wchar_t * pFilename, CAPETag * pTag, 
     {
         m_spAPETag.Assign(pTag);
     }
-
-    // update
-    CheckHeaderInformation();
 }
 
-CAPEInfo::CAPEInfo(int * pErrorCode, CIO * pIO, CAPETag * pTag)
+CAPEInfo::CAPEInfo(int * pErrorCode, IAPEIO * pIO, CAPETag * pTag)
 {
     m_bAPL = false;
     *pErrorCode = ERROR_SUCCESS;
@@ -138,9 +134,6 @@ CAPEInfo::CAPEInfo(int * pErrorCode, CIO * pIO, CAPETag * pTag)
         m_spAPETag.Assign(new CAPETag(m_spIO, true, GetCheckForID3v1()));
     else
         m_spAPETag.Assign(pTag);
-
-    // update
-    CheckHeaderInformation();
 }
 
 /**************************************************************************************************
@@ -163,43 +156,11 @@ int CAPEInfo::CloseFile()
 #ifdef APE_BACKWARDS_COMPATIBILITY
     m_APEFileInfo.spSeekBitTable.Delete();
 #endif
-
     m_spAPETag.Delete();
 
     // re-initialize variables
     m_APEFileInfo.nSeekTableElements = 0;
     m_bHasFileInformationLoaded = false;
-
-    return ERROR_SUCCESS;
-}
-
-/**************************************************************************************************
-Performs sanity checks on all of the header data.
-**************************************************************************************************/
-int CAPEInfo::CheckHeaderInformation()
-{
-    // Fixes a bug with MAC 3.99 where conversion from APE to APE could include the file tag
-    // as part of the WAV terminating data.  This sanity check fixes the problem.
-    if ((m_APEFileInfo.spAPEDescriptor != APE_NULL) &&
-        (m_APEFileInfo.spAPEDescriptor->nTerminatingDataBytes > 0))
-    {
-        int64 nFileBytes = m_spIO->GetSize();
-        if (nFileBytes > 0)
-        {
-            nFileBytes -= m_spAPETag->GetTagBytes();
-            nFileBytes -= m_APEFileInfo.spAPEDescriptor->nDescriptorBytes;
-            nFileBytes -= m_APEFileInfo.spAPEDescriptor->nHeaderBytes;
-            nFileBytes -= m_APEFileInfo.spAPEDescriptor->nSeekTableBytes;
-            nFileBytes -= m_APEFileInfo.spAPEDescriptor->nHeaderDataBytes;
-            nFileBytes -= m_APEFileInfo.spAPEDescriptor->nAPEFrameDataBytes;
-            if (nFileBytes < m_APEFileInfo.nWAVTerminatingBytes)
-            {
-                m_APEFileInfo.nMD5Invalid = true;
-                m_APEFileInfo.nWAVTerminatingBytes = static_cast<uint32>(nFileBytes);
-                m_APEFileInfo.spAPEDescriptor->nTerminatingDataBytes = static_cast<uint32>(nFileBytes);
-            }
-        }
-    }
 
     return ERROR_SUCCESS;
 }
@@ -369,7 +330,7 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nPara
                 }
                 else
                 {
-                    WAVEFORMATEX wfeFormat; APE_CLEAR(wfeFormat); GetInfo(IAPEDecompress::APE_INFO_WAVEFORMATEX, POINTER_TO_INT64(&wfeFormat), 0);
+                    WAVEFORMATEX wfeFormat; GetInfo(IAPEDecompress::APE_INFO_WAVEFORMATEX, APE_POINTER_TO_INT64(&wfeFormat), 0);
                     RF64_HEADER WAVHeader; FillRF64Header(&WAVHeader, m_APEFileInfo.nWAVDataBytes, &wfeFormat);
                     memcpy(pBuffer, &WAVHeader, sizeof(RF64_HEADER));
                     nResult = ERROR_SUCCESS;
@@ -384,7 +345,7 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nPara
                 }
                 else
                 {
-                    WAVEFORMATEX wfeFormat; APE_CLEAR(wfeFormat); GetInfo(IAPEDecompress::APE_INFO_WAVEFORMATEX, POINTER_TO_INT64(&wfeFormat), 0);
+                    WAVEFORMATEX wfeFormat; GetInfo(IAPEDecompress::APE_INFO_WAVEFORMATEX, APE_POINTER_TO_INT64(&wfeFormat), 0);
                     WAVE_HEADER WAVHeader; FillWaveHeader(&WAVHeader, static_cast<int64>(m_APEFileInfo.nWAVDataBytes), &wfeFormat,
                         static_cast<intn>(m_APEFileInfo.nWAVTerminatingBytes));
                     memcpy(pBuffer, &WAVHeader, sizeof(WAVE_HEADER));
@@ -443,7 +404,7 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nPara
         break;
     }
     case IAPEDecompress::APE_INFO_IO_SOURCE:
-        nResult = POINTER_TO_INT64(m_spIO.GetPtr());
+        nResult = APE_POINTER_TO_INT64(m_spIO.GetPtr());
         break;
     case IAPEDecompress::APE_INFO_FRAME_BYTES:
     {
@@ -457,9 +418,18 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nPara
         else
         {
             if (static_cast<uint32>(nFrame) != (m_APEFileInfo.nTotalFrames - 1))
+            {
                 nResult = GetInfo(IAPEDecompress::APE_INFO_SEEK_BYTE, nFrame + 1) - GetInfo(IAPEDecompress::APE_INFO_SEEK_BYTE, nFrame);
+            }
             else
-                nResult = static_cast<int64>(m_spIO->GetSize() - static_cast<int64>(m_spAPETag->GetTagBytes()) - static_cast<int64>(m_APEFileInfo.nWAVTerminatingBytes) - static_cast<int64>(GetInfo(IAPEDecompress::APE_INFO_SEEK_BYTE, nFrame)));
+            {
+                // APL files have a tag on the APL but not the original file
+                nResult = static_cast<int64>(m_spIO->GetSize() - static_cast<int64>(m_APEFileInfo.nWAVTerminatingBytes) - static_cast<int64>(GetInfo(IAPEDecompress::APE_INFO_SEEK_BYTE, nFrame)));
+
+                // remove the tag (but not for APL files because they have a tag on the APL but not the original data file)
+                if (m_spAPETag->GetIOMatches(m_spIO))
+                    nResult -= static_cast<int64>(m_spAPETag->GetTagBytes());
+            }
         }
         break;
     }
@@ -482,7 +452,7 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nPara
         break;
     }
     case IAPEDecompress::APE_INFO_TAG:
-        nResult = POINTER_TO_INT64(static_cast<IAPETag *>(m_spAPETag.GetPtr()));
+        nResult = APE_POINTER_TO_INT64(static_cast<IAPETag *>(m_spAPETag.GetPtr()));
         break;
     case IAPEDecompress::APE_INFO_APL:
         nResult = static_cast<int64>(m_bAPL);
@@ -505,7 +475,7 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nPara
         }
         break;
     case IAPEDecompress::APE_INTERNAL_INFO:
-        nResult = POINTER_TO_INT64(&m_APEFileInfo);
+        nResult = APE_POINTER_TO_INT64(&m_APEFileInfo);
         break;
     case IAPEDecompress::APE_DECOMPRESS_CURRENT_BLOCK:
     case IAPEDecompress::APE_DECOMPRESS_CURRENT_MS:
@@ -514,7 +484,7 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nPara
     case IAPEDecompress::APE_DECOMPRESS_CURRENT_BITRATE:
     case IAPEDecompress::APE_DECOMPRESS_AVERAGE_BITRATE:
     case IAPEDecompress::APE_DECOMPRESS_CURRENT_FRAME:
-        // all other conditions to prevent compiler warnings (4061 and Clang)
+        // all other conditions to prevent compiler warnings (4061, 4062, and Clang)
         break;
     }
 
