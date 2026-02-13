@@ -44,7 +44,7 @@ public:
                 // Visual Studio 2026 just allows a regular delete
                 delete m_pBitmap;
             #else
-                // Visaul Studio 2022 requires this or else Clang loses it and warns about the delete
+                // Visual Studio 2022 requires this or else Clang loses it and warns about the delete
                 Gdiplus::Bitmap::operator delete(m_pBitmap);
             #endif
 

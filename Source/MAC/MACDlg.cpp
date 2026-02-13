@@ -901,7 +901,7 @@ void CMACDlg::OnToolsOptions()
     }
 }
 
-int CMACDlg::GetScaledFontHeight(int nStart)
+int CMACDlg::GetScaledFontHeight(int nStart) const
 {
     // get size
     //nStart = theApp.GetSize(nStart); // no need to do this because the font is already sized for the scale
@@ -1279,10 +1279,10 @@ void CMACDlg::UpdateEnabledStates()
     APE_CLEAR(aryTypeData);
     MenuInfo.dwTypeData = aryTypeData; // use type data pointer and copy the strings into this buffer
 
-    _tcscpy_s(aryTypeData, 1024, bHasMultipleFiles ? _T("Process Files\tEnter") : _T("Process File\tEnter"));
+    wcscpy_s(aryTypeData, 1024, bHasMultipleFiles ? L"Process Files\tEnter" : L"Process File\tEnter");
     GetMenu()->SetMenuItemInfo(ID_FILE_PROCESS_FILES, &MenuInfo, 0);
 
-    _tcscpy_s(aryTypeData, 1024, bHasMultipleSelection ? _T("Remove Files\tCtrl+R") : _T("Remove File\tCtrl+R"));
+    wcscpy_s(aryTypeData, 1024, bHasMultipleSelection ? L"Remove Files\tCtrl+R" : L"Remove File\tCtrl+R");
     GetMenu()->SetMenuItemInfo(ID_FILE_REMOVE_FILES, &MenuInfo, 0);
 
     // update toolbar button for remove files

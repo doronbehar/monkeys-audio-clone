@@ -24,7 +24,6 @@ protected:
 
     void UpdateStatusbarSizes();
     void ShowFreeSpaceDrivePopup();
-    void SizeStatusbar();
 
     CMACDlg * m_pMACDlg;
     HWND m_hwndParent;

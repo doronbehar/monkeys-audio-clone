@@ -117,9 +117,6 @@ bool CMACStatusBar::UpdateFiles(MAC_FILE_ARRAY * paryFiles)
     // set text
     SetPaneText(ID_INDICATOR_FILES, strFiles);
 
-    // size
-    SizeStatusbar();
-
     return true;
 }
 
@@ -183,8 +180,6 @@ bool CMACStatusBar::UpdateProgress(double dProgress, double dSecondsLeft)
         m_pTaskbarList->SetProgressValue(m_hwndParent, static_cast<ULONGLONG>(m_ctrlProgress.GetPos()), 100);
     }
 
-    if (bProcessing != m_bProcessing)
-        SizeStatusbar();
     m_bProcessing = bProcessing;
 
     return true;
@@ -250,9 +245,9 @@ void CMACStatusBar::OnRButtonUp(UINT nFlags, CPoint pt)
 
 void CMACStatusBar::UpdateStatusbarSizes()
 {
-    SetPaneInfo(ID_INDICATOR_STATUS, static_cast<UINT>(-1), SBPS_NORMAL, theApp.GetSize(125));
-    SetPaneInfo(ID_INDICATOR_FILES, static_cast<UINT>(-1), SBPS_NORMAL, theApp.GetSize(300));
-    SetPaneInfo(ID_INDICATOR_PROGRESS, static_cast<UINT>(-1), SBPS_NORMAL, theApp.GetSize(275));
+    SetPaneInfo(ID_INDICATOR_STATUS, static_cast<UINT>(-1), SBPS_NORMAL, theApp.GetSize((m_pMACDlg->MeasureText(_T("Processing...")).cx * 150) / 100));
+    SetPaneInfo(ID_INDICATOR_FILES, static_cast<UINT>(-1), SBPS_NORMAL, theApp.GetSize((m_pMACDlg->MeasureText(_T("99999 files (9999.99 GB)")).cx * 110) / 100));
+    SetPaneInfo(ID_INDICATOR_PROGRESS, static_cast<UINT>(-1), SBPS_NORMAL, theApp.GetSize((m_pMACDlg->MeasureText(_T("99.99% done (99:99.99 left)")).cx * 110) / 100));
     SetPaneInfo(ID_INDICATOR_PROGRESS_BAR, static_cast<UINT>(-1), SBPS_STRETCH, theApp.GetSize(0));
 }
 
@@ -280,23 +275,5 @@ void CMACStatusBar::ShowFreeSpaceDrivePopup()
     {
         m_strFreeSpaceDrive = CString(TCHAR(nRetVal - 1000));
         UpdateProgress(0, 0);
-    }
-}
-
-void CMACStatusBar::SizeStatusbar()
-{
-    // size
-    int aryWidth[3] = { 75, 300, 250 };
-    for (int nPane = 0; nPane <= 2; nPane++)
-    {
-        // get text
-        CString strPane = GetPaneText(nPane);
-
-        // measure text
-        CSize sizeText = m_pMACDlg->MeasureText(strPane);
-        sizeText.cx += theApp.GetSize(32);
-
-        // update size to maximimum of text or current size
-        SetPaneInfo(nPane, static_cast<UINT>(-1), SBPS_NORMAL, APE_MAX(theApp.GetSize(aryWidth[nPane]), sizeText.cx));
     }
 }

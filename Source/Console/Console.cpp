@@ -268,9 +268,9 @@ static void CALLBACK ProgressCallback(int nPercentageDone)
 
     // update the title
     #ifdef PLATFORM_WINDOWS
-        TCHAR cTitle[1024];
-        _stprintf_s(cTitle, L"%.1f%% - Monkey's Audio", dProgress * 100);
-        SetConsoleTitle(cTitle);
+        wchar_t cTitle[1024];
+        swprintf_s(cTitle, 1024, L"%.1f%% - Monkey's Audio", dProgress * 100);
+        SetConsoleTitleW(cTitle);
     #endif
 }
 
@@ -283,10 +283,10 @@ static BOOL CALLBACK CtrlHandlerCallback(DWORD dwCtrlTyp)
     switch (dwCtrlTyp)
     {
     case CTRL_C_EVENT:
-        _fputts(_T("\n\nCtrl+C: MAC has been interrupted !!!\n"), stderr);
+        fputws(L"\n\nCtrl+C: MAC has been interrupted !!!\n", stderr);
         break;
     case CTRL_BREAK_EVENT:
-        _fputts(_T("\n\nBreak: MAC has been interrupted !!!\n"), stderr);
+        fputws(L"\n\nBreak: MAC has been interrupted !!!\n", stderr);
         break;
     default:
         return false;

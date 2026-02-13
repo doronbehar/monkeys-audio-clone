@@ -4,7 +4,7 @@
 #if __cplusplus >= 201103L
     #include <thread>
 #endif
-#ifndef PLATFORM_WINDOWS
+#if !defined(PLATFORM_WINDOWS) || !defined(UNICODE)
     #include "CharacterHelper.h"
 #endif
 

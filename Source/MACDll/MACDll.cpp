@@ -22,11 +22,11 @@ int __stdcall GetInterfaceCompatibility(int nVersion, bool bDisplayWarningsOnFai
         nRetVal = ERROR_UNDEFINED;
         if (bDisplayWarningsOnFailure)
         {
-            TCHAR cMessage[1024];
-            _stprintf_s(cMessage, 1024, _T("You system does not have a new enough version of Monkey's Audio installed.\n")
-                _T("Please visit www.monkeysaudio.com for the latest version.\n\n(version %.2f or later required)"),
+            wchar_t cMessage[1024];
+            swprintf_s(cMessage, 1024, L"You system does not have a new enough version of Monkey's Audio installed.\n"
+                L"Please visit www.monkeysaudio.com for the latest version.\n\n(version %.2f or later required)",
                 static_cast<double>(nVersion) / static_cast<double>(1000));
-            MessageBox(hwndParent, cMessage, _T("Please Update Monkey's Audio"), MB_OK | MB_ICONINFORMATION);
+            MessageBoxW(hwndParent, cMessage, L"Please Update Monkey's Audio", MB_OK | MB_ICONINFORMATION);
         }
     }
     else if (nVersion < 3940)
@@ -34,12 +34,12 @@ int __stdcall GetInterfaceCompatibility(int nVersion, bool bDisplayWarningsOnFai
         nRetVal = ERROR_UNDEFINED;
         if (bDisplayWarningsOnFailure)
         {
-            TCHAR cMessage[1024];
-            _stprintf_s(cMessage, 1024, _T("This program is trying to use an old version of Monkey's Audio.\n")
-                _T("Please contact the author about updating their support for Monkey's Audio.\n\n")
-                _T("Monkey's Audio currently installed: %.2f\nProgram is searching for: %.2f"),
+            wchar_t cMessage[1024];
+            swprintf_s(cMessage, 1024, L"This program is trying to use an old version of Monkey's Audio.\n"
+                L"Please contact the author about updating their support for Monkey's Audio.\n\n"
+                L"Monkey's Audio currently installed: %.2f\nProgram is searching for: %.2f",
                 static_cast<double>(APE_FILE_VERSION_NUMBER) / static_cast<double>(1000), static_cast<double>(nVersion) / static_cast<double>(1000));
-            MessageBox(hwndParent, cMessage, _T("Program Requires Updating"), MB_OK | MB_ICONINFORMATION);
+            MessageBoxW(hwndParent, cMessage, L"Program Requires Updating", MB_OK | MB_ICONINFORMATION);
         }
     }
 
@@ -49,7 +49,7 @@ int __stdcall GetInterfaceCompatibility(int nVersion, bool bDisplayWarningsOnFai
 
 const char * __stdcall GetLibraryVersionString()
 {
-    return APE_VER_FILE_VERSION_STR_NARROW;
+    return APE_VER_FILE_VERSION_STR;
 }
 
 unsigned int __stdcall GetLibraryVersionNumber()

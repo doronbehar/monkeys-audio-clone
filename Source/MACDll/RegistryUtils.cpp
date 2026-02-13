@@ -16,7 +16,7 @@ HRESULT GUID2String(TCHAR *DstString, const GUID SrcGuid)
     HRESULT hr = StringFromGUID2(SrcGuid, CLSIDOLEString, CHARS_IN_GUID);
     if (FAILED(hr))
         return hr;
-    wsprintf(DstString, TEXT("%ls"), CLSIDOLEString);
+    _stprintf(DstString, TEXT("%ls"), CLSIDOLEString);
     return S_OK;
 }
 
@@ -35,7 +35,7 @@ void RegisterSourceFilterExtension(const TCHAR* Extension,
     TCHAR RegistryKeyName[256];
     TCHAR CLSIDString[CHARS_IN_GUID];
 
-    wsprintf(RegistryKeyName, _T("Media Type\\Extensions\\%s"), Extension);
+    _stprintf(RegistryKeyName, _T("Media Type\\Extensions\\%s"), Extension);
     if (ERROR_SUCCESS == RegCreateKeyEx(HKEY_CLASSES_ROOT,
         RegistryKeyName, 0, _T("REG_SZ"), REG_OPTION_NON_VOLATILE, KEY_WRITE,
         NULL, &Key, &Disp))
@@ -66,7 +66,7 @@ void RegisterSourceFilterExtension(const TCHAR* Extension,
 void UnRegisterSourceFilterExtension(const TCHAR* Extension)
 {
     TCHAR RegistryKeyName[256];
-    wsprintf(RegistryKeyName, _T("Media Type\\Extensions\\%s"), Extension);
+    _stprintf(RegistryKeyName, _T("Media Type\\Extensions\\%s"), Extension);
     RegDeleteKey(HKEY_CLASSES_ROOT, RegistryKeyName);
 }
 
@@ -87,7 +87,7 @@ void RegisterSourceFilterPattern(const char* Pattern,
 
     GUID2String(CLSIDString, MajorType);
     GUID2String(CLSIDString2, Subtype);
-    wsprintf(RegistryKeyName, _T("Media Type\\%s\\%s"), CLSIDString, CLSIDString2);
+    _stprintf(RegistryKeyName, _T("Media Type\\%s\\%s"), CLSIDString, CLSIDString2);
     if (ERROR_SUCCESS == RegCreateKeyEx(HKEY_CLASSES_ROOT,
         RegistryKeyName, 0, _T("REG_SZ"), REG_OPTION_NON_VOLATILE, KEY_WRITE,
         NULL, &Key, &Disp))
@@ -112,7 +112,7 @@ void UnRegisterSourceFilterPattern(const GUID MajorType,
 
     GUID2String(CLSIDString, MajorType);
     GUID2String(CLSIDString2, Subtype);
-    wsprintf(RegistryKeyName, _T("Media Type\\%s\\%s"), CLSIDString, CLSIDString2);
+    _stprintf(RegistryKeyName, _T("Media Type\\%s\\%s"), CLSIDString, CLSIDString2);
     RegDeleteKey(HKEY_CLASSES_ROOT, RegistryKeyName);
 }
 
@@ -188,7 +188,7 @@ void RegisterWMPExtension(const TCHAR* Extension, const TCHAR* Description,
 
         if (!AlreadyRegistered)
         {
-            wsprintf(KeyName, _T("%d"), MaxIndex + 1);
+            _stprintf(KeyName, _T("%d"), static_cast<int>(MaxIndex + 1));
             // Add Extension
             RegSetValueEx(Key, KeyName, 0, REG_SZ, reinterpret_cast<CONST BYTE*>(Extension), static_cast<DWORD>(_tcslen(Extension)) * sizeof(TCHAR));
             RegCloseKey(Key);
@@ -221,7 +221,7 @@ void RegisterWMPExtension(const TCHAR* Extension, const TCHAR* Description,
     TCHAR RegistryKeyName[256];
     DWORD dwRuntimeFlag = 0x7;
     DWORD dwPermissionsFlag = 0xf;
-    wsprintf(RegistryKeyName,
+    _stprintf(RegistryKeyName,
         _T("SOFTWARE\\Microsoft\\Multimedia\\WMPlayer\\Extensions\\%s"), ExtensionWithoutStar);
 
     if (ERROR_SUCCESS == RegCreateKeyEx(HKEY_LOCAL_MACHINE, RegistryKeyName,
@@ -298,7 +298,7 @@ void UnRegisterWMPExtension(const TCHAR* Extension)
     }
 
     // WMP9
-    wsprintf(RegistryKeyName,
+    _stprintf(RegistryKeyName,
         _T("SOFTWARE\\Microsoft\\Multimedia\\WMPlayer\\Extensions\\%s"), ExtensionWithoutStar);
     RegDeleteKey(HKEY_LOCAL_MACHINE, RegistryKeyName);
 }

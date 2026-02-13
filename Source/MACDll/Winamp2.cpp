@@ -33,7 +33,7 @@ The input module (publicly defined)
 In_Module g_APEWinampPluginModule =
 {
     IN_VER,                                                        // the version (defined in in2.h)
-    APE_PLUGIN_NAME,                                               // the name of the plugin (defined in all.h)
+    APE_WINAMP_PLUGIN_NAME,                                        // the name of the plugin (defined in all.h)
     APE_NULL,                                                      // handle to the main window
     APE_NULL,                                                      // handle to the dll instance
     "APE\0Monkey's Audio File (*.APE)\0"                           // the file type(s) supported
@@ -113,12 +113,14 @@ int CAPEWinampPlugin::Play(char * pFilename)
     // version check
     if (s_spAPEDecompressPlay->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION) > APE_FILE_VERSION_NUMBER)
     {
-        TCHAR cAPEFileVersion[32]; _stprintf_s(cAPEFileVersion, 32, _T("%.2f"), static_cast<double>(s_spAPEDecompressPlay->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION)) / static_cast<double>(1000));
+        wchar_t cAPEFileVersion[32]; 
+        swprintf_s(cAPEFileVersion, 32, L"%.2f", static_cast<double>(s_spAPEDecompressPlay->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION)) / static_cast<double>(1000));
 
-        TCHAR cMessage[1024];
-        _stprintf_s(cMessage, 1024, _T("You are attempting to play an APE file that was encoded with a version of Monkey's Audio which is newer than the installed APE plug-in. There is a very high likelyhood that this will not work properly. Please download and install the newest Monkey's Audio plug-in to remedy this problem.\r\n\r\nPlug-in version: %s\r\nAPE file version: %s"),
-            APE_VERSION_STRING, cAPEFileVersion);
-        ::MessageBox(g_APEWinampPluginModule.hMainWindow, cMessage, _T("Update APE Plugin"), MB_OK | MB_ICONERROR);
+        wchar_t cMessage[1024];
+        swprintf_s(cMessage, 1024, L"You are attempting to play an APE file that was encoded with a version of Monkey's Audio which is newer than the installed APE plug-in. There is a very high likelyhood that this will not work properly. Please download and install the newest Monkey's Audio plug-in to remedy this problem.\r\n\r\nPlug-in version: %S\r\nAPE file version: %s",
+            APE_VER_FILE_VERSION_STR, cAPEFileVersion);
+
+        ::MessageBoxW(g_APEWinampPluginModule.hMainWindow, cMessage, L"Update APE Plugin", MB_OK | MB_ICONERROR);
     }
 
     // see if it's a stream

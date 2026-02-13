@@ -22,16 +22,12 @@ CAPELink::CAPELink(const str_utfn * pFilename)
     CSmartPtr<IAPEIO> spioLinkFile(CreateIAPEIO());
     if (spioLinkFile->Open(pFilename) == ERROR_SUCCESS)
     {
-        // get file size and cap at a size plenty big to read all the data at the front (the tag follows which could be big)
-        int64 nFileSize = spioLinkFile->GetSize();
-        unsigned int nReadSize = (nFileSize > 4096) ? 4096 : static_cast<unsigned int>(nFileSize);
-
         // create a buffer
-        CSmartPtr<char> spBuffer(new char [nReadSize + 1], true);
+        CSmartPtr<char> spBuffer(new char [4097], true);
 
-        // fill the buffer from the file and null terminate it
+        // fill the buffer from the file and null terminate it (this might read less if the file is shorter, but that's fine)
         unsigned int nBytesRead = 0;
-        spioLinkFile->Read(spBuffer.GetPtr(), nReadSize, &nBytesRead);
+        spioLinkFile->Read(spBuffer.GetPtr(), 4096, &nBytesRead);
         spBuffer[nBytesRead] = 0;
 
         // call the other constructor (uses a buffer instead of opening the file)

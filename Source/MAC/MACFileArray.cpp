@@ -137,7 +137,10 @@ bool MAC_FILE_ARRAY::GetProcessingProgress(double & rdProgress, double & rdSecon
     double dElapsed = static_cast<double>(GetTickCount64() - m_dwStartProcessingTickCount) - static_cast<double>(nPausedTotalMS);
 
     rdProgress = dDone / dTotal;
-    rdSecondsLeft = ((dElapsed / rdProgress) - dElapsed) / 1000;
+    if (rdProgress <= 0)
+        rdSecondsLeft = FP_INFINITE;
+    else
+        rdSecondsLeft = ((dElapsed / rdProgress) - dElapsed) / 1000;
 
     return true;
 }

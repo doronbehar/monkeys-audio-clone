@@ -17,7 +17,7 @@ public:
 
     bool GetProcessing() { return (m_spProcessFiles != APE_NULL); }
     bool GetInitialized() const { return m_bInitialized; }
-    int GetScaledFontHeight(int nStart);
+    int GetScaledFontHeight(int nStart) const;
     CSize MeasureText(const CString & strText);
 
     virtual BOOL PreTranslateMessage(MSG * pMsg);
