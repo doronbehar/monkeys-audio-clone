@@ -91,26 +91,25 @@ Version
 #define APE_YEAR 2026
 
 // used to make strings from numbers
-#define STRINGIZE2(s) #s
-#define STRINGIZE(s) STRINGIZE2(s)
+#define APE_STRINGIZE2(s) #s
+#define APE_STRINGIZE(s) APE_STRINGIZE2(s)
 
-#define WIDEN_(s) L##s
-#define WIDEN(s) WIDEN_(s)
-#define STRINGIZE_WIDE(s) WIDEN(STRINGIZE(s))
+#define APE_WIDEN_(s) L##s
+#define APE_WIDEN(s) APE_WIDEN_(s)
+#define APE_STRINGIZE_WIDE(s) APE_WIDEN(APE_STRINGIZE(s))
 
 // build the version strings
-#define APE_VER_FILE_VERSION_STR                        STRINGIZE(APE_VERSION_MAJOR) "." STRINGIZE(APE_VERSION_REVISION)
-#define APE_VER_FILE_VERSION_STR_WIDE                   STRINGIZE_WIDE(APE_VERSION_MAJOR) L"." STRINGIZE_WIDE(APE_VERSION_REVISION)
+#define APE_VER_FILE_VERSION_STR                        APE_STRINGIZE(APE_VERSION_MAJOR) "." APE_STRINGIZE(APE_VERSION_REVISION)
+#define APE_VER_FILE_VERSION_STR_WIDE                   APE_STRINGIZE_WIDE(APE_VERSION_MAJOR) L"." APE_STRINGIZE_WIDE(APE_VERSION_REVISION)
 #define APE_FILE_VERSION_NUMBER                         3990
-#define APE_VERSION_NUMBER                              APE_VERSION_MAJOR APE_VERSION_REVISION
 
 // names and copyrights
 #define APE_NAME                                        L"Monkey's Audio " APE_VER_FILE_VERSION_STR_WIDE
 #define APE_WINAMP_PLUGIN_NAME                          "Monkey's Audio Player " APE_VER_FILE_VERSION_STR
 #define APE_MC_PLUGIN_NAME                              L"APE Plugin (v" APE_VER_FILE_VERSION_STR_WIDE L")"
 #define APE_RESOURCE_VERSION_COMMA                      APE_VERSION_MAJOR, APE_VERSION_REVISION, 0, 0
-#define APE_RESOURCE_VERSION_STRING                     APE_VER_FILE_VERSION_STR
-#define APE_RESOURCE_COPYRIGHT                          L"Copyright 2000-" STRINGIZE_WIDE(APE_YEAR) L" Matthew T. Ashland"
+#define APE_RESOURCE_VERSION_STRING                     APE_VER_FILE_VERSION_STR_WIDE
+#define APE_RESOURCE_COPYRIGHT                          L"Copyright 2000-" APE_STRINGIZE_WIDE(APE_YEAR) L" Matthew T. Ashland"
 #define CONSOLE_NAME                                    L"--- Monkey's Audio Console Front End (v " APE_VER_FILE_VERSION_STR_WIDE L") " APE_RESOURCE_COPYRIGHT L" ---\n"
 #define PLUGIN_ABOUT                                    L"Monkey's Audio Player v" APE_VER_FILE_VERSION_STR_WIDE L"\n" APE_RESOURCE_COPYRIGHT
 
@@ -190,16 +189,7 @@ Global macros
     #define IO_USE_WIN_FILE_IO
     #define DLLEXPORT                                   __declspec(dllexport)
     #define SLEEP(MILLISECONDS)                         ::Sleep(MILLISECONDS)
-    #define MESSAGEBOX(PARENT, TEXT, CAPTION, TYPE)     ::MessageBox(PARENT, TEXT, CAPTION, TYPE)
     #define APE_ODS                                     OutputDebugString
-    #define TICK_COUNT_TYPE                             unsigned long long
-    #if _WIN32_WINNT >= 0x600
-        #define TICK_COUNT_READ(VARIABLE)               VARIABLE = GetTickCount64()
-    #else
-        #define TICK_COUNT_READ(VARIABLE)               VARIABLE = GetTickCount()
-    #endif
-    #define TICK_COUNT_FREQ                             1000
-
     #if !defined(ASSERT)
         #if defined(_DEBUG)
             #define ASSERT(e)                            assert(e)
@@ -208,7 +198,7 @@ Global macros
         #endif
     #endif
 
-    #if _WIN32_WINNT < 0x600
+    #if !defined(_MSC_VER) && _WIN32_WINNT < 0x600
         #define wcsncpy_s(A, B, C, D) wcsncpy(A, C, D)
         #define wcscpy_s(A, B, C) wcscpy(A, C)
         #define wcscat_s(A, B, C) wcscat(A, C)
@@ -224,11 +214,7 @@ Global macros
     #define IO_USE_STD_LIB_FILE_IO
     #define DLLEXPORT                                   __attribute__ ((visibility ("default")))
     #define SLEEP(MILLISECONDS)                         { struct timespec t; t.tv_sec = (MILLISECONDS) / 1000; t.tv_nsec = (MILLISECONDS) % 1000 * 1000000; nanosleep(&t, NULL); }
-    #define MESSAGEBOX(PARENT, TEXT, CAPTION, TYPE)
     #define APE_ODS                                     printf
-    #define TICK_COUNT_TYPE                             unsigned long long
-    #define TICK_COUNT_READ(VARIABLE)                   { struct timeval t; gettimeofday(&t, NULL); VARIABLE = t.tv_sec * 1000000LLU + t.tv_usec; }
-    #define TICK_COUNT_FREQ                             1000000
     #undef  ASSERT
     #define ASSERT(e)
 
@@ -350,9 +336,6 @@ Channels
 /**************************************************************************************************
 Macros
 **************************************************************************************************/
-#define APE_MB(TEST) MESSAGEBOX(APE_NULL, TEST, _T("Information"), MB_OK);
-#define APE_MBN(NUMBER) { TCHAR cNumber[16]; _stprintf(cNumber, _T("%d"), NUMBER); MESSAGEBOX(APE_NULL, cNumber, _T("Information"), MB_OK); }
-
 #define APE_SAFE_DELETE(POINTER) if (POINTER) { delete POINTER; POINTER = APE_NULL; }
 #define APE_SAFE_ARRAY_DELETE(POINTER) if (POINTER) { delete [] POINTER; POINTER = APE_NULL; }
 #define APE_SAFE_FILE_CLOSE(HANDLE) if (HANDLE != INVALID_HANDLE_VALUE) { CloseHandle(HANDLE); HANDLE = INVALID_HANDLE_VALUE; }

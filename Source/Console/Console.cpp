@@ -10,6 +10,7 @@ Pretty simple and straightforward console front end.
 #include "APETag.h"
 #include "APEInfo.h"
 #include "CharacterHelper.h"
+#include "APETicks.h"
 using namespace APE;
 
 // defines
@@ -24,7 +25,7 @@ using namespace APE;
 #define UNDEFINED_MODE        -1
 
 // global variables
-static TICK_COUNT_TYPE g_nInitialTickCount = 0;
+static APE_TICK_COUNT_TYPE g_nInitialTickCount = 0;
 
 /**************************************************************************************************
 Data holder for the arguments so we always have the argument count
@@ -250,13 +251,9 @@ Progress callback
 **************************************************************************************************/
 static void CALLBACK ProgressCallback(int nPercentageDone)
 {
-    // get the current tick count
-    TICK_COUNT_TYPE nTickCount;
-    TICK_COUNT_READ(nTickCount);
-
     // calculate the progress
     double dProgress = nPercentageDone / 1.e5;                                                    // [0...1]
-    double dElapsed = static_cast<double>(nTickCount - g_nInitialTickCount) / TICK_COUNT_FREQ;    // seconds
+    double dElapsed = static_cast<double>(CAPETicks::GetTicks() - g_nInitialTickCount) / CAPETicks::GetFrequency();    // seconds
     double dRemaining = (nPercentageDone > 0) ? dElapsed * ((1.0 / dProgress) - 1.0) : 0;         // seconds
 
     // output the progress
@@ -498,10 +495,10 @@ static void HandleAuto(CSmartPtr<str_utfn> & rspInputFilename, CSmartPtr<str_utf
             // add the new extension
             APE::str_ansi cFileType[8] = { 0 };
             GetAPEFileType(rspInputFilename, cFileType);
-            CSmartPtr<APE::str_utfn> spFileTypeUTF16(CAPECharacterHelper::GetUTFNFromANSI(cFileType), true);
+            CSmartPtr<APE::str_utfn> spFileTypeUTFN(CAPECharacterHelper::GetUTFNFromANSI(cFileType), true);
 
             // put together and fill spOutputFilename
-            wcscat_s(rspOutputFilename, APE_MAX_PATH, spFileTypeUTF16);
+            wcscat_s(rspOutputFilename, APE_MAX_PATH, spFileTypeUTFN);
         }
     }
 }
@@ -577,7 +574,7 @@ int _tmain(int argc, TCHAR * argv[])
     }
 
     // set the initial tick count
-    TICK_COUNT_READ(g_nInitialTickCount);
+    g_nInitialTickCount = CAPETicks::GetTicks();
 
     // process
     int nKillFlag = 0;

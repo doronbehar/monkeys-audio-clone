@@ -31,5 +31,5 @@ public:
     bool GetContainsFile(const CString & strFilename);
 
     // data
-    ULONGLONG m_dwStartProcessingTickCount;
+    APE_TICK_COUNT_TYPE m_nStartProcessingTickCount;
 };

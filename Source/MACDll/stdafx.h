@@ -10,6 +10,11 @@
 #include "MFCWarnings.h"
 #include "WindowsEnvironment.h"
 
+// additional Winamp warnings
+#ifdef _MSC_VER
+#pragma warning(disable:4265)
+#endif
+
 // defines for reducing size
 #define VC_EXTRALEAN                              // exclude rarely-used stuff from Windows headers
 #define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS        // some CString constructors will be explicit
@@ -17,8 +22,8 @@
 // MFC
 #ifdef _MSC_VER
 #pragma warning(push) // push and pop warnings because the MFC includes suppresses some
-#include <afxwin.h>                                // MFC core and standard components
-#include <afxext.h>                                // MFC extensions
+#include <afxwin.h>                               // MFC core and standard components
+#include <afxext.h>                               // MFC extensions
 #pragma warning(pop)
 #endif
 

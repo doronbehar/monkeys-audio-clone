@@ -113,7 +113,7 @@ int CAPEWinampPlugin::Play(char * pFilename)
     // version check
     if (s_spAPEDecompressPlay->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION) > APE_FILE_VERSION_NUMBER)
     {
-        wchar_t cAPEFileVersion[32]; 
+        wchar_t cAPEFileVersion[32];
         swprintf_s(cAPEFileVersion, 32, L"%.2f", static_cast<double>(s_spAPEDecompressPlay->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION)) / static_cast<double>(1000));
 
         wchar_t cMessage[1024];
@@ -361,8 +361,8 @@ DWORD WINAPI __stdcall CAPEWinampPlugin::DecodeThread(void * pbKillSwitch)
                     else if (nMinutes > 0) _stprintf_s(cErrorTime, 64, _T("%d:%02d"), nMinutes, nSeconds);
                     else _stprintf_s(cErrorTime, 64, _T("0:%02d"), nSeconds);
 
-                    TCHAR cErrorMessage[1024];
-                    _stprintf_s(
+                    wchar_t cErrorMessage[1024];
+                    swprintf_s(
                         cErrorMessage,
                         1024,
                         _T("Monkey's Audio encountered an error at %s while decompressing the file '%s'.\r\n\r\n")
@@ -372,7 +372,7 @@ DWORD WINAPI __stdcall CAPEWinampPlugin::DecodeThread(void * pbKillSwitch)
                         cErrorTime, m_cCurrentFilename
                     );
 
-                    MessageBox(g_APEWinampPluginModule.hMainWindow, cErrorMessage, _T("Monkey's Audio Decompression Error"), MB_OK | MB_ICONERROR);
+                    MessageBoxW(g_APEWinampPluginModule.hMainWindow, cErrorMessage, L"Monkey's Audio Decompression Error", MB_OK | MB_ICONERROR);
 
                     bDone = true;
                     continue;
@@ -555,9 +555,9 @@ void CAPEWinampPlugin::GetFileInformation(char * pFilename, char * pTitle, int *
     else
     {
         // different file
-        CSmartPtr<wchar_t> spUTF16(CAPECharacterHelper::GetUTFNFromANSI(pFilename), true);
-        spAPEDecompress.Assign(CreateIAPEDecompress(spUTF16, APE_NULL, true, true, false));
-        strFilename = spUTF16;
+        CSmartPtr<wchar_t> spUTFN(CAPECharacterHelper::GetUTFNFromANSI(pFilename), true);
+        spAPEDecompress.Assign(CreateIAPEDecompress(spUTFN, APE_NULL, true, true, false));
+        strFilename = spUTFN;
     }
 
     if (spAPEDecompress != APE_NULL)
@@ -591,7 +591,7 @@ Show the about dialog
 **************************************************************************************************/
 void CAPEWinampPlugin::ShowAboutDialog(HWND hwndParent)
 {
-    MessageBox(hwndParent, PLUGIN_ABOUT, _T("Monkey's Audio Player"), MB_OK);
+    MessageBoxW(hwndParent, PLUGIN_ABOUT, L"Monkey's Audio Player", MB_OK);
 }
 
 /**************************************************************************************************
@@ -725,11 +725,11 @@ int CAPEWinampPlugin::winampGetExtendedFileInfo(extendedFileInfoStruct & Info)
     }
 
     // load the file
-    CSmartPtr<str_utfn> spUTF16(CAPECharacterHelper::GetUTFNFromANSI(Info.pFilename), true);
-    if ((s_spAPEDecompressExtendedFileInfo == APE_NULL) || (spUTF16 != s_strFilenameExtendedInfo))
+    CSmartPtr<str_utfn> spUTFN(CAPECharacterHelper::GetUTFNFromANSI(Info.pFilename), true);
+    if ((s_spAPEDecompressExtendedFileInfo == APE_NULL) || (spUTFN != s_strFilenameExtendedInfo))
     {
-        s_spAPEDecompressExtendedFileInfo.Assign(CreateIAPEDecompress(spUTF16, APE_NULL, false, true, false));
-        s_strFilenameExtendedInfo = spUTF16;
+        s_spAPEDecompressExtendedFileInfo.Assign(CreateIAPEDecompress(spUTFN, APE_NULL, false, true, false));
+        s_strFilenameExtendedInfo = spUTFN;
     }
 
     // get the tag value
@@ -856,11 +856,11 @@ int CAPEWinampPlugin::winampSetExtendedFileInfo(const char * filename, const cha
     CSingleLock Lock(&s_Lock);
 
     // load the file
-    CSmartPtr<str_utfn> spUTF16(CAPECharacterHelper::GetUTFNFromANSI(filename), true);
-    if ((s_spAPEDecompressExtendedFileInfo == APE_NULL) || (spUTF16 != s_strFilenameExtendedInfo))
+    CSmartPtr<str_utfn> spUTFN(CAPECharacterHelper::GetUTFNFromANSI(filename), true);
+    if ((s_spAPEDecompressExtendedFileInfo == APE_NULL) || (spUTFN != s_strFilenameExtendedInfo))
     {
-        s_spAPEDecompressExtendedFileInfo.Assign(CreateIAPEDecompress(spUTF16, APE_NULL, false, true, false));
-        s_strFilenameExtendedInfo = spUTF16;
+        s_spAPEDecompressExtendedFileInfo.Assign(CreateIAPEDecompress(spUTFN, APE_NULL, false, true, false));
+        s_strFilenameExtendedInfo = spUTFN;
     }
 
     IAPETag * pTag = GET_TAG(s_spAPEDecompressExtendedFileInfo);

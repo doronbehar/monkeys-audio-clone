@@ -3,6 +3,7 @@
 class CMACProcessFiles;
 class IFormat;
 #include "ID3v2Tag.h"
+#include "APETicks.h"
 
 class MAC_FILE
 {
@@ -26,8 +27,8 @@ public:
     bool m_bStarted;
     bool m_bNeedsUpdate;
     int m_nRetVal;
-    TICK_COUNT_TYPE m_dwStartTickCount;
-    TICK_COUNT_TYPE m_dwEndTickCount;
+    APE_TICK_COUNT_TYPE m_nStartTickCount;
+    APE_TICK_COUNT_TYPE m_nEndTickCount;
     CString m_strFormat;
     int m_nLevel;
     int m_nKillFlag;

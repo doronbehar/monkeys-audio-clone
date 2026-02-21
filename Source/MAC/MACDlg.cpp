@@ -9,6 +9,7 @@
 #include "FormatArray.h"
 #include "APEInfoDlg.h"
 #include "APEButtons.h"
+#include "APETicks.h"
 
 using namespace APE;
 
@@ -640,7 +641,7 @@ void CMACDlg::OnTimer(UINT_PTR nIDEvent)
             // clean up
             m_spProcessFiles.Delete();
             UpdateWindow();
-            m_ctrlStatusBar.SetLastProcessTotalMS(static_cast<int>(GetTickCount64() - m_aryFiles.m_dwStartProcessingTickCount));
+            m_ctrlStatusBar.SetLastProcessTotalMS(static_cast<int>(CAPETicks::GetTicks() - m_aryFiles.m_nStartProcessingTickCount));
             m_ctrlStatusBar.UpdateFiles(&m_aryFiles);
             m_ctrlStatusBar.EndProcessing();
 

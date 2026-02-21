@@ -1,9 +1,10 @@
 #include "stdafx.h"
 #include "MACFileArray.h"
+#include "APETicks.h"
 
 MAC_FILE_ARRAY::MAC_FILE_ARRAY() : CArray<MAC_FILE *, MAC_FILE *>()
 {
-    m_dwStartProcessingTickCount = 0;
+    m_nStartProcessingTickCount = 0;
 }
 
 MAC_FILE_ARRAY::~MAC_FILE_ARRAY()
@@ -57,7 +58,7 @@ bool MAC_FILE_ARRAY::PrepareForProcessing(CMACProcessFiles * pProcessFiles)
         ElementAt(z)->PrepareForProcessing(pProcessFiles);
 
     // store the start time
-    m_dwStartProcessingTickCount = GetTickCount64();
+    m_nStartProcessingTickCount = CAPETicks::GetTicks();
 
     return true;
 }
@@ -134,7 +135,7 @@ bool MAC_FILE_ARRAY::GetProcessingProgress(double & rdProgress, double & rdSecon
         }
     }
 
-    double dElapsed = static_cast<double>(GetTickCount64() - m_dwStartProcessingTickCount) - static_cast<double>(nPausedTotalMS);
+    double dElapsed = static_cast<double>(CAPETicks::GetTicks() - m_nStartProcessingTickCount) - static_cast<double>(nPausedTotalMS);
 
     rdProgress = dDone / dTotal;
     if (rdProgress <= 0)

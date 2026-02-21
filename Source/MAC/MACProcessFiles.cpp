@@ -9,6 +9,7 @@
 #include "IAPEIO.h"
 #include "WAVInputSource.h"
 #include "ID3v2Tag.h"
+#include "APETicks.h"
 #include <thread>
 
 using namespace APE;
@@ -72,11 +73,11 @@ bool CMACProcessFiles::Pause(bool bPause)
     // update the pause timer
     if (m_bPaused)
     {
-        m_nPausedStartTickCount = GetTickCount64();
+        m_nPausedStartTickCount = CAPETicks::GetTicks();
     }
     else
     {
-        m_nPausedTotalMS += GetTickCount64() - m_nPausedStartTickCount;
+        m_nPausedTotalMS += CAPETicks::GetTicks() - m_nPausedStartTickCount;
         m_nPausedStartTickCount = 0;
     }
 
@@ -87,7 +88,9 @@ int CMACProcessFiles::GetPausedTotalMS() const
 {
     int nPausedMS = static_cast<int>(m_nPausedTotalMS);
     if (m_bPaused)
-        nPausedMS += static_cast<int>(GetTickCount64() - m_nPausedStartTickCount);
+    {
+        nPausedMS += static_cast<int>(CAPETicks::GetTicks() - m_nPausedStartTickCount);
+    }
     return nPausedMS;
 }
 
@@ -110,7 +113,7 @@ bool CMACProcessFiles::ProcessFile(int nIndex)
 {
     // setup
     m_paryFiles->ElementAt(nIndex)->m_bStarted = true;
-    TICK_COUNT_READ(m_paryFiles->ElementAt(nIndex)->m_dwStartTickCount);
+    m_paryFiles->ElementAt(nIndex)->m_nStartTickCount = CAPETicks::GetTicks();
 
     // create the thread
     std::thread Thread(ProcessFileThread, m_paryFiles->ElementAt(nIndex));
@@ -482,7 +485,7 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
         nRetVal = ERROR_SKIPPED;
     }
 
-    TICK_COUNT_READ(pInfo->m_dwEndTickCount);
+    pInfo->m_nEndTickCount = CAPETicks::GetTicks();
     pInfo->m_nRetVal = nRetVal;
     pInfo->m_bDone = true;
     pInfo->m_bNeedsUpdate = true;

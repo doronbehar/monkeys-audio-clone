@@ -701,7 +701,7 @@ int CAPETag::LoadField(const char * pBuffer, int nMaximumBytes, int * pBytes)
     CSmartPtr<str_utf8> spNameUTF8(new str_utf8 [static_cast<size_t>(nNameCharacters) + 1], true);
     memcpy(spNameUTF8, &pBuffer[nLocation], (static_cast<size_t>(nNameCharacters) + 1) * sizeof(spNameUTF8[0]));
     nLocation += nNameCharacters + 1;
-    CSmartPtr<str_utfn> spNameUTF16(CAPECharacterHelper::GetUTFNFromUTF8(spNameUTF8.GetPtr()), true);
+    CSmartPtr<str_utfn> spNameUTFN(CAPECharacterHelper::GetUTFNFromUTF8(spNameUTF8.GetPtr()), true);
 
     // value
     CSmartPtr<char> spFieldBuffer(new char [static_cast<size_t>(nFieldValueSize)], true);
@@ -712,7 +712,7 @@ int CAPETag::LoadField(const char * pBuffer, int nMaximumBytes, int * pBytes)
     if (pBytes) *pBytes = nLocation;
 
     // set
-    return SetFieldBinary(spNameUTF16.GetPtr(), spFieldBuffer, nFieldValueSize, nFieldFlags);
+    return SetFieldBinary(spNameUTFN.GetPtr(), spFieldBuffer, nFieldValueSize, nFieldFlags);
 }
 
 int CAPETag::SetFieldString(const str_utfn * pFieldName, const str_utfn * pFieldValue, const str_utfn * pListDelimiter)

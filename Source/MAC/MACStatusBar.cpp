@@ -246,7 +246,7 @@ void CMACStatusBar::OnRButtonUp(UINT nFlags, CPoint pt)
 void CMACStatusBar::UpdateStatusbarSizes()
 {
     SetPaneInfo(ID_INDICATOR_STATUS, static_cast<UINT>(-1), SBPS_NORMAL, theApp.GetSize((m_pMACDlg->MeasureText(_T("Processing...")).cx * 150) / 100));
-    SetPaneInfo(ID_INDICATOR_FILES, static_cast<UINT>(-1), SBPS_NORMAL, theApp.GetSize((m_pMACDlg->MeasureText(_T("99999 files (9999.99 GB)")).cx * 110) / 100));
+    SetPaneInfo(ID_INDICATOR_FILES, static_cast<UINT>(-1), SBPS_NORMAL, theApp.GetSize((m_pMACDlg->MeasureText(_T("99999 files (9999.99 GB / 9999.99 GB [99.99%])")).cx * 110) / 100));
     SetPaneInfo(ID_INDICATOR_PROGRESS, static_cast<UINT>(-1), SBPS_NORMAL, theApp.GetSize((m_pMACDlg->MeasureText(_T("99.99% done (99:99.99 left)")).cx * 110) / 100));
     SetPaneInfo(ID_INDICATOR_PROGRESS_BAR, static_cast<UINT>(-1), SBPS_STRETCH, theApp.GetSize(0));
 }

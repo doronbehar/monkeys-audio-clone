@@ -17,4 +17,7 @@ Warnings
 #pragma warning(disable: 5204) // MFC causes this
 #pragma warning(disable: 5220) // MFC causes this
 #pragma warning(disable: 5246) // initialization should be wrapped in braces (ATLComTime.h, etc.)
+#ifdef PLATFORM_WINDOWS_XP
+    #pragma warning(disable: 4596) // error because illegal qualified name in member declaration
+#endif
 #endif

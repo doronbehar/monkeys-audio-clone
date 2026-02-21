@@ -156,7 +156,7 @@ void COptionsOutputDlg::OnAplFilenameTemplateHelp()
         _T("     Naming template: \"ARTIST - ALBUM - TRACK# - TITLE\"\r\n")
         _T("     Resulting filename: \"Bush - Sixteen Stone - 09 - Monkey.apl\"");
 
-    ::MessageBox(GetSafeHwnd(), strMessage, _T("Filename Help"), MB_OK | MB_ICONINFORMATION);
+    AfxMessageBox(strMessage, MB_OK | MB_ICONINFORMATION);
 }
 
 void COptionsOutputDlg::OnOutputLocationDirectoryBrowse()

@@ -6,6 +6,11 @@
     #define APE_USE_AVX512_INTRINSICS
 #endif
 
+// turn off when compiling for XP (they don't work right now)
+#if defined(PLATFORM_WINDOWS_XP)
+    #undef APE_USE_AVX512_INTRINSICS
+#endif
+
 #ifdef APE_USE_AVX512_INTRINSICS
     #include <immintrin.h> // AVX-512
 #endif

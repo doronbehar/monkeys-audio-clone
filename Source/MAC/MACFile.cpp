@@ -21,8 +21,8 @@ MAC_FILE::MAC_FILE()
     m_nRetVal = ERROR_UNDEFINED;
     m_bStarted = false;
     m_bNeedsUpdate = false;
-    m_dwStartTickCount = 0;
-    m_dwEndTickCount = 0;
+    m_nStartTickCount = 0;
+    m_nEndTickCount = 0;
     m_nLevel = 0;
     m_nKillFlag = 0;
     m_nCurrentStage = 0;
@@ -42,8 +42,8 @@ bool MAC_FILE::PrepareForProcessing(CMACProcessFiles * pProcessFiles)
     m_nRetVal = ERROR_UNDEFINED;
     m_bStarted = false;
     m_bNeedsUpdate = false;
-    m_dwStartTickCount = 0;
-    m_dwEndTickCount = 0;
+    m_nStartTickCount = 0;
+    m_nEndTickCount = 0;
     m_strFormat = theApp.GetSettings()->GetFormat();
     m_nLevel = theApp.GetSettings()->GetLevel();
     m_nKillFlag = KILL_FLAG_CONTINUE;

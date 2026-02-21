@@ -233,7 +233,7 @@ int64 CAPLHelper::GetAPESampleRate(const CString & strFilename)
 
         nSampleRate = spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_SAMPLE_RATE);
     }
-    catch(...)
+    catch (...)
     {
         nSampleRate = -1;
     }

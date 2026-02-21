@@ -323,6 +323,9 @@ int CWAVInputSource::AnalyzeSource()
     if (!(DataTypeIDHeader.cDataTypeID[0] == 'W' && DataTypeIDHeader.cDataTypeID[1] == 'A' && DataTypeIDHeader.cDataTypeID[2] == 'V' && DataTypeIDHeader.cDataTypeID[3] == 'E'))
         return ERROR_INVALID_INPUT_FILE;
 
+    // the chunk size specified in the DS64 block (if found)
+    int64 nDS64DataBytes = -1;
+
     // find the 'fmt ' chunk
     CWAVInputSource::RIFF_CHUNK_HEADER RIFFChunkHeader;
     RETURN_ON_ERROR(ReadSafe(m_spIO, &RIFFChunkHeader, sizeof(RIFFChunkHeader)))
@@ -344,9 +347,29 @@ int CWAVInputSource::AnalyzeSource()
         CSmartPtr<unsigned char> spExtraChunk(RIFFChunkHeader.nChunkBytes);
         RETURN_ON_ERROR(ReadSafe(m_spIO, spExtraChunk, static_cast<int>(RIFFChunkHeader.nChunkBytes)))
 
+        if (RIFFChunkHeader.cChunkLabel[0] == 'd' && RIFFChunkHeader.cChunkLabel[1] == 's' && RIFFChunkHeader.cChunkLabel[2] == '6' && RIFFChunkHeader.cChunkLabel[3] == '4')
+        {
+            // this is the size of the file
+            #pragma pack(push, 1)
+            struct DS64HeaderStart
+            {
+                uint64_t riffSize64;
+                uint64_t dataSize64;
+                uint64_t sampleCount64;
+                uint32_t tableLength;
+            };
+            #pragma pack(pop)
+            if (RIFFChunkHeader.nChunkBytes >= sizeof(DS64HeaderStart))
+            {
+                DS64HeaderStart Header;
+                APE_CLEAR(Header);
+                memcpy(&Header, spExtraChunk.GetPtr(), sizeof(DS64HeaderStart));
+                nDS64DataBytes = static_cast<int64>(Header.dataSize64);
+            }
+        }
+
         // check again for the data chunk
         RETURN_ON_ERROR(ReadSafe(m_spIO, &RIFFChunkHeader, sizeof(RIFFChunkHeader)))
-
         RIFFChunkHeader.nChunkBytes = ConvertU32LE(RIFFChunkHeader.nChunkBytes);
     }
 
@@ -464,12 +487,23 @@ int CWAVInputSource::AnalyzeSource()
         {
             // found the data chunk
             bool bUnknownLength = (RIFFChunkHeader.nChunkBytes == static_cast<uint32_t>(-1));
-            m_nDataBytes = bUnknownLength ? static_cast<int64>(-1) : RIFFChunkHeader.nChunkBytes;
+            int64 nChunkBytes = RIFFChunkHeader.nChunkBytes;
+
+            // use the DS64 header if we found one
+            if (bUnknownLength && (nDS64DataBytes >= 0))
+            {
+                int64 nDSD64DataBytesBlockAligned = nDS64DataBytes;
+                nDSD64DataBytesBlockAligned = (nDSD64DataBytesBlockAligned / static_cast<int64>(m_wfeSource.nBlockAlign)) * static_cast<int64>(m_wfeSource.nBlockAlign);
+                nChunkBytes = nDSD64DataBytesBlockAligned;
+                bUnknownLength = false;
+            }
+
+            m_nDataBytes = bUnknownLength ? static_cast<int64>(-1) : nChunkBytes;
 
             // see if we're at the end after this and if so just break
             // otherwise store the position for seeking back to the beginning of the data chunk then seek to the next chunk
             int64 nPosition = m_spIO->GetPosition();
-            int64 nPositionAfterChunk = nPosition + RIFFChunkHeader.nChunkBytes;
+            int64 nPositionAfterChunk = nPosition + nChunkBytes;
 
             // store the header bytes
             m_nHeaderBytes = static_cast<uint32>(nPosition);
@@ -488,7 +522,7 @@ int CWAVInputSource::AnalyzeSource()
             {
                 // store the position to seek back to then skip this chunk and go onto the next
                 nDataChunk = nPosition;
-                m_spIO->Seek(RIFFChunkHeader.nChunkBytes, SeekFileCurrent);
+                m_spIO->Seek(nChunkBytes, SeekFileCurrent);
             }
         }
         else if ((RIFFChunkHeader.cChunkLabel[0] == 'i' && RIFFChunkHeader.cChunkLabel[1] == 'd' && RIFFChunkHeader.cChunkLabel[2] == '3' && RIFFChunkHeader.cChunkLabel[3] == ' ') ||

@@ -117,8 +117,8 @@ bool CMACListCtrl::LoadFileList(const CString & strPath, CStringArrayEx * paryFi
                 }
                 else
                 {
-                    CSmartPtr<TCHAR> spUTF16(CAPECharacterHelper::GetUTFNFromUTF8(reinterpret_cast<unsigned char *>(&spBuffer[dwIndex])), true);
-                    AddFileInternal(spUTF16.GetPtr());
+                    CSmartPtr<TCHAR> spUTFN(CAPECharacterHelper::GetUTFNFromUTF8(reinterpret_cast<unsigned char *>(&spBuffer[dwIndex])), true);
+                    AddFileInternal(spUTFN.GetPtr());
                     dwIndex += static_cast<DWORD>(strlen(&spBuffer[dwIndex]) + 1);
                 }
             }
@@ -519,7 +519,7 @@ void CMACListCtrl::OnGetdispinfo(NMHDR * pNMHDR, LRESULT * pResult)
                 {
                     if (File.m_bStarted && File.m_bDone)
                     {
-                        int64 nElapsedMS = static_cast<int64>(File.m_dwEndTickCount - File.m_dwStartTickCount);
+                        int64 nElapsedMS = static_cast<int64>(File.m_nEndTickCount - File.m_nStartTickCount);
                         strValue.Format(_T("%.2f"), static_cast<double>(nElapsedMS) / static_cast<double>(1000));
                     }
                     break;
@@ -721,7 +721,7 @@ int CMACListCtrl::Compare(const void * pOne, const void * pTwo)
     }
     else if (m_nCompareColumn == COLUMN_TIME_ELAPSED)
     {
-        nReturn = static_cast<int>((pFileOne->m_dwEndTickCount - pFileOne->m_dwStartTickCount) - (pFileTwo->m_dwEndTickCount - pFileTwo->m_dwStartTickCount));
+        nReturn = static_cast<int>((pFileOne->m_nEndTickCount - pFileOne->m_nStartTickCount) - (pFileTwo->m_nEndTickCount - pFileTwo->m_nStartTickCount));
     }
     else if (m_nCompareColumn == COLUMN_STATUS)
     {

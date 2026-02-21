@@ -3,11 +3,21 @@
 /**************************************************************************************************
 Windows version
 **************************************************************************************************/
-#ifndef WINVER
-    #define WINVER         0x0600
-#endif
-#ifndef _WIN32_WINNT
-    #define _WIN32_WINNT   0x0600
+#ifdef PLATFORM_WINDOWS_XP
+    #undef WINVER
+    #undef _WIN32_WINNT
+
+    #define WINVER             0x0501
+    #define _WIN32_WINNT       0x0501
+#else
+    #if !defined(WINVER) && !defined(_WIN32_WINNT)
+        #define WINVER         0x0600
+        #define _WIN32_WINNT   0x0600
+    #elif defined(_WIN32_WINNT)
+        #define WINVER         _WIN32_WINNT
+    #else
+        #define _WIN32_WINNT   WINVER
+    #endif
 #endif
 
 /**************************************************************************************************

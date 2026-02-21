@@ -25,7 +25,9 @@ CAPELink::CAPELink(const str_utfn * pFilename)
         // create a buffer
         CSmartPtr<char> spBuffer(new char [4097], true);
 
-        // fill the buffer from the file and null terminate it (this might read less if the file is shorter, but that's fine)
+        // fill the buffer from the file and null terminate it
+        // we read enough to get all the data at the front (the tag follows which could be big)
+        // this might read less if the file is shorter, but that's fine
         unsigned int nBytesRead = 0;
         spioLinkFile->Read(spBuffer.GetPtr(), 4096, &nBytesRead);
         spBuffer[nBytesRead] = 0;
@@ -78,20 +80,20 @@ void CAPELink::ParseData(const char * pData, const str_utfn * pFilename)
                     cImageFile[nIndex++] = *pImageCharacter++;
                 cImageFile[nIndex] = 0;
 
-                CSmartPtr<str_utfn> spImageFileUTF16(CAPECharacterHelper::GetUTFNFromUTF8(reinterpret_cast<const str_utf8 *>(cImageFile)), true);
+                CSmartPtr<str_utfn> spImageFileUTFN(CAPECharacterHelper::GetUTFNFromUTF8(reinterpret_cast<const str_utf8 *>(cImageFile)), true);
 
                 // process the path
-                if ((wcsrchr(spImageFileUTF16, APE_FILENAME_SLASH) == APE_NULL) && (wcsrchr(pFilename, APE_FILENAME_SLASH) != APE_NULL))
+                if ((wcsrchr(spImageFileUTFN, APE_FILENAME_SLASH) == APE_NULL) && (wcsrchr(pFilename, APE_FILENAME_SLASH) != APE_NULL))
                 {
                     str_utfn cImagePath[MAX_PATH + 1];
                     wcscpy_s(cImagePath, MAX_PATH, pFilename);
                     str_utfn * pNext = wcsrchr(cImagePath, APE_FILENAME_SLASH) + 1;
-                    wcscpy_s(pNext, static_cast<size_t>(MAX_PATH - (pNext - cImagePath)), spImageFileUTF16);
+                    wcscpy_s(pNext, static_cast<size_t>(MAX_PATH - (pNext - cImagePath)), spImageFileUTFN);
                     wcscpy_s(m_cImageFilename, MAX_PATH, cImagePath);
                 }
                 else
                 {
-                    wcscpy_s(m_cImageFilename, MAX_PATH, spImageFileUTF16);
+                    wcscpy_s(m_cImageFilename, MAX_PATH, spImageFileUTFN);
                 }
 
                 // this is a valid link file
