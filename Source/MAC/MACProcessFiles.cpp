@@ -17,7 +17,6 @@ using namespace APE;
 CMACProcessFiles::CMACProcessFiles()
 {
     m_paryFiles = APE_NULL;
-    m_nPausedStartTickCount = 0;
     m_nPausedTotalMS = 0;
     Destroy();
 }
@@ -73,12 +72,11 @@ bool CMACProcessFiles::Pause(bool bPause)
     // update the pause timer
     if (m_bPaused)
     {
-        m_nPausedStartTickCount = CAPETicks::GetTicks();
+        m_PausedDuration.Reset();
     }
     else
     {
-        m_nPausedTotalMS += CAPETicks::GetTicks() - m_nPausedStartTickCount;
-        m_nPausedStartTickCount = 0;
+        m_nPausedTotalMS += m_PausedDuration.GetElapsed();
     }
 
     return true;
@@ -89,7 +87,7 @@ int CMACProcessFiles::GetPausedTotalMS() const
     int nPausedMS = static_cast<int>(m_nPausedTotalMS);
     if (m_bPaused)
     {
-        nPausedMS += static_cast<int>(CAPETicks::GetTicks() - m_nPausedStartTickCount);
+        nPausedMS += m_PausedDuration.GetElapsed();
     }
     return nPausedMS;
 }
@@ -113,7 +111,7 @@ bool CMACProcessFiles::ProcessFile(int nIndex)
 {
     // setup
     m_paryFiles->ElementAt(nIndex)->m_bStarted = true;
-    m_paryFiles->ElementAt(nIndex)->m_nStartTickCount = CAPETicks::GetTicks();
+    m_paryFiles->ElementAt(nIndex)->m_ProcessingDuration.Reset();
 
     // create the thread
     std::thread Thread(ProcessFileThread, m_paryFiles->ElementAt(nIndex));
@@ -485,7 +483,7 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
         nRetVal = ERROR_SKIPPED;
     }
 
-    pInfo->m_nEndTickCount = CAPETicks::GetTicks();
+    pInfo->m_nProcessingElapsed = pInfo->m_ProcessingDuration.GetElapsed();
     pInfo->m_nRetVal = nRetVal;
     pInfo->m_bDone = true;
     pInfo->m_bNeedsUpdate = true;

@@ -29,7 +29,7 @@ protected:
     MAC_FILE_ARRAY * m_paryFiles;
     bool m_bStopped;
     bool m_bPaused;
-    APE_TICK_COUNT_TYPE m_nPausedStartTickCount;
+    CAPEDuration m_PausedDuration;
     APE::int64 m_nPausedTotalMS;
 
     // thread for processing

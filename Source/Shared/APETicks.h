@@ -35,3 +35,31 @@ public:
         #endif
     }
 };
+
+/**************************************************************************************************
+CAPEDuration - measures duration using a CAPETicks
+**************************************************************************************************/
+class CAPEDuration
+{
+public:
+    CAPEDuration()
+    {
+        Reset();
+    }
+    void Reset()
+    {
+        m_Ticks = CAPETicks::GetTicks();
+    }
+    int GetElapsed() const
+    {
+        return static_cast<int>(CAPETicks::GetTicks() - m_Ticks);
+    }
+    double GetElapsedSeconds() const
+    {
+        double dElapsedSeconds = static_cast<double>(GetElapsed()) / static_cast<double>(CAPETicks::GetFrequency());
+        return dElapsedSeconds;
+    }
+
+protected:
+    APE_TICK_COUNT_TYPE m_Ticks;
+};

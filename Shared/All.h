@@ -26,9 +26,9 @@ Warnings
 #include "Warnings.h"
 
 /**************************************************************************************************
-Override (define in MSVC)
+Override (define for C++11)
 **************************************************************************************************/
-#ifdef _MSC_VER
+#if __cplusplus >= 201103L
 #define APE_OVERRIDE override
 #else
 #define APE_OVERRIDE

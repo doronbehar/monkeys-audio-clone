@@ -641,7 +641,7 @@ void CMACDlg::OnTimer(UINT_PTR nIDEvent)
             // clean up
             m_spProcessFiles.Delete();
             UpdateWindow();
-            m_ctrlStatusBar.SetLastProcessTotalMS(static_cast<int>(CAPETicks::GetTicks() - m_aryFiles.m_nStartProcessingTickCount));
+            m_ctrlStatusBar.SetLastProcessTotalMS(m_aryFiles.m_StartProcessingDuration.GetElapsed());
             m_ctrlStatusBar.UpdateFiles(&m_aryFiles);
             m_ctrlStatusBar.EndProcessing();
 

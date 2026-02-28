@@ -156,7 +156,8 @@
     <LinkIncremental>false</LinkIncremental>
     <TargetName>Monkey's Audio</TargetName>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <ClangTidyChecks>-clang-diagnostic-unused-command-line-argument</ClangTidyChecks>
+    <ClangTidyChecks>
+    </ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <OutDir>$(Platform)\$(Configuration)\</OutDir>
@@ -164,7 +165,7 @@
     <LinkIncremental>false</LinkIncremental>
     <TargetName>Monkey's Audio</TargetName>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <ClangTidyChecks>-clang-diagnostic-unused-command-line-argument</ClangTidyChecks>
+    <ClangTidyChecks></ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(Configuration)\</OutDir>
@@ -172,7 +173,8 @@
     <LinkIncremental>false</LinkIncremental>
     <TargetName>Monkey's Audio</TargetName>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <ClangTidyChecks>-clang-diagnostic-unused-command-line-argument</ClangTidyChecks>
+    <ClangTidyChecks>
+    </ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <OutDir>$(Platform)\$(Configuration)\</OutDir>
@@ -180,7 +182,7 @@
     <LinkIncremental>false</LinkIncremental>
     <TargetName>Monkey's Audio</TargetName>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <ClangTidyChecks>-clang-diagnostic-unused-command-line-argument</ClangTidyChecks>
+    <ClangTidyChecks></ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(Platform)\$(Configuration)\</OutDir>
@@ -188,7 +190,8 @@
     <LinkIncremental>false</LinkIncremental>
     <TargetName>Monkey's Audio</TargetName>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <ClangTidyChecks>-clang-diagnostic-unused-command-line-argument</ClangTidyChecks>
+    <ClangTidyChecks>
+    </ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64EC'">
     <OutDir>$(Platform)\$(Configuration)\</OutDir>
@@ -196,7 +199,7 @@
     <LinkIncremental>false</LinkIncremental>
     <TargetName>Monkey's Audio</TargetName>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <ClangTidyChecks>-clang-diagnostic-unused-command-line-argument</ClangTidyChecks>
+    <ClangTidyChecks></ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <OutDir>$(Platform)\$(Configuration)\</OutDir>
@@ -204,7 +207,7 @@
     <LinkIncremental>false</LinkIncremental>
     <TargetName>Monkey's Audio</TargetName>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <ClangTidyChecks>-clang-diagnostic-unused-command-line-argument</ClangTidyChecks>
+    <ClangTidyChecks></ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(Platform)\$(Configuration)\</OutDir>
@@ -212,7 +215,8 @@
     <LinkIncremental>false</LinkIncremental>
     <TargetName>Monkey's Audio</TargetName>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <ClangTidyChecks>-clang-diagnostic-unused-command-line-argument</ClangTidyChecks>
+    <ClangTidyChecks>
+    </ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64EC'">
     <OutDir>$(Platform)\$(Configuration)\</OutDir>
@@ -220,7 +224,7 @@
     <LinkIncremental>false</LinkIncremental>
     <TargetName>Monkey's Audio</TargetName>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <ClangTidyChecks>-clang-diagnostic-unused-command-line-argument</ClangTidyChecks>
+    <ClangTidyChecks></ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <OutDir>$(Platform)\$(Configuration)\</OutDir>
@@ -228,7 +232,7 @@
     <LinkIncremental>false</LinkIncremental>
     <TargetName>Monkey's Audio</TargetName>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <ClangTidyChecks>-clang-diagnostic-unused-command-line-argument</ClangTidyChecks>
+    <ClangTidyChecks></ClangTidyChecks>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

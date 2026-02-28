@@ -27,8 +27,8 @@ public:
     bool m_bStarted;
     bool m_bNeedsUpdate;
     int m_nRetVal;
-    APE_TICK_COUNT_TYPE m_nStartTickCount;
-    APE_TICK_COUNT_TYPE m_nEndTickCount;
+    CAPEDuration m_ProcessingDuration;
+    int m_nProcessingElapsed;
     CString m_strFormat;
     int m_nLevel;
     int m_nKillFlag;

@@ -25,7 +25,7 @@ using namespace APE;
 #define UNDEFINED_MODE        -1
 
 // global variables
-static APE_TICK_COUNT_TYPE g_nInitialTickCount = 0;
+static CAPEDuration g_ProcessingDuration;
 
 /**************************************************************************************************
 Data holder for the arguments so we always have the argument count
@@ -253,7 +253,7 @@ static void CALLBACK ProgressCallback(int nPercentageDone)
 {
     // calculate the progress
     double dProgress = nPercentageDone / 1.e5;                                                    // [0...1]
-    double dElapsed = static_cast<double>(CAPETicks::GetTicks() - g_nInitialTickCount) / CAPETicks::GetFrequency();    // seconds
+    double dElapsed = g_ProcessingDuration.GetElapsedSeconds();                                   // seconds
     double dRemaining = (nPercentageDone > 0) ? dElapsed * ((1.0 / dProgress) - 1.0) : 0;         // seconds
 
     // output the progress
@@ -574,7 +574,7 @@ int _tmain(int argc, TCHAR * argv[])
     }
 
     // set the initial tick count
-    g_nInitialTickCount = CAPETicks::GetTicks();
+    g_ProcessingDuration.Reset();
 
     // process
     int nKillFlag = 0;

@@ -161,7 +161,7 @@ CString CAPEInfoFormatDlg::GetSummary(const CString & strFilename)
     {
         int64 nElapsedMS = 0;
         if (pFile->m_bStarted && pFile->m_bDone)
-            nElapsedMS = static_cast<int64>(pFile->m_nEndTickCount - pFile->m_nStartTickCount);
+            nElapsedMS = static_cast<int64>(pFile->m_nProcessingElapsed);
 
         CString strNew;
         if (pFile->m_dInputFileBytes > 0)

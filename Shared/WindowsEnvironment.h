@@ -13,9 +13,9 @@ Windows version
     #if !defined(WINVER) && !defined(_WIN32_WINNT)
         #define WINVER         0x0600
         #define _WIN32_WINNT   0x0600
-    #elif defined(_WIN32_WINNT)
+    #elif !defined(WINVER)
         #define WINVER         _WIN32_WINNT
-    #else
+    #elif !defined(_WIN32_WINNT)
         #define _WIN32_WINNT   WINVER
     #endif
 #endif
