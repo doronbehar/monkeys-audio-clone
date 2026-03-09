@@ -1,6 +1,13 @@
 #pragma once
 
 /**************************************************************************************************
+Enable Windows when we're in XP mode (so both defines aren't needed)
+**************************************************************************************************/
+#if defined(PLATFORM_WINDOWS_XP)
+    #define PLATFORM_WINDOWS
+#endif
+
+/**************************************************************************************************
 Platform
 
 One of the following platforms should be defined (either in code or as a project setting):
