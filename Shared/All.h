@@ -351,6 +351,9 @@ Macros
 
 #define APE_CATCH_ERRORS(CODE) try { CODE } catch(...) { }
 
+#define APE_ALIGN_2_BYTE(VALUE) ((VALUE) + ((VALUE) & 0x1))
+#define APE_ALIGN_8_BYTE(VALUE) ((VALUE) + ((8 - ((VALUE) % 8)) % 8))
+
 #define RETURN_ON_ERROR(FUNCTION) { const int nFunctionResult = static_cast<int>(FUNCTION); if (nFunctionResult != ERROR_SUCCESS) { return nFunctionResult; } }
 #define RETURN_VALUE_ON_ERROR(FUNCTION, VALUE) { int nFunctionResult = FUNCTION; if (nFunctionResult != 0) { return VALUE; } }
 #define RETURN_ON_EXCEPTION(CODE, VALUE) { try { CODE } catch(...) { return VALUE; } }

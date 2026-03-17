@@ -72,6 +72,7 @@ public:
 
 private:
     int AnalyzeSource();
+    int ReadRIFFHeader(RIFF_CHUNK_HEADER & RIFFChunkHeader);
 
     CSmartPtr<IAPEIO> m_spIO;
     uint32 m_nHeaderBytes;

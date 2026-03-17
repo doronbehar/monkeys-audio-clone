@@ -883,7 +883,7 @@ void CMACDlg::OnHelpWebsiteWinamp()
 
 void CMACDlg::OnHelpWebsiteEac()
 {
-    ShellExecute(APE_NULL, APE_NULL, _T("https://www.exactaudiocopy.de/eac.html"), APE_NULL, APE_NULL, SW_MAXIMIZE);
+    ShellExecute(APE_NULL, APE_NULL, _T("https://www.exactaudiocopy.de"), APE_NULL, APE_NULL, SW_MAXIMIZE);
 }
 
 void CMACDlg::OnHelpLicense()

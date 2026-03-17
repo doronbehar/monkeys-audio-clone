@@ -328,9 +328,7 @@ int CWAVInputSource::AnalyzeSource()
 
     // find the 'fmt ' chunk
     CWAVInputSource::RIFF_CHUNK_HEADER RIFFChunkHeader;
-    RETURN_ON_ERROR(ReadSafe(m_spIO, &RIFFChunkHeader, sizeof(RIFFChunkHeader)))
-
-    RIFFChunkHeader.nChunkBytes = ConvertU32LE(RIFFChunkHeader.nChunkBytes);
+    RETURN_ON_ERROR(ReadRIFFHeader(RIFFChunkHeader))
 
     while (!(RIFFChunkHeader.cChunkLabel[0] == 'f' && RIFFChunkHeader.cChunkLabel[1] == 'm' && RIFFChunkHeader.cChunkLabel[2] == 't' && RIFFChunkHeader.cChunkLabel[3] == ' '))
     {
@@ -369,8 +367,7 @@ int CWAVInputSource::AnalyzeSource()
         }
 
         // check again for the data chunk
-        RETURN_ON_ERROR(ReadSafe(m_spIO, &RIFFChunkHeader, sizeof(RIFFChunkHeader)))
-        RIFFChunkHeader.nChunkBytes = ConvertU32LE(RIFFChunkHeader.nChunkBytes);
+        RETURN_ON_ERROR(ReadRIFFHeader(RIFFChunkHeader))
     }
 
     // read the format info
@@ -469,8 +466,7 @@ int CWAVInputSource::AnalyzeSource()
         return ERROR_INVALID_INPUT_FILE;
 
     // find the data chunk
-    RETURN_ON_ERROR(ReadSafe(m_spIO, &RIFFChunkHeader, sizeof(RIFFChunkHeader)))
-    RIFFChunkHeader.nChunkBytes = ConvertU32LE(RIFFChunkHeader.nChunkBytes);
+    RETURN_ON_ERROR(ReadRIFFHeader(RIFFChunkHeader))
 
     int64 nDataChunk = -1;
     while (true)
@@ -567,8 +563,7 @@ int CWAVInputSource::AnalyzeSource()
             break;
 
         // read the next chunk then loop
-        RETURN_ON_ERROR(ReadSafe(m_spIO, &RIFFChunkHeader, sizeof(RIFFChunkHeader)))
-        RIFFChunkHeader.nChunkBytes = ConvertU32LE(RIFFChunkHeader.nChunkBytes);
+        RETURN_ON_ERROR(ReadRIFFHeader(RIFFChunkHeader))
     }
 
     // seek to the start of the data
@@ -611,6 +606,16 @@ int CWAVInputSource::AnalyzeSource()
         m_nTerminatingBytes = 0;
 
     // we made it this far, everything must be cool
+    return ERROR_SUCCESS;
+}
+
+int CWAVInputSource::ReadRIFFHeader(RIFF_CHUNK_HEADER & RIFFChunkHeader)
+{
+    // find the data chunk
+    RETURN_ON_ERROR(ReadSafe(m_spIO, &RIFFChunkHeader, sizeof(RIFFChunkHeader)))
+    RIFFChunkHeader.nChunkBytes = ConvertU32LE(RIFFChunkHeader.nChunkBytes);
+    if (RIFFChunkHeader.nChunkBytes != static_cast<uint32_t>(-1))
+        RIFFChunkHeader.nChunkBytes = APE_ALIGN_2_BYTE(RIFFChunkHeader.nChunkBytes); // RIFF chunks must be 2-byte aligned, so pad with an extra byte when necessary
     return ERROR_SUCCESS;
 }
 
@@ -1089,6 +1094,7 @@ int CW64InputSource::AnalyzeSource()
     m_spIO->Read(&RIFFHeader, sizeof(RIFFHeader), &nBytesRead);
 
     RIFFHeader.nBytes = ConvertU64LE(RIFFHeader.nBytes);
+    RIFFHeader.nBytes = APE_ALIGN_8_BYTE(RIFFHeader.nBytes);
 
     if ((memcmp(&RIFFHeader.guidIdentifier, &guidRIFF, sizeof(GUID)) == 0) && (RIFFHeader.nBytes == static_cast<uint64>(m_nFileBytes)))
     {
@@ -1111,6 +1117,7 @@ int CW64InputSource::AnalyzeSource()
                     break;
 
                 Header.nBytes = ConvertU64LE(Header.nBytes);
+                Header.nBytes = APE_ALIGN_8_BYTE(Header.nBytes);
 
                 // get / check chunk size
                 const int64 nChunkRemainingBytes = static_cast<int64>(Header.nBytes) - static_cast<int64>(sizeof(Header));
