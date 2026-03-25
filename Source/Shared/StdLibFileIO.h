@@ -36,7 +36,7 @@ public:
     // attributes
     int64 GetPosition();
     int64 GetSize();
-    int GetName(str_utfn * pBuffer);
+    int GetName(str_utfn (&rpBuffer)[APE_MAX_PATH]);
     int GetHandle();
 
 private:

@@ -84,7 +84,7 @@ find_target_architecture(ARCHITECTURE)
 #
 set(MAC_PUBLIC_HEADERS
         Shared/All.h
-        Shared/APETag.h
+        Shared/IAPETag.h
         Shared/CharacterHelper.h
         Shared/IAPEIO.h
         Shared/MACDll.h

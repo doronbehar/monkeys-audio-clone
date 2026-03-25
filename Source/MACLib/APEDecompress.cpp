@@ -8,7 +8,7 @@
 namespace APE
 {
 
-CAPEDecompress::CAPEDecompress(int * pErrorCode, CAPEInfo * pAPEInfo, int64 nStartBlock, int64 nFinishBlock)
+CAPEDecompress::CAPEDecompress(int * pErrorCode, IAPEInfo * pAPEInfo, int64 nStartBlock, int64 nFinishBlock)
 {
     *pErrorCode = ERROR_SUCCESS;
 
@@ -20,7 +20,7 @@ CAPEDecompress::CAPEDecompress(int * pErrorCode, CAPEInfo * pAPEInfo, int64 nSta
     m_spAPEInfo.Assign(pAPEInfo);
 
     // store the IO object
-    m_spIO.Assign(GET_IO(m_spAPEInfo), false, false);
+    m_spIO.Assign(APE_GET_IO(m_spAPEInfo), false, false);
 
     // get format information
     m_nBlockAlign = static_cast<int>(m_spAPEInfo->GetInfo(APE_INFO_BLOCK_ALIGN));

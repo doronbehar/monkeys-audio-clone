@@ -8,7 +8,7 @@
 namespace APE
 {
 
-CAPEDecompressCore::CAPEDecompressCore(int * pErrorCode, CAPEDecompress * pDecompress, CAPEInfo * pAPEInfo)
+CAPEDecompressCore::CAPEDecompressCore(int * pErrorCode, CAPEDecompress * pDecompress, IAPEInfo * pAPEInfo)
 : m_semProcess(1), m_semReady(1)
 {
     m_semProcess.Wait();
@@ -368,7 +368,7 @@ void CAPEDecompressCore::StartFrame()
 
     // get any 'special' codes if the file uses them (for silence, false stereo, etc.)
     m_nSpecialCodes = 0;
-    if (GET_USES_SPECIAL_FRAMES(m_pAPEInfo))
+    if (APE_GET_USES_SPECIAL_FRAMES(m_pAPEInfo))
     {
         if (m_nStoredCRC & 0x80000000)
         {

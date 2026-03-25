@@ -197,11 +197,6 @@ int64 CWholeFileIO::GetSize()
     return m_nWholeFileSize;
 }
 
-int CWholeFileIO::GetName(str_utfn *)
-{
-    return ERROR_UNDEFINED;
-}
-
 int CWholeFileIO::Create(const str_utfn *)
 {
     return ERROR_UNDEFINED;

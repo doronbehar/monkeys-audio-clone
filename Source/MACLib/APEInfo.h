@@ -59,12 +59,12 @@ public:
 /**************************************************************************************************
 Helper macros (sort of hacky)
 **************************************************************************************************/
-#define GET_USES_CRC(APE_INFO) (((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_CRC) ? true : false)
-#define GET_FRAMES_START_ON_BYTES_BOUNDARIES(APE_INFO) (((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION) > 3800) ? true : false)
-#define GET_USES_SPECIAL_FRAMES(APE_INFO) (((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION) > 3820) ? true : false)
-#define GET_IO(APE_INFO) (reinterpret_cast<IAPEIO *> ((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_IO_SOURCE)))
-#define GET_TAG(APE_INFO) (((APE_INFO) != APE_NULL) ? (reinterpret_cast<IAPETag *>((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_TAG))) : APE_NULL)
-#define GET_INFO(APE_INFO) reinterpret_cast<const APE_FILE_INFO *>((APE_INFO)->GetInfo(IAPEDecompress::APE_INTERNAL_INFO))
+#define APE_GET_USES_CRC(APE_INFO) (((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_CRC) ? true : false)
+#define APE_GET_FRAMES_START_ON_BYTES_BOUNDARIES(APE_INFO) (((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION) > 3800) ? true : false)
+#define APE_GET_USES_SPECIAL_FRAMES(APE_INFO) (((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION) > 3820) ? true : false)
+#define APE_GET_IO(APE_INFO) (reinterpret_cast<IAPEIO *> ((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_IO_SOURCE)))
+#define APE_GET_TAG(APE_INFO) (((APE_INFO) != APE_NULL) ? (reinterpret_cast<IAPETag *>((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_TAG))) : APE_NULL)
+#define APE_GET_INFO(APE_INFO) reinterpret_cast<const APE_FILE_INFO *>((APE_INFO)->GetInfo(IAPEDecompress::APE_INTERNAL_INFO))
 
 /**************************************************************************************************
 IAPEInfo interface - use this for all work with APE files
@@ -85,8 +85,8 @@ class CAPEInfo : public IAPEInfo
 {
 public:
     // construction and destruction
-    CAPEInfo(int * pErrorCode, const str_utfn * pFilename, CAPETag * pTag = APE_NULL, bool bAPL = false, bool bReadOnly = false, bool bAnalyzeTagNow = true, bool bReadWholeFile = false);
-    CAPEInfo(int * pErrorCode, APE::IAPEIO * pIO, CAPETag * pTag = APE_NULL);
+    CAPEInfo(int * pErrorCode, const str_utfn * pFilename, IAPETag * pTag = APE_NULL, bool bAPL = false, bool bReadOnly = false, bool bAnalyzeTagNow = true, bool bReadWholeFile = false);
+    CAPEInfo(int * pErrorCode, APE::IAPEIO * pIO, IAPETag * pTag = APE_NULL);
     virtual ~CAPEInfo();
 
     // query for information
@@ -100,7 +100,7 @@ private:
 
     // internal variables
     CSmartPtr<APE::IAPEIO> m_spIO;
-    CSmartPtr<CAPETag> m_spAPETag;
+    CSmartPtr<IAPETag> m_spAPETag;
     APE_FILE_INFO m_APEFileInfo;
     bool m_bHasFileInformationLoaded;
     bool m_bAPL;

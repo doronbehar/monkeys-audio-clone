@@ -9,7 +9,7 @@ namespace APE
 class CAPEDecompressOld : public IAPEDecompress
 {
 public:
-    CAPEDecompressOld(int * pErrorCode, CAPEInfo * pAPEInfo, int nStartBlock = -1, int nFinishBlock = -1);
+    CAPEDecompressOld(int * pErrorCode, IAPEInfo * pAPEInfo, int nStartBlock = -1, int nFinishBlock = -1);
     ~CAPEDecompressOld();
 
     int SetNumberOfThreads(int nThreads) APE_OVERRIDE;
@@ -35,7 +35,7 @@ protected:
 
     // decoding tools
     CUnMACOld m_UnMAC;
-    CSmartPtr<CAPEInfo> m_spAPEInfo;
+    CSmartPtr<IAPEInfo> m_spAPEInfo;
 
     // booleans at the end for alignment
     bool m_bDecompressorInitialized;

@@ -105,7 +105,7 @@ Seek to the proper frame (if necessary) and do any alignment of the bit array
 **************************************************************************************************/
 int CUnMACOld::SeekToFrame(intn FrameIndex)
 {
-    if (GET_FRAMES_START_ON_BYTES_BOUNDARIES(m_spAPEDecompress))
+    if (APE_GET_FRAMES_START_ON_BYTES_BOUNDARIES(m_spAPEDecompress))
     {
         if ((m_LastDecodedFrameIndex == -1) || ((FrameIndex - 1) != m_LastDecodedFrameIndex))
         {
@@ -158,7 +158,7 @@ intn CUnMACOld::DecompressFrameOld(unsigned char * pOutputData, int32 FrameIndex
     unsigned int nSpecialCodes = 0;
     uint32 nStoredCRC = 0;
 
-    if (!GET_USES_CRC(m_spAPEDecompress))
+    if (!APE_GET_USES_CRC(m_spAPEDecompress))
     {
         nStoredCRC = static_cast<uint32>(m_spAPEDecompressCore->GetUnBitArrray()->DecodeValue(CUnBitArrayBase::DECODE_VALUE_METHOD_UNSIGNED_RICE, 30));
         if (nStoredCRC == 0)
@@ -172,7 +172,7 @@ intn CUnMACOld::DecompressFrameOld(unsigned char * pOutputData, int32 FrameIndex
 
         // get any 'special' codes if the file uses them (for silence, false stereo, etc.)
         nSpecialCodes = 0;
-        if (GET_USES_SPECIAL_FRAMES(m_spAPEDecompress))
+        if (APE_GET_USES_SPECIAL_FRAMES(m_spAPEDecompress))
         {
             if (nStoredCRC & 0x80000000)
             {
@@ -204,13 +204,13 @@ intn CUnMACOld::DecompressFrameOld(unsigned char * pOutputData, int32 FrameIndex
             pOutputData, static_cast<unsigned int *>(&CRC), static_cast<int>(m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION)));
     }
 
-    if (GET_USES_SPECIAL_FRAMES(m_spAPEDecompress))
+    if (APE_GET_USES_SPECIAL_FRAMES(m_spAPEDecompress))
     {
         CRC >>= 1;
     }
 
     // check the CRC
-    if (!GET_USES_CRC(m_spAPEDecompress))
+    if (!APE_GET_USES_CRC(m_spAPEDecompress))
     {
         const uint32 nChecksum = CalculateOldChecksum(m_spAPEDecompressCore->GetDataX(), m_spAPEDecompressCore->GetDataY(), static_cast<intn>(m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS)), nBlocks);
         if (nChecksum != nStoredCRC)

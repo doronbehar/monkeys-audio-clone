@@ -3,6 +3,7 @@
 #include "CharacterHelper.h"
 #include "IAPEIO.h"
 #include "GlobalFunctions.h"
+#include "MACLib.h"
 
 namespace APE
 {
@@ -67,6 +68,16 @@ void CAPETagField::Save32(char * pBuffer, int nValue)
     pBuffer[3] = static_cast<char>(nValue >> 24);
 }
 
+bool CAPETagField::GetIsReadOnly() const
+{
+    return (m_nFieldFlags & TAG_FIELD_FLAG_READ_ONLY) ? true : false;
+}
+
+bool CAPETagField::GetIsUTF8Text() const
+{
+    return ((m_nFieldFlags & TAG_FIELD_FLAG_DATA_TYPE_MASK) == TAG_FIELD_FLAG_DATA_TYPE_TEXT_UTF8) ? true : false;
+}
+
 int CAPETagField::SaveField(char * pBuffer, int nBytes)
 {
     Save32(pBuffer, m_nFieldValueBytes);
@@ -83,21 +94,6 @@ int CAPETagField::SaveField(char * pBuffer, int nBytes)
     memcpy(pBuffer, m_spFieldValue, static_cast<size_t>(APE_MIN(m_nFieldValueBytes, nBytes)));
 
     return GetFieldSize();
-}
-
-bool CAPETagField::GetIsReadOnly() const
-{
-    return (m_nFieldFlags & TAG_FIELD_FLAG_READ_ONLY) ? true : false;
-}
-
-bool CAPETagField::GetIsUTF8Text() const
-{
-    return ((m_nFieldFlags & TAG_FIELD_FLAG_DATA_TYPE_MASK) == TAG_FIELD_FLAG_DATA_TYPE_TEXT_UTF8) ? true : false;
-}
-
-void CAPETagField::SetFieldFlags(int nFlags)
-{
-    m_nFieldFlags = nFlags;
 }
 
 /**************************************************************************************************
@@ -128,15 +124,15 @@ CAPETag::CAPETag(const str_utfn * pFilename, bool bAnalyze)
     m_spIO.Assign(CreateIAPEIO());
     m_spIO->Open(pFilename);
 
-    m_bAnalyzed = false;
-    m_nFields = 0;
-    m_nAllocatedFields = 0;
     m_aryFields = APE_NULL;
     m_nTagBytes = 0;
-    m_bIgnoreReadOnly = false;
+    m_nAPETagVersion = -1;
+    m_nFields = 0;
+    m_nAllocatedFields = 0;
+    m_bAnalyzed = false;
     m_bHasAPETag = false;
     m_bHasID3Tag = false;
-    m_nAPETagVersion = -1;
+    m_bIgnoreReadOnly = false;
     m_bCheckForID3v1 = true;
 
     if (bAnalyze)
@@ -181,7 +177,7 @@ int CAPETag::GetTagBytes()
     return m_nTagBytes;
 }
 
-CAPETagField * CAPETag::GetTagField(int nIndex)
+IAPETagField * CAPETag::GetTagField(int nIndex)
 {
     if (!m_bAnalyzed) { Analyze(); }
 
@@ -393,7 +389,7 @@ int CAPETag::GetTagFieldIndex(const str_utfn * pFieldName)
     return -1;
 }
 
-CAPETagField * CAPETag::GetTagField(const str_utfn * pFieldName)
+IAPETagField * CAPETag::GetTagField(const str_utfn * pFieldName)
 {
     int nIndex = GetTagFieldIndex(pFieldName);
     return (nIndex != -1) ? m_aryFields[nIndex] : APE_NULL;
@@ -439,7 +435,7 @@ int CAPETag::GetFieldString(const str_utfn * pFieldName, str_utfn * pBuffer, int
         pBuffer[0] = 0;
 
         // get field
-        CAPETagField * pAPETagField = GetTagField(pFieldName);
+        IAPETagField * pAPETagField = GetTagField(pFieldName);
         if (pAPETagField == APE_NULL)
         {
             // the field doesn't exist -- return an empty string
@@ -550,7 +546,7 @@ int CAPETag::GetFieldBinary(const str_utfn * pFieldName, void * pBuffer, int * p
 
     if (*pBufferBytes > 0)
     {
-        CAPETagField * pAPETagField = GetTagField(pFieldName);
+        IAPETagField * pAPETagField = GetTagField(pFieldName);
         if (pAPETagField == APE_NULL)
         {
             memset(pBuffer, 0, static_cast<size_t>(*pBufferBytes));
@@ -641,7 +637,7 @@ int CAPETag::GetAPETagVersion()
     return GetHasAPETag() ? m_nAPETagVersion : -1;
 }
 
-bool CAPETag::GetIOMatches(APE::IAPEIO * pIO)
+bool CAPETag::GetIOMatches(IAPEIO * pIO)
 {
     return (m_spIO == pIO);
 }

@@ -48,7 +48,7 @@ APE_FILE_INFO::~APE_FILE_INFO()
 /**************************************************************************************************
 Construction
 **************************************************************************************************/
-CAPEInfo::CAPEInfo(int * pErrorCode, const str_utfn * pFilename, CAPETag * pTag, bool bAPL, bool bReadOnly, bool bAnalyzeTagNow, bool bReadWholeFile)
+CAPEInfo::CAPEInfo(int * pErrorCode, const str_utfn * pFilename, IAPETag * pTag, bool bAPL, bool bReadOnly, bool bAnalyzeTagNow, bool bReadWholeFile)
 {
     *pErrorCode = ERROR_SUCCESS;
     CloseFile();
@@ -113,7 +113,7 @@ CAPEInfo::CAPEInfo(int * pErrorCode, const str_utfn * pFilename, CAPETag * pTag,
     }
 }
 
-CAPEInfo::CAPEInfo(int * pErrorCode, IAPEIO * pIO, CAPETag * pTag)
+CAPEInfo::CAPEInfo(int * pErrorCode, IAPEIO * pIO, IAPETag * pTag)
 {
     m_bAPL = false;
     *pErrorCode = ERROR_SUCCESS;
@@ -289,7 +289,7 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nPara
     case IAPEDecompress::APE_INFO_SEEK_BIT:
     {
         const int64 nFrame = nParam1;
-        if (GET_FRAMES_START_ON_BYTES_BOUNDARIES(this))
+        if (APE_GET_FRAMES_START_ON_BYTES_BOUNDARIES(this))
         {
             nResult = 0;
         }

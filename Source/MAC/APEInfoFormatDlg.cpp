@@ -115,7 +115,7 @@ CString CAPEInfoFormatDlg::GetSummary(const CString & strFilename)
         strLine.Format(_T("Compression: %.2f%%"), static_cast<double>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_AVERAGE_BITRATE) * 100) / static_cast<double>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_DECOMPRESSED_BITRATE)));
         strSummary += strLine + _T("\r\n");
 
-        IAPETag * pTag = GET_TAG(spAPEDecompress);
+        IAPETag * pTag = APE_GET_TAG(spAPEDecompress);
         OutputAPETag(pTag, strSummary);
     }
     else
@@ -205,7 +205,7 @@ void CAPEInfoFormatDlg::OutputAPETag(APE::IAPETag * pTag, CString & strSummary)
             strTag.GetString(), pTag->GetTagBytes());
         strSummary += strLine + _T("\r\n");
 
-        int nTagIndex = 0; CAPETagField * pTagField = APE_NULL;
+        int nTagIndex = 0; IAPETagField * pTagField = APE_NULL;
         while ((pTagField = pTag->GetTagField(nTagIndex++)) != APE_NULL)
         {
             if (pTagField->GetFieldFlags() & TAG_FIELD_FLAG_DATA_TYPE_BINARY)

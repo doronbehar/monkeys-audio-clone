@@ -108,11 +108,6 @@
 namespace APE
 {
 
-IAPEIO * CreateIAPEIO()
-{
-    return new CStdLibFileIO;
-}
-
 CStdLibFileIO::CStdLibFileIO()
 {
     APE_CLEAR(m_cFileName);
@@ -252,9 +247,9 @@ int64 CStdLibFileIO::GetSize()
     return nLength;
 }
 
-int CStdLibFileIO::GetName(str_utfn * pBuffer)
+int CStdLibFileIO::GetName(str_utfn(&rpBuffer)[APE_MAX_PATH])
 {
-    wcscpy(pBuffer, m_cFileName);
+    wcscpy(rpBuffer, m_cFileName);
     return ERROR_SUCCESS;
 }
 

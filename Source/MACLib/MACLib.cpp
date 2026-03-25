@@ -9,6 +9,11 @@
 #include "WAVInputSource.h"
 #include "MD5.h"
 #include "APEInfo.h"
+#if defined(IO_USE_WIN_FILE_IO)
+    #include "WinFileIO.h"
+#elif defined(IO_USE_STD_LIB_FILE_IO)
+    #include "StdLibFileIO.h"
+#endif
 #ifdef APE_BACKWARDS_COMPATIBILITY
     #include "Old/APEDecompressOld.h"
 #endif
@@ -21,13 +26,13 @@ using namespace APE;
 
 #define BLOCKS_PER_DECODE               9216
 
-IAPEDecompress * CreateIAPEDecompressCore(CAPEInfo * pAPEInfo, int nStartBlock, int nFinishBlock, int * pErrorCode);
+IAPEDecompress * CreateIAPEDecompressCore(IAPEInfo * pAPEInfo, int nStartBlock, int nFinishBlock, int * pErrorCode);
 int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, int nOutputMode, int nCompressionLevel, IAPEProgressCallback * pProgressCallback, IAPEDecompress * pDecompress, int nThreads);
 
 /**************************************************************************************************
 Functions to create the interfaces
 **************************************************************************************************/
-IAPEDecompress * CreateIAPEDecompressCore(CAPEInfo * pAPEInfo, int nStartBlock, int nFinishBlock, int * pErrorCode)
+IAPEDecompress * CreateIAPEDecompressCore(IAPEInfo * pAPEInfo, int nStartBlock, int nFinishBlock, int * pErrorCode)
 {
     // create the decompressor (this eats the CAPEInfo object)
     CSmartPtr<IAPEDecompress> spAPEDecompress;
@@ -77,6 +82,22 @@ IAPEDecompress * CreateIAPEDecompressCore(CAPEInfo * pAPEInfo, int nStartBlock, 
     // return
     spAPEDecompress.SetDelete(false);
     return spAPEDecompress.GetPtr();
+}
+
+IAPETag * __stdcall CreateIAPETagFromIO(IAPEIO * pIO, bool bAnalyze, bool bCheckForID3v1)
+{
+    return new CAPETag(pIO, bAnalyze, bCheckForID3v1);
+}
+
+IAPETag * __stdcall CreateIAPETagFromFilename(const str_utfn * pFilename, bool bAnalyze)
+{
+    return new CAPETag(pFilename, bAnalyze);
+}
+
+IAPEInfo * __stdcall CreateIAPEInfo(int * pErrorCode, APE::IAPEIO * pIO)
+{
+    IAPEInfo * pInfo = new CAPEInfo(pErrorCode, pIO, NULL);
+    return pInfo;
 }
 
 IAPEDecompress * __stdcall CreateIAPEDecompress(const str_utfn * pFilename, int * pErrorCode, bool bReadOnly, bool bAnalyzeTagNow, bool bReadWholeFile)
@@ -157,7 +178,7 @@ IAPEDecompress * __stdcall CreateIAPEDecompressEx(IAPEIO * pIO, int * pErrorCode
     return pAPEDecompress;
 }
 
-IAPEDecompress * __stdcall CreateIAPEDecompressEx2(CAPEInfo * pAPEInfo, int nStartBlock, int nFinishBlock, int * pErrorCode)
+IAPEDecompress * __stdcall CreateIAPEDecompressEx2(IAPEInfo * pAPEInfo, int nStartBlock, int nFinishBlock, int * pErrorCode)
 {
     int nErrorCode = ERROR_SUCCESS;
     IAPEDecompress * pAPEDecompress = CreateIAPEDecompressCore(pAPEInfo, nStartBlock, nFinishBlock, &nErrorCode);
@@ -176,9 +197,30 @@ IAPECompress * __stdcall CreateIAPECompress(int * pErrorCode)
 }
 #endif
 
+APE::str_utf8 * __stdcall GetUTF8FromUTFN(const APE::str_utfn * pUTFN)
+{
+    return CAPECharacterHelper::GetUTF8FromUTFN(pUTFN);
+}
+
+APE::str_utfn * __stdcall GetUTFNFromUTF8(const APE::str_utf8 * pUTF8)
+{
+    return CAPECharacterHelper::GetUTFNFromUTF8(pUTF8);
+}
+
 /**************************************************************************************************
 Fill wave headers
 **************************************************************************************************/
+APE::IAPEIO * __stdcall CreateIAPEIO()
+{
+#if defined(IO_USE_WIN_FILE_IO)
+    return new CWinFileIO;
+#elif defined(IO_USE_STD_LIB_FILE_IO)
+    return new CStdLibFileIO;
+#else
+    return NULL;
+#endif
+}
+
 int __stdcall FillWaveFormatEx(APE::WAVEFORMATEX * pWaveFormatEx, int nFormatTag, int nSampleRate, int nBitsPerSample, int nChannels)
 {
     pWaveFormatEx->cbSize = 0;
@@ -320,7 +362,6 @@ void __stdcall GetAPEModeName(APE::APE_MODES Mode, APE::str_utfn * pModeName, si
         case MODE_CHECK: break; // not used
         case MODE_COUNT: break; // not used
     }
-
 }
 
 /**************************************************************************************************
@@ -561,7 +602,7 @@ int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, IAPEProgressCal
                 throw(static_cast<intn>(ERROR_UNSUPPORTED_FILE_TYPE));
 
             // get info object from the decompress core
-            const APE_FILE_INFO * pInfo = GET_INFO(spAPEDecompress);
+            const APE_FILE_INFO * pInfo = APE_GET_INFO(spAPEDecompress);
 
             // check version
             if ((pInfo->nVersion < 3980) || (pInfo->spAPEDescriptor == APE_NULL))
@@ -588,8 +629,8 @@ int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, IAPEProgressCal
             CMD5Helper MD5Helper;
             unsigned int nBytesRead = 0;
 
-            IAPEIO * pIO = GET_IO(spAPEDecompress);
-            const APE_FILE_INFO * pInfo = GET_INFO(spAPEDecompress);
+            IAPEIO * pIO = APE_GET_IO(spAPEDecompress);
+            const APE_FILE_INFO * pInfo = APE_GET_INFO(spAPEDecompress);
 
             if ((pInfo->nVersion < 3980) || (pInfo->spAPEDescriptor == APE_NULL))
                 throw(static_cast<intn>(ERROR_UNSUPPORTED_FILE_VERSION));
@@ -846,7 +887,7 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
         else if (nOutputMode == UNMAC_DECODER_OUTPUT_APE)
         {
             // write the WAV data and any tag
-            IAPETag * pAPETag = GET_TAG(spAPEDecompress);
+            IAPETag * pAPETag = APE_GET_TAG(spAPEDecompress);
             const int64 nTagBytes = (pAPETag != APE_NULL) ? pAPETag->GetTagBytes() : 0;
             const bool bHasTag = (nTagBytes > 0);
             int64 nTerminatingBytes = nTagBytes;
@@ -862,8 +903,8 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
                 if (bHasTag)
                 {
                     unsigned int nBytesRead = 0;
-                    THROW_ON_ERROR(GET_IO(spAPEDecompress)->Seek(-(nTagBytes), SeekFileEnd))
-                    THROW_ON_ERROR(GET_IO(spAPEDecompress)->Read(&spTempBuffer[spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES)], static_cast<unsigned int>(nTagBytes), &nBytesRead))
+                    THROW_ON_ERROR(APE_GET_IO(spAPEDecompress)->Seek(-(nTagBytes), SeekFileEnd))
+                    THROW_ON_ERROR(APE_GET_IO(spAPEDecompress)->Read(&spTempBuffer[spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES)], static_cast<unsigned int>(nTagBytes), &nBytesRead))
                 }
 
                 THROW_ON_ERROR(spAPECompress->Finish(spTempBuffer, nTerminatingBytes, static_cast<int>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES))))

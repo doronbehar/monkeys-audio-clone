@@ -570,7 +570,7 @@ void CAPEWinampPlugin::GetFileInformation(char * pFilename, char * pTitle, int *
         if (pTitle)
         {
             CString strDisplay = GetSettings()->m_strFileDisplayMethod;
-            BuildDescriptionString(strDisplay, GET_TAG(spAPEDecompress), strFilename);
+            BuildDescriptionString(strDisplay, APE_GET_TAG(spAPEDecompress), strFilename);
 
             CSmartPtr<char> spDisplayANSI(CAPECharacterHelper::GetANSIFromUTFN(strDisplay), true);
             strncpy_s(pTitle, GETFILEINFO_TITLE_LENGTH, spDisplayANSI, _TRUNCATE);
@@ -733,7 +733,7 @@ int CAPEWinampPlugin::winampGetExtendedFileInfo(extendedFileInfoStruct & Info)
     }
 
     // get the tag value
-    IAPETag * pTag = GET_TAG(s_spAPEDecompressExtendedFileInfo);
+    IAPETag * pTag = APE_GET_TAG(s_spAPEDecompressExtendedFileInfo);
     if (pTag != APE_NULL)
     {
         if (strcmp(Info.pMetaData, "artist") == 0)
@@ -863,7 +863,7 @@ int CAPEWinampPlugin::winampSetExtendedFileInfo(const char * filename, const cha
         s_strFilenameExtendedInfo = spUTFN;
     }
 
-    IAPETag * pTag = GET_TAG(s_spAPEDecompressExtendedFileInfo);
+    IAPETag * pTag = APE_GET_TAG(s_spAPEDecompressExtendedFileInfo);
     if (pTag != APE_NULL)
     {
         CSmartPtr<str_utfn> spValue(CAPECharacterHelper::GetUTFNFromANSI(val), true);
@@ -904,7 +904,7 @@ int CAPEWinampPlugin::winampWriteExtendedFileInfo(void)
     int nResult = 0;
     if (s_spAPEDecompressExtendedFileInfo != APE_NULL)
     {
-        IAPETag * pTag = GET_TAG(s_spAPEDecompressExtendedFileInfo);
+        IAPETag * pTag = APE_GET_TAG(s_spAPEDecompressExtendedFileInfo);
         if (pTag != APE_NULL)
         {
             if (pTag->Save(false) == ERROR_SUCCESS)
@@ -982,10 +982,10 @@ extern "C" int APE_GetAlbumArt(const wchar_t * filename, const wchar_t * type, v
     spAPEDecompress.Assign(CreateIAPEDecompress(filename, APE_NULL, false, true, false));
 
     // get the tag
-    IAPETag * pTag = GET_TAG(spAPEDecompress);
+    IAPETag * pTag = APE_GET_TAG(spAPEDecompress);
     if (pTag != APE_NULL)
     {
-        CAPETagField * pTagImage = pTag->GetTagField(APE_TAG_FIELD_COVER_ART_FRONT);
+        IAPETagField * pTagImage = pTag->GetTagField(APE_TAG_FIELD_COVER_ART_FRONT);
         if ((pTagImage != APE_NULL) && (pTagImage->GetFieldSize() > 0))
         {
             *len = static_cast<size_t>(pTagImage->GetFieldSize());
@@ -1067,7 +1067,7 @@ extern "C" int APE_DeleteAlbumArt(const wchar_t * filename, const wchar_t * type
     // load the file
     spAPEDecompress.Assign(CreateIAPEDecompress(filename, APE_NULL, false, true, false));
 
-    IAPETag * pTag = GET_TAG(spAPEDecompress);
+    IAPETag * pTag = APE_GET_TAG(spAPEDecompress);
     if (pTag != APE_NULL)
     {
         // remove cover art

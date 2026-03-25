@@ -95,11 +95,6 @@ int64 CMemoryIO::GetSize()
     return m_nBufferBytes;
 }
 
-int CMemoryIO::GetName(str_utfn *)
-{
-    return ERROR_UNDEFINED;
-}
-
 int CMemoryIO::Create(const str_utfn *)
 {
     return ERROR_UNDEFINED;

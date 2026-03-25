@@ -10,11 +10,6 @@
 namespace APE
 {
 
-IAPEIO * CreateIAPEIO()
-{
-    return new CWinFileIO;
-}
-
 CWinFileIO::CWinFileIO()
 {
     m_hFile = INVALID_HANDLE_VALUE;
@@ -197,12 +192,6 @@ int64 CWinFileIO::GetSize()
     DWORD dwFileSizeHigh = 0;
     const DWORD dwFileSizeLow = GetFileSize(m_hFile, &dwFileSizeHigh);
     return static_cast<int64>(dwFileSizeLow) + (static_cast<int64>(dwFileSizeHigh) << 32);
-}
-
-int CWinFileIO::GetName(str_utfn * pBuffer)
-{
-    wcscpy_s(pBuffer, APE_MAX_PATH, m_cFileName);
-    return ERROR_SUCCESS;
 }
 
 int CWinFileIO::Create(const str_utfn * pName)

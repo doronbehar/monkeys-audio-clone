@@ -100,11 +100,6 @@ int64 CBufferIO::GetSize()
     return m_spSource->GetSize();
 }
 
-int CBufferIO::GetName(str_utfn * pBuffer)
-{
-    return m_spSource->GetName(pBuffer);
-}
-
 int CBufferIO::Create(const str_utfn * pName)
 {
     return m_spSource->Create(pName);
@@ -236,11 +231,6 @@ int64 CHeaderIO::GetPosition()
 int64 CHeaderIO::GetSize()
 {
     return m_spSource->GetSize();
-}
-
-int CHeaderIO::GetName(str_utfn * pBuffer)
-{
-    return m_spSource->GetName(pBuffer);
 }
 
 int CHeaderIO::Create(const str_utfn * pName)

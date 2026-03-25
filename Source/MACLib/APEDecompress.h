@@ -13,7 +13,7 @@ class IPredictorDecompress;
 class CAPEDecompress : public IAPEDecompress
 {
 public:
-    CAPEDecompress(int * pErrorCode, CAPEInfo * pAPEInfo, int64 nStartBlock = -1, int64 nFinishBlock = -1);
+    CAPEDecompress(int * pErrorCode, IAPEInfo * pAPEInfo, int64 nStartBlock = -1, int64 nFinishBlock = -1);
     ~CAPEDecompress();
 
     // configuration
@@ -49,7 +49,7 @@ protected:
     int ScheduleFrameDecode(CAPEDecompressCore * pWorker, int64 nFrameIndex);
 
     // more decoding components
-    CSmartPtr<CAPEInfo> m_spAPEInfo;
+    CSmartPtr<IAPEInfo> m_spAPEInfo;
 
     // decoding buffer
     CCircleBuffer m_cbFrameBuffer;

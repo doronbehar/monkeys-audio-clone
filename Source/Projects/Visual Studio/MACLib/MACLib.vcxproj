@@ -409,6 +409,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\MACLib\APEDecompressCore.h" />
     <ClInclude Include="..\..\..\MACLib\FloatTransform.h" />
+    <ClInclude Include="..\..\..\MACLib\IAPETag.h" />
     <ClInclude Include="..\..\..\MACLib\NNFilterCommon.h" />
     <ClInclude Include="..\..\..\MACLib\Old\AntiPredictorOld.h" />
     <ClInclude Include="..\..\..\MACLib\Old\APEDecompressCoreOld.h" />
@@ -421,6 +422,7 @@
     <ClInclude Include="..\..\..\Shared\BufferIO.h" />
     <ClInclude Include="..\..\..\Shared\CPUFeatures.h" />
     <ClInclude Include="..\..\..\Shared\IAPEIO.h" />
+    <ClInclude Include="..\..\..\Shared\IAPETag.h" />
     <ClInclude Include="..\..\..\Shared\MemoryIO.h" />
     <ClInclude Include="..\..\..\Shared\Semaphore.h" />
     <ClInclude Include="..\..\..\Shared\Thread.h" />

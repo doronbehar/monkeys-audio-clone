@@ -23,7 +23,7 @@ WARNING:
 #include "All.h"
 #include "stdio.h"
 #include "MACLib.h"
-#include "APETag.h"
+#include "IAPETag.h"
 #include "CharacterHelper.h"
 using namespace APE;
 
@@ -88,7 +88,7 @@ int wmain(int argc, wchar_t * argv[])
     // tag information
     _tprintf(_T("Tag Information:\r\n"));
 
-    APE::CAPETag * pAPETag = (APE::CAPETag *) pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_TAG);
+    APE::IAPETag * pAPETag = (APE::IAPETag *) pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_TAG);
     BOOL bHasID3Tag = pAPETag->GetHasID3Tag();
     BOOL bHasAPETag = pAPETag->GetHasAPETag();
 
@@ -97,7 +97,7 @@ int wmain(int argc, wchar_t * argv[])
         // iterate through all the tag fields
         for (int nField = 0; true; nField++)
         {
-            APE::CAPETagField * pTagField = pAPETag->GetTagField(nField);
+            APE::IAPETagField * pTagField = pAPETag->GetTagField(nField);
             if (pTagField == NULL)
                 break;
 

@@ -38,9 +38,6 @@ public:
     // attributes
     virtual int64 GetPosition() = 0;
     virtual int64 GetSize() = 0;
-    virtual int GetName(str_utfn * pBuffer) = 0;
 };
-
-IAPEIO * CreateIAPEIO();
 
 }

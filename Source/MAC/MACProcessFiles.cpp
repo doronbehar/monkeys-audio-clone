@@ -300,7 +300,7 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
                     CSmartPtr<APE::IAPETag> spAPETagNew(new CAPETag(pInfo->m_strOutputFilename, true));
                     for (int z = 0; true; z++)
                     {
-                        CAPETagField * pField = spAPETag->GetTagField(z);
+                        IAPETagField * pField = spAPETag->GetTagField(z);
                         if (pField == APE_NULL)
                             break;
                         spAPETagNew->SetFieldBinary(pField->GetFieldName(), pField->GetFieldValue(), pField->GetFieldValueSize(), pField->GetFieldFlags());

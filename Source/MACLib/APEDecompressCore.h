@@ -18,7 +18,7 @@ class IPredictorDecompress;
 class CAPEDecompressCore : public CThread
 {
 public:
-    CAPEDecompressCore(int * pErrorCode, CAPEDecompress * pDecompress, CAPEInfo * pAPEInfo);
+    CAPEDecompressCore(int * pErrorCode, CAPEDecompress * pDecompress, IAPEInfo * pAPEInfo);
     ~CAPEDecompressCore();
 
     int InitializeDecompressor();
@@ -67,7 +67,7 @@ protected:
     void EndFrame();
 
     // more decoding components
-    CAPEInfo * m_pAPEInfo;
+    IAPEInfo * m_pAPEInfo;
     CSmartPtr<CUnBitArrayBase> m_spUnBitArray;
     UNBIT_ARRAY_STATE m_aryBitArrayStates[APE_MAXIMUM_CHANNELS];
     IPredictorDecompress * m_aryPredictor[APE_MAXIMUM_CHANNELS];

@@ -36,8 +36,7 @@ public:
     // attributes
     int64 GetPosition() APE_OVERRIDE;
     int64 GetSize() APE_OVERRIDE;
-    int GetName(str_utfn * pBuffer) APE_OVERRIDE;
-
+    
 private:
     CSmartPtr<IAPEIO> m_spSource;
     CSmartPtr<unsigned char> m_spBuffer;
@@ -81,7 +80,6 @@ public:
     // attributes
     int64 GetPosition() APE_OVERRIDE;
     int64 GetSize() APE_OVERRIDE;
-    int GetName(str_utfn * pBuffer) APE_OVERRIDE;
 
 private:
     CSmartPtr<IAPEIO> m_spSource;

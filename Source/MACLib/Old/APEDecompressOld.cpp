@@ -8,7 +8,7 @@
 namespace APE
 {
 
-CAPEDecompressOld::CAPEDecompressOld(int * pErrorCode, CAPEInfo * pAPEInfo, int nStartBlock, int nFinishBlock)
+CAPEDecompressOld::CAPEDecompressOld(int * pErrorCode, IAPEInfo * pAPEInfo, int nStartBlock, int nFinishBlock)
 {
     *pErrorCode = ERROR_SUCCESS;
 

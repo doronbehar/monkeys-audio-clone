@@ -54,7 +54,8 @@ const char * __stdcall GetLibraryVersionString()
 
 unsigned int __stdcall GetLibraryVersionNumber()
 {
-    return APE_VERSION_MAJOR << 16 | APE_VERSION_REVISION_NUMBER << 8;
+    // we use _ttoi on a string version to work around something like 08 being interpreted as octal
+    return (static_cast<unsigned int>(APE_VERSION_MAJOR) << 16) | (static_cast<unsigned int>(_wtoi(APE_STRINGIZE_WIDE(APE_VERSION_REVISION))) << 8);
 }
 
 unsigned int __stdcall GetLibraryInterfaceVersion()
@@ -126,7 +127,7 @@ int __stdcall RemoveTagW(const str_utfn * pFilename)
     if (spAPEDecompress == APE_NULL) return ERROR_UNDEFINED;
 
     // remove the tag
-    IAPETag * pTag = GET_TAG(spAPEDecompress);
+    IAPETag * pTag = APE_GET_TAG(spAPEDecompress);
     if (pTag != APE_NULL)
         nErrorCode = pTag->Remove(false);
     else
