@@ -28,6 +28,7 @@ public:
     enum EImageList
     {
         Image_Toolbar,
+        Image_ToolbarDisabled,
         Image_OptionsList,
         Image_OptionsPages
     };
@@ -40,6 +41,7 @@ public:
     bool SetScale(double dScale, bool bForce = false);
     Gdiplus::Bitmap * GetMonkeyImage();
     void LoadFont(bool bRebuild);
+    void LoadFont(CFont & Font, int nSizeScale = 100, bool bBold = false);
     UINT & GetMonitorDPI() { return m_nMonitorDPI; }
 
     // message map
@@ -50,6 +52,7 @@ private:
     APE::CSmartPtr<CFormatArray> m_sparyFormats;
     APE::CSmartPtr<CMACSettings> m_spSettings;
     CImageList m_ImageListToolbar;
+    CImageList m_ImageListToolbarDisabled;
     CImageList m_ImageListOptionsList;
     CImageList m_ImageListOptionsPages;
     CGDIBitmapPtr m_spbmpButtons;

@@ -9,6 +9,7 @@
 #include "WAVInputSource.h"
 #include "MD5.h"
 #include "APEInfo.h"
+#include "APETag.h"
 #if defined(IO_USE_WIN_FILE_IO)
     #include "WinFileIO.h"
 #elif defined(IO_USE_STD_LIB_FILE_IO)

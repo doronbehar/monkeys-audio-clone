@@ -7,6 +7,16 @@
 
 using namespace APE;
 
+// include the modern common controls for better UI appearance
+#pragma comment(lib, "comctl32.lib")
+#pragma comment(linker,"\"/manifestdependency:type='win32' \
+name='Microsoft.Windows.Common-Controls' \
+version='6.0.0.0' \
+processorArchitecture='*' \
+publicKeyToken='6595b64144ccf1df' \
+language='*'\"")
+
+// the global application object
 CMACApp theApp;
 
 BEGIN_MESSAGE_MAP(CMACApp, CWinApp)
@@ -27,6 +37,13 @@ CMACApp::CMACApp()
     Gdiplus::GdiplusStartupInput gdiplusStartupInput; // filled in by the constructor
     ULONG_PTR gdiplusToken = 0;
     Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, APE_NULL);
+
+    // initialize common controls
+    INITCOMMONCONTROLSEX icex;
+    APE_CLEAR(icex);
+    icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
+    icex.dwICC = ICC_STANDARD_CLASSES | ICC_WIN95_CLASSES;
+    InitCommonControlsEx(&icex);
 }
 
 CMACApp::~CMACApp()
@@ -147,7 +164,7 @@ void CMACApp::DeleteImageLists()
 
 CImageList * CMACApp::GetImageList(EImageList Image)
 {
-    CImageList * pImageList = (Image == Image_Toolbar) ? &m_ImageListToolbar : (Image == Image_OptionsList) ? &m_ImageListOptionsList : (Image == Image_OptionsPages) ? &m_ImageListOptionsPages : APE_NULL;
+    CImageList * pImageList = (Image == Image_Toolbar) ? &m_ImageListToolbar : (Image == Image_ToolbarDisabled) ? &m_ImageListToolbarDisabled : (Image == Image_OptionsList) ? &m_ImageListOptionsList : (Image == Image_OptionsPages) ? &m_ImageListOptionsPages : APE_NULL;
     if ((pImageList != APE_NULL) && (pImageList->GetSafeHandle() == APE_NULL))
     {
         // load the image
@@ -195,6 +212,29 @@ CImageList * CMACApp::GetImageList(EImageList Image)
             // the artifacts were found 12/3/2021 and was a line next to the Make APL icon
             graphicsSingle.Clear(Gdiplus::Color(0));
             graphicsSingle.DrawImage(m_spbmpButtons, Gdiplus::Rect(0, 0, nSizeBitmap, nSizeBitmap), (nSizeBitmap * z), 0, nSizeBitmap, nSizeBitmap, Gdiplus::UnitPixel);
+
+            // make the Image_ToolbarDisabled image disabled
+            if (Image == Image_ToolbarDisabled)
+            {
+                for (UINT y = 0; y < bmpSingle.GetHeight(); y++)
+                {
+                    for (UINT x = 0; x < bmpSingle.GetWidth(); x++)
+                    {
+                        // get pixel
+                        Gdiplus::Color color;
+                        bmpSingle.GetPixel(x, y, &color);
+
+                        // calculate weighted average for grayscale
+                        BYTE gray = (BYTE)(0.299 * color.GetRed() +
+                            0.587 * color.GetGreen() +
+                            0.114 * color.GetBlue());
+
+                        // create pixel using grayscale
+                        Gdiplus::Color disabledColor(color.GetAlpha(), gray, gray, gray);
+                        bmpSingle.SetPixel(x, y, disabledColor);
+                    }
+                }
+            }
 
             // draw onto the graphics object
             Gdiplus::Rect rectSource(0, 0, nSizeBitmap, nSizeBitmap);
@@ -281,6 +321,12 @@ void CMACApp::LoadFont(bool bRebuild)
     if (m_Font.GetSafeHandle() != APE_NULL)
         m_Font.DeleteObject();
 
+    // load default sized font
+    LoadFont(m_Font, 100);
+}
+
+void CMACApp::LoadFont(CFont & Font, int nSizeScale, bool bBold)
+{
     // get the system font using SPI_GETNONCLIENTMETRICS
     NONCLIENTMETRICS ncm;
     APE_CLEAR(ncm);
@@ -292,7 +338,7 @@ void CMACApp::LoadFont(bool bRebuild)
     if (hUser32 != APE_NULL)
     {
         BOOL(STDAPICALLTYPE * pSystemParametersInfoForDpi) (IN UINT uiAction, IN UINT uiParam, PVOID pvParam, IN UINT fWinIni, IN UINT dpi) = APE_NULL;
-        *(reinterpret_cast<FARPROC*>(&pSystemParametersInfoForDpi)) = GetProcAddress(hUser32, "SystemParametersInfoForDpi");
+        *(reinterpret_cast<FARPROC *>(&pSystemParametersInfoForDpi)) = GetProcAddress(hUser32, "SystemParametersInfoForDpi");
         if (pSystemParametersInfoForDpi != APE_NULL)
         {
             bResult = pSystemParametersInfoForDpi(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0, m_nMonitorDPI);
@@ -313,8 +359,14 @@ void CMACApp::LoadFont(bool bRebuild)
 
     // scale by the setting
     double dSize = static_cast<double>(GetSettings()->LoadSetting(_T("Font Size"), 100));
+    if (nSizeScale != 100)
+        dSize = (dSize * static_cast<double>(nSizeScale)) / 100;
     ncm.lfMessageFont.lfHeight = static_cast<LONG>((static_cast<double>(ncm.lfMessageFont.lfHeight) * dSize) / 100.0);
 
+    // bold
+    if (bBold)
+        ncm.lfMessageFont.lfWeight = FW_BOLD;
+
     // build font
-    m_Font.CreateFontIndirect(&ncm.lfMessageFont);
+    Font.CreateFontIndirect(&ncm.lfMessageFont);
 }

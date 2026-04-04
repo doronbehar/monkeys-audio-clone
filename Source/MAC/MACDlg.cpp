@@ -1206,6 +1206,7 @@ void CMACDlg::LoadScale(bool bForce)
     // set images
     m_ctrlToolbar.GetToolBarCtrl().SetExtendedStyle(TBSTYLE_EX_DRAWDDARROWS);
     m_ctrlToolbar.GetToolBarCtrl().SetImageList(theApp.GetImageList(CMACApp::Image_Toolbar));
+    m_ctrlToolbar.GetToolBarCtrl().SetDisabledImageList(theApp.GetImageList(CMACApp::Image_ToolbarDisabled));
 
     // set the font to all the controls
     {
@@ -1222,10 +1223,13 @@ void CMACDlg::LoadScale(bool bForce)
     m_ctrlList.LoadColumns();
 
     // size the toolbar (using the size that it lays out at plus the icon size)
-    CRect rectItem;
-    m_ctrlToolbar.GetItemRect(0, &rectItem);
-    int nSizeButtons = theApp.GetSize(32);
-    m_ctrlToolbar.SetSizes(CSize(rectItem.Width(), rectItem.Height()), CSize(nSizeButtons, nSizeButtons));
+    // use the font size of a string used in the toolbar plus some constants to size (this works better than using the size logic built into the toolbar on 4/2/2026)
+    CDC * pDC = GetDC();
+    pDC->SelectObject(theApp.GetFont());
+    CSize size = pDC->GetTextExtent(_T("Remove Files"));
+    int nSizeImages = theApp.GetSize(32);
+    m_ctrlToolbar.SetSizes(CSize(size.cx + theApp.GetSize(16), size.cy + nSizeImages + theApp.GetSize(14)), CSize(nSizeImages, nSizeImages));
+    ReleaseDC(pDC);
 
     // set uniform widths so the buttons don't change size when we change the text
     int nButtonWidth = theApp.GetSize(40) + GetScaledFontHeight(42);

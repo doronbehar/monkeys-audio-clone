@@ -1,6 +1,7 @@
 #include "All.h"
 #include "UnBitArrayBase.h"
 #include "APEInfo.h"
+#include "IAPETag.h"
 #include "UnBitArray.h"
 #ifdef APE_BACKWARDS_COMPATIBILITY
     #include "Old/UnBitArrayOld.h"

@@ -9,12 +9,10 @@ to do whatever you need. The destructor will take care of any cleanup.
 #pragma once
 
 #include "IAPEIO.h"
-#include "APETag.h"
 #include "MACLib.h"
 
 namespace APE
 {
-
 /**************************************************************************************************
 APE_FILE_INFO - structure which describes most aspects of an APE file
 (used internally for speed and ease)

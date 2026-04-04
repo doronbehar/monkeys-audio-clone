@@ -54,11 +54,11 @@ BOOL COptionsDlg::OnInitDialog()
 
 void COptionsDlg::OnItemchangedPageList(NMHDR *, LRESULT * pResult)
 {
+    // get page
     int nPage = GetSelectedPage();
     if (nPage < 0)
     {
-        // if no page is selected (off the bottom) just select the first page
-        m_ctrlPageList.SetItemState(0, LVIS_SELECTED, LVIS_SELECTED);
+        // if no page is selected (off the bottom) just do nothing
     }
     else
     {

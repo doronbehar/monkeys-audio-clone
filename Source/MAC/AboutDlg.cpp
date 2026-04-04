@@ -53,26 +53,11 @@ void CAboutDlg::OnPaint()
 
     dc.SetBkMode(TRANSPARENT);
 
+    // create fonts
     if (m_bFontsCreated == false)
     {
-        LOGFONT LogFont;
-        CFont * pfontGUI = CFont::FromHandle(static_cast<HFONT>(GetStockObject(DEFAULT_GUI_FONT)));
-
-        pfontGUI->GetLogFont(&LogFont);
-        LogFont.lfWidth = (LogFont.lfWidth * 180) / 100;
-        LogFont.lfWidth = theApp.GetSize(LogFont.lfWidth);
-        LogFont.lfHeight = theApp.GetSize(LogFont.lfHeight);
-        LogFont.lfHeight = (LogFont.lfHeight * 180) / 100;
-        LogFont.lfHeight = theApp.GetSize(LogFont.lfHeight);
-        LogFont.lfWeight = FW_BOLD;
-        m_fontLarge.CreateFontIndirect(&LogFont);
-
-        pfontGUI->GetLogFont(&LogFont);
-        LogFont.lfWidth = (LogFont.lfWidth * 120) / 100;
-        LogFont.lfWidth = theApp.GetSize(LogFont.lfWidth);
-        LogFont.lfHeight = (LogFont.lfHeight * 120) / 100;
-        LogFont.lfHeight = theApp.GetSize(LogFont.lfHeight);
-        m_fontSmall.CreateFontIndirect(&LogFont);
+        theApp.LoadFont(m_fontLarge, 180, true);
+        theApp.LoadFont(m_fontSmall, 120);
     }
 
     // get CPU

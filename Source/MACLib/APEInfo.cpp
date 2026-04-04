@@ -4,6 +4,7 @@ CAPEInfo:
 **************************************************************************************************/
 #include "All.h"
 #include "APEInfo.h"
+#include "APETag.h"
 #include "IAPEIO.h"
 #include "APEHeader.h"
 #include "GlobalFunctions.h"
