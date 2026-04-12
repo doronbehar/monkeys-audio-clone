@@ -756,6 +756,10 @@ void CMACListCtrl::OnLvnColumnclickList(NMHDR *pNMHDR, LRESULT *pResult)
 
     if (m_paryFiles->GetSize() > 0)
     {
+        // store the selected state
+        for (int z = 0; z < m_paryFiles->GetSize(); z++)
+            m_paryFiles->ElementAt(z)->m_bSelected = (GetItemState(z, LVIS_SELECTED) & LVIS_SELECTED);
+
         // if we click status, check for all the values being "OK" and just message that
         if (m_nCompareColumn == COLUMN_STATUS)
         {
@@ -784,6 +788,13 @@ void CMACListCtrl::OnLvnColumnclickList(NMHDR *pNMHDR, LRESULT *pResult)
         // update
         DeleteAllItems();
         Update();
+
+        // update the selected states
+        for (int z = 0; z < m_paryFiles->GetSize(); z++)
+        {
+            if (m_paryFiles->ElementAt(z)->m_bSelected)
+                SetItemState(z, LVIS_SELECTED, LVIS_SELECTED);
+        }
     }
 
     *pResult = 0;

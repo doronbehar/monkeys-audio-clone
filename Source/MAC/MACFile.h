@@ -17,6 +17,7 @@ public:
     CString m_strWorkingFilename;
     double m_dInputFileBytes;
     double m_dOutputFileBytes;
+    bool m_bSelected;
 
     // processing info
     CMACProcessFiles * m_pMACProcessFiles;

@@ -216,22 +216,21 @@ CImageList * CMACApp::GetImageList(EImageList Image)
             // make the Image_ToolbarDisabled image disabled
             if (Image == Image_ToolbarDisabled)
             {
-                for (UINT y = 0; y < bmpSingle.GetHeight(); y++)
+                for (int y = 0; y < static_cast<int>(bmpSingle.GetHeight()); y++)
                 {
-                    for (UINT x = 0; x < bmpSingle.GetWidth(); x++)
+                    for (int x = 0; x < static_cast<int>(bmpSingle.GetWidth()); x++)
                     {
                         // get pixel
-                        Gdiplus::Color color;
-                        bmpSingle.GetPixel(x, y, &color);
+                        Gdiplus::Color clrPixel;
+                        bmpSingle.GetPixel(x, y, &clrPixel);
 
                         // calculate weighted average for grayscale
-                        BYTE gray = (BYTE)(0.299 * color.GetRed() +
-                            0.587 * color.GetGreen() +
-                            0.114 * color.GetBlue());
+                        BYTE nGray = static_cast<BYTE>(0.299 * clrPixel.GetRed() +
+                            0.587 * clrPixel.GetGreen() +
+                            0.114 * clrPixel.GetBlue());
 
                         // create pixel using grayscale
-                        Gdiplus::Color disabledColor(color.GetAlpha(), gray, gray, gray);
-                        bmpSingle.SetPixel(x, y, disabledColor);
+                        bmpSingle.SetPixel(x, y, Gdiplus::Color(clrPixel.GetAlpha(), nGray, nGray, nGray));
                     }
                 }
             }

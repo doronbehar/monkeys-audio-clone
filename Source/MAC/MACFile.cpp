@@ -13,6 +13,7 @@ MAC_FILE::MAC_FILE()
 {
     m_dInputFileBytes = 0;
     m_dOutputFileBytes = 0;
+    m_bSelected = false;
     m_bProcessing = false;
     m_pMACProcessFiles = APE_NULL;
     m_Mode = MODE_COMPRESS;
