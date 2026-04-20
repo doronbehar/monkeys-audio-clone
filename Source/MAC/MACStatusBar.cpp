@@ -48,6 +48,12 @@ int CMACStatusBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
     // store parent
     m_hwndParent = lpCreateStruct->hwndParent;
 
+    // create the progress control
+    m_ctrlProgress.Create(WS_VISIBLE | WS_CHILD, CRect(0, 0, 0, 0), this, 1);
+    m_ctrlProgress.SetRange(0, 100);
+    m_ctrlProgress.SetStep(1);
+    m_ctrlProgress.SetPos(100);
+
     // set the indicators
     SetIndicators(indicators, sizeof(indicators) / sizeof(UINT));
 
@@ -57,12 +63,6 @@ int CMACStatusBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
     // status
     UpdateProgress(0, 0);
 
-    // create the progress control
-    m_ctrlProgress.Create(WS_VISIBLE | WS_CHILD, CRect(0, 0, 0, 0), this, 1);
-    m_ctrlProgress.SetRange(0, 100);
-    m_ctrlProgress.SetStep(1);
-    m_ctrlProgress.SetPos(100);
-
     return 0;
 }
 
@@ -70,14 +70,8 @@ void CMACStatusBar::OnSize(UINT nType, int cx, int cy)
 {
     CStatusBar::OnSize(nType, cx, cy);
 
-    // position the progress bar
-    CRect rectProgressBarPane; GetItemRect(ID_INDICATOR_PROGRESS_BAR, &rectProgressBarPane);
-    m_ctrlProgress.SetWindowPos(&wndTop, rectProgressBarPane.left, rectProgressBarPane.top, rectProgressBarPane.Width(), rectProgressBarPane.Height(), 0);
-    m_ctrlProgress.ShowWindow(m_bShowProgress ? SW_SHOW : SW_HIDE);
-
-    // update sizes
-    if ((cx > 0) && (cy > 0))
-        UpdateStatusbarSizes();
+    // position the statusbar and progress bar
+    UpdateStatusbarSizes();
 }
 
 bool CMACStatusBar::UpdateFiles(MAC_FILE_ARRAY * paryFiles)
@@ -245,10 +239,16 @@ void CMACStatusBar::OnRButtonUp(UINT nFlags, CPoint pt)
 
 void CMACStatusBar::UpdateStatusbarSizes()
 {
-    SetPaneInfo(ID_INDICATOR_STATUS, static_cast<UINT>(-1), SBPS_NORMAL, theApp.GetSize((m_pMACDlg->MeasureText(_T("Processing...")).cx * 150) / 100));
-    SetPaneInfo(ID_INDICATOR_FILES, static_cast<UINT>(-1), SBPS_NORMAL, theApp.GetSize((m_pMACDlg->MeasureText(_T("99999 files (9999.99 GB / 9999.99 GB [99.99%])")).cx * 110) / 100));
-    SetPaneInfo(ID_INDICATOR_PROGRESS, static_cast<UINT>(-1), SBPS_NORMAL, theApp.GetSize((m_pMACDlg->MeasureText(_T("99.99% done (99:99.99 left)")).cx * 110) / 100));
-    SetPaneInfo(ID_INDICATOR_PROGRESS_BAR, static_cast<UINT>(-1), SBPS_STRETCH, theApp.GetSize(0));
+    // update panel sizes
+    SetPaneInfo(ID_INDICATOR_STATUS, static_cast<UINT>(-1), SBPS_NORMAL, (theApp.GetTextExtent(this, _T("Processing...")).cx * 150) / 100);
+    SetPaneInfo(ID_INDICATOR_FILES, static_cast<UINT>(-1), SBPS_NORMAL, (theApp.GetTextExtent(this, _T("99999 files (9999.99 GB / 9999.99 GB [99.99%])")).cx * 110) / 100);
+    SetPaneInfo(ID_INDICATOR_PROGRESS, static_cast<UINT>(-1), SBPS_NORMAL, (theApp.GetTextExtent(this, _T("99.99% done (99:99.99 left)")).cx * 130) / 100);
+    SetPaneInfo(ID_INDICATOR_PROGRESS_BAR, static_cast<UINT>(-1), SBPS_STRETCH, 0);
+
+    // position the progress bar
+    CRect rectProgressBarPane; GetItemRect(ID_INDICATOR_PROGRESS_BAR, &rectProgressBarPane);
+    m_ctrlProgress.SetWindowPos(&wndTop, rectProgressBarPane.left, rectProgressBarPane.top, rectProgressBarPane.Width(), rectProgressBarPane.Height(), 0);
+    m_ctrlProgress.ShowWindow(m_bShowProgress ? SW_SHOW : SW_HIDE);
 }
 
 void CMACStatusBar::ShowFreeSpaceDrivePopup()

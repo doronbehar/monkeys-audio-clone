@@ -14,6 +14,7 @@ public:
     bool SetLastProcessTotalMS(int nMilliseconds);
     void StartProcessing();
     void EndProcessing();
+    void UpdateStatusbarSizes();
 
 protected:
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
@@ -22,7 +23,6 @@ protected:
     afx_msg void OnRButtonUp(UINT nFlags, CPoint pt);
     DECLARE_MESSAGE_MAP()
 
-    void UpdateStatusbarSizes();
     void ShowFreeSpaceDrivePopup();
 
     CMACDlg * m_pMACDlg;

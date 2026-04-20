@@ -62,11 +62,8 @@ void CAboutDlg::OnPaint()
 
     // get CPU
     CString strCPU = GetCPU();
-
-    dc.SelectObject(&m_fontSmall);
-    int nFontSmallHeight = dc.GetTextExtent(_T("Ay")).cy;
-    dc.SelectObject(&m_fontLarge);
-    int nFontLargeHeight = dc.GetTextExtent(_T("Ay")).cy;
+    int nFontSmallHeight = theApp.GetTextExtent(this, _T("Ay"), &m_fontSmall).cy;
+    int nFontLargeHeight = theApp.GetTextExtent(this, _T("Ay"), &m_fontLarge).cy;
     int nLineSpacing = theApp.GetSize(3);
 
     int nTop = rectPaint.top;

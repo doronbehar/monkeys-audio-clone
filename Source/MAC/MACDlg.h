@@ -18,12 +18,11 @@ public:
     bool GetProcessing() { return (m_spProcessFiles != APE_NULL); }
     bool GetInitialized() const { return m_bInitialized; }
     int GetScaledFontHeight(int nStart) const;
-    CSize MeasureText(const CString & strText);
 
     virtual BOOL PreTranslateMessage(MSG * pMsg);
     virtual void WinHelp(DWORD_PTR dwData, UINT nCmd = HELP_CONTEXT);
 
-    int GetControlHeight(CWnd * pwndControl);
+    int GetControlHeight(CWnd * pwndControl) const;
     void LayoutControlTop(CWnd * pwndLayout, CRect & rectLayout, bool bOnlyControlWidth = false, bool bCombobox = false, CWnd * pwndRight = APE_NULL);
     void LayoutControlTopWithDivider(CWnd * pwndLayout, CWnd * pwndDivider, CWnd * pwndImage, CRect & rectLayout);
     bool SetMode(APE::APE_MODES Mode);

@@ -32,12 +32,12 @@ public:
         Image_OptionsList,
         Image_OptionsPages
     };
-    void DeleteImageLists();
     CImageList * GetImageList(EImageList Image);
     int GetSize(int nSize, double dAdditional = 1.0) const;
     int GetSizeReverse(int nSize) const;
     double GetScale() const { return m_dScale; }
     CFont * GetFont() { return &m_Font; }
+    CSize GetTextExtent(CWnd * pWnd, const CString & strText, CFont * pFont = APE_NULL);
     bool SetScale(double dScale, bool bForce = false);
     Gdiplus::Bitmap * GetMonkeyImage();
     void LoadFont(bool bRebuild);

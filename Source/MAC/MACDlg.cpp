@@ -184,6 +184,8 @@ bool CMACDlg::LoadMenuAndToolbar(bool bProcessing)
         AddToolbarButton(ID_FILE_REMOVE_FILES, TBB_REMOVE_FILES, _T("Remove Files"), TBSTYLE_BUTTON);
         AddToolbarButton(ID_FILE_CLEAR_FILES, TBB_CLEAR_FILES, _T("Clear Files"), TBSTYLE_BUTTON);
         AddToolbarButton(ID_SEPARATOR, TBB_NONE, _T(""), TBSTYLE_SEP);
+        AddToolbarButton(ID_FILE_FILE_INFO, TBB_FILE_INFO, _T("File Info"), TBSTYLE_BUTTON);
+        AddToolbarButton(ID_SEPARATOR, TBB_NONE, _T(""), TBSTYLE_SEP);
         AddToolbarButton(ID_TOOLS_OPTIONS, TBB_OPTIONS, _T("Options"), TBSTYLE_BUTTON);
     }
 
@@ -478,25 +480,23 @@ void CMACDlg::LayoutWindow()
 {
     if (m_bInitialized)
     {
-        // position bars
-        RepositionBars(AFX_IDW_CONTROLBAR_FIRST, AFX_IDW_CONTROLBAR_LAST, 0, reposDefault);
-
         // get rectangle
         CRect rectClient; GetClientRect(&rectClient);
         int cx = rectClient.Width(); int cy = rectClient.Height();
-
         const int nBorderWidth = theApp.GetSize(5);
 
-        // status bar
-        int nStatusBarHeight = GetScaledFontHeight(22);
-        m_ctrlStatusBar.SetWindowPos(APE_NULL, nBorderWidth, cy - nStatusBarHeight, cx - nBorderWidth, nStatusBarHeight, SWP_NOZORDER);
-        CRect rectStatusBar; m_ctrlStatusBar.GetClientRect(&rectStatusBar);
+        // size toolbar
+        CSize sizeText = theApp.GetTextExtent(this, _T("High"));
+        int nToolbarHeight = sizeText.cy + theApp.GetSize(46) + 10;
+        m_ctrlToolbar.SetWindowPos(NULL, 0, 0, cx, nToolbarHeight, SWP_NOZORDER);
 
-        // toolbar
-        CRect rectToolbar; m_ctrlToolbar.GetWindowRect(&rectToolbar); ScreenToClient(&rectToolbar);
+        // status bar
+        int nStatusBarHeight = sizeText.cy + theApp.GetSize(7);
+        m_ctrlStatusBar.SetWindowPos(APE_NULL, nBorderWidth, cy - nStatusBarHeight, cx - nBorderWidth, nStatusBarHeight, SWP_NOZORDER);
+        m_ctrlStatusBar.UpdateStatusbarSizes();
 
         // list
-        m_ctrlList.SetWindowPos(APE_NULL, nBorderWidth, nBorderWidth + rectToolbar.bottom, cx - (2 * nBorderWidth), cy - nStatusBarHeight - (2 * nBorderWidth) - rectToolbar.Height(), SWP_NOZORDER);
+        m_ctrlList.SetWindowPos(APE_NULL, nBorderWidth, nToolbarHeight, cx - (2 * nBorderWidth), cy - nStatusBarHeight - nBorderWidth - nToolbarHeight, SWP_NOZORDER);
 
         // update
         UpdateWindow();
@@ -912,16 +912,6 @@ int CMACDlg::GetScaledFontHeight(int nStart) const
     return nHeight;
 }
 
-CSize CMACDlg::MeasureText(const CString & strText)
-{
-    CRect rectSize;
-
-    CPaintDC dc(this);
-    dc.SelectObject(*theApp.GetFont());
-    dc.DrawText(strText, &rectSize, DT_NOPREFIX | DT_CALCRECT);
-    return rectSize.Size();
-}
-
 BOOL CMACDlg::PreTranslateMessage(MSG * pMsg)
 {
     if (TranslateAccelerator(m_hWnd, m_hAcceleratorTable, pMsg) != 0)
@@ -1035,7 +1025,7 @@ void CMACDlg::WinHelp(DWORD_PTR, UINT nCmd)
         OnHelpHelp();
 }
 
-int CMACDlg::GetControlHeight(CWnd * pwndControl)
+int CMACDlg::GetControlHeight(CWnd * pwndControl) const
 {
     // get the height
     int nHeight = GetScaledFontHeight(22);
@@ -1105,10 +1095,7 @@ void CMACDlg::LayoutControlTopWithDivider(CWnd * pwndLayout, CWnd * pwndDivider,
     // size for text
     CString strWindowText;
     pwndLayout->GetWindowText(strWindowText);
-    CDC * pDC = pwndLayout->GetDC();
-    pDC->SelectObject(theApp.GetFont());
-    CSize sizeText = pDC->GetTextExtent(strWindowText);
-    pwndLayout->ReleaseDC(pDC);
+    CSize sizeText = theApp.GetTextExtent(pwndLayout, strWindowText);
     rectWindow.right = rectWindow.left + sizeText.cx + theApp.GetSize(8);
 
     // make a standard height
@@ -1185,9 +1172,6 @@ void CMACDlg::LoadScale(bool bForce)
     dc.GetTextMetrics(&Metrics);
     m_nFontHeight = Metrics.tmHeight;
 
-    // release store image lists
-    theApp.DeleteImageLists();
-
     // toolbar
     if (m_ctrlToolbar.GetSafeHwnd() == APE_NULL)
     {
@@ -1224,16 +1208,12 @@ void CMACDlg::LoadScale(bool bForce)
 
     // size the toolbar (using the size that it lays out at plus the icon size)
     // use the font size of a string used in the toolbar plus some constants to size (this works better than using the size logic built into the toolbar on 4/2/2026)
-    CDC * pDC = GetDC();
-    pDC->SelectObject(theApp.GetFont());
-    CSize size = pDC->GetTextExtent(_T("Remove Files"));
-    int nSizeImages = theApp.GetSize(32);
-    m_ctrlToolbar.SetSizes(CSize(size.cx + theApp.GetSize(16), size.cy + nSizeImages + theApp.GetSize(14)), CSize(nSizeImages, nSizeImages));
-    ReleaseDC(pDC);
+    CSize sizeText = theApp.GetTextExtent(this, _T("Remove Files"));
 
     // set uniform widths so the buttons don't change size when we change the text
-    int nButtonWidth = theApp.GetSize(40) + GetScaledFontHeight(42);
+    int nButtonWidth = sizeText.cx + theApp.GetSize(4);
     m_ctrlToolbar.GetToolBarCtrl().SetButtonWidth(nButtonWidth, nButtonWidth);
+    m_ctrlToolbar.GetToolBarCtrl().AutoSize();
 
     // resize to get the right toolbar height
     LayoutWindow();
@@ -1273,6 +1253,7 @@ void CMACDlg::UpdateEnabledStates()
 
     GetMenu()->EnableMenuItem(ID_FILE_PROCESS_FILES, bHasFiles ? 0 : MF_GRAYED);
 
+    m_ctrlToolbar.GetToolBarCtrl().EnableButton(ID_FILE_FILE_INFO, bHasFiles);
     GetMenu()->EnableMenuItem(ID_FILE_FILE_INFO, bHasFiles ? 0 : MF_GRAYED);
 
     // update the process files and remove files text based on one or many for the menu

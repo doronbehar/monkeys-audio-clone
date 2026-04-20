@@ -132,11 +132,18 @@ void COptionsDlg::OnSize(UINT nType, int cx, int cy)
     if (GetDlgItem(IDOK) == APE_NULL)
         return;
 
+    // sizes
     int nBorder = theApp.GetSize(8);
     int nPageTopBorder = theApp.GetSize(4);
     int nTopBorder = theApp.GetSize(10);
     int nButtonHeight = theApp.GetSize(m_pMACDlg->GetScaledFontHeight(23));
-    int nListWidth = theApp.GetSize(140);
+
+    // get list width
+    IMAGEINFO Info; APE_CLEAR(Info);
+    CImageList * pImageList = m_ctrlPageList.GetImageList(LVSIL_SMALL);
+    if (pImageList != NULL)
+        pImageList->GetImageInfo(0, &Info);
+    int nListWidth = theApp.GetTextExtent(this, _T("Processing")).cx + theApp.GetSize(20) + (Info.rcImage.right - Info.rcImage.left);
 
     // buttons
     GetDlgItem(IDOK)->SetWindowPos(APE_NULL, nBorder, cy - (nButtonHeight * 2) - (nBorder * 2), nListWidth, nButtonHeight, SWP_NOZORDER);

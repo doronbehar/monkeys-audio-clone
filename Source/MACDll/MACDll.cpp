@@ -54,7 +54,7 @@ const char * __stdcall GetLibraryVersionString()
 
 unsigned int __stdcall GetLibraryVersionNumber()
 {
-    // we use _ttoi on a string version to work around something like 08 being interpreted as octal
+    // we use _wtoi on a string version to work around something like 08 being interpreted as octal
     return (static_cast<unsigned int>(APE_VERSION_MAJOR) << 16) | (static_cast<unsigned int>(_wtoi(APE_STRINGIZE_WIDE(APE_VERSION_REVISION))) << 8);
 }
 

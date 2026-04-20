@@ -155,13 +155,6 @@ CMACSettings * CMACApp::GetSettings()
     return m_spSettings.GetPtr();
 }
 
-void CMACApp::DeleteImageLists()
-{
-    m_ImageListToolbar.DeleteImageList();
-    m_ImageListOptionsList.DeleteImageList();
-    m_ImageListOptionsPages.DeleteImageList();
-}
-
 CImageList * CMACApp::GetImageList(EImageList Image)
 {
     CImageList * pImageList = (Image == Image_Toolbar) ? &m_ImageListToolbar : (Image == Image_ToolbarDisabled) ? &m_ImageListToolbarDisabled : (Image == Image_OptionsList) ? &m_ImageListOptionsList : (Image == Image_OptionsPages) ? &m_ImageListOptionsPages : APE_NULL;
@@ -264,6 +257,23 @@ int CMACApp::GetSizeReverse(int nSize) const
     return nNewSize;
 }
 
+CSize CMACApp::GetTextExtent(CWnd * pWnd, const CString & strText, CFont * pFont)
+{
+    CSize sizeText(0, 0);
+
+    CDC * pDC = pWnd->GetDC();
+    if (pDC != NULL)
+    {
+        if (pFont == APE_NULL)
+            pFont = GetFont();
+        pDC->SelectObject(pFont);
+        sizeText = pDC->GetTextExtent(strText);
+        pWnd->ReleaseDC(pDC);
+    }
+
+    return sizeText;
+}
+
 bool CMACApp::SetScale(double dScale, bool bForce)
 {
     bool bResult = false;
@@ -274,6 +284,12 @@ bool CMACApp::SetScale(double dScale, bool bForce)
 
         // reset the font
         m_Font.DeleteObject();
+
+        // reset images
+        m_ImageListToolbar.DeleteImageList();
+        m_ImageListToolbarDisabled.DeleteImageList();
+        m_ImageListOptionsList.DeleteImageList();
+        m_ImageListOptionsPages.DeleteImageList();
 
         // build the font again
         LoadFont(true);
