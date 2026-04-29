@@ -4,17 +4,9 @@
 #include "FormatArray.h"
 #include "MACSettings.h"
 #include "APEButtons.h"
+#include "GlobalFunctions.h"
 
 using namespace APE;
-
-// include the modern common controls for better UI appearance
-#pragma comment(lib, "comctl32.lib")
-#pragma comment(linker,"\"/manifestdependency:type='win32' \
-name='Microsoft.Windows.Common-Controls' \
-version='6.0.0.0' \
-processorArchitecture='*' \
-publicKeyToken='6595b64144ccf1df' \
-language='*'\"")
 
 // the global application object
 CMACApp theApp;
@@ -32,6 +24,9 @@ CMACApp::CMACApp()
     m_bAnotherInstanceRunning = (dwLastError == ERROR_ALREADY_EXISTS);
     m_pMACDlg = APE_NULL;
     m_nMonitorDPI = 0;
+
+    // turn on high DPI support (also done in the manifest)
+    EnableHighDPISupport();
 
     // start GDI plus
     Gdiplus::GdiplusStartupInput gdiplusStartupInput; // filled in by the constructor

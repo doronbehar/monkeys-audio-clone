@@ -137,9 +137,9 @@ IAPEDecompress * __stdcall CreateIAPEDecompress(const str_utfn * pFilename, int 
             nStartBlock = APELink.GetStartBlock(); nFinishBlock = APELink.GetFinishBlock();
         }
     }
-    else if (StringIsEqual(pExtension, L".mac", false) || StringIsEqual(pExtension, L".ape", false))
+    else if (StringIsEqual(pExtension, L".mac", false) || StringIsEqual(pExtension, L".ape", false) || StringIsEqual(pFilename, L"-", false))
     {
-        // plain .ape file
+        // plain .ape file (we assume data coming in from a pipe is this type)
         pAPEInfo = new CAPEInfo(&nErrorCode, pFilename, APE_NULL, false, bReadOnly, bAnalyzeTagNow, bReadWholeFile);
         if (nErrorCode != ERROR_SUCCESS)
         {

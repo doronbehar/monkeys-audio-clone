@@ -245,9 +245,4 @@
       <Filter>Resource Files</Filter>
     </Media>
   </ItemGroup>
-  <ItemGroup>
-    <Manifest Include="..\..\..\MAC\MAC.manifest">
-      <Filter>Resource Files</Filter>
-    </Manifest>
-  </ItemGroup>
 </Project>

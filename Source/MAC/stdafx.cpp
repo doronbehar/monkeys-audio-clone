@@ -306,11 +306,11 @@ bool ReadWholeFile(const CString & strFilename, CString & strBuffer)
                 // null-terminate
                 spUTF8[dwBytesRead] = 0;
 
-                // convert to UTF-16
-                CSmartPtr<TCHAR> spUTF16(CAPECharacterHelper::GetUTFNFromUTF8(reinterpret_cast<unsigned char *>(spUTF8.GetPtr())), true);
-                if (spUTF16)
+                // convert to UTF-N
+                CSmartPtr<str_utfn> spUTFN(CAPECharacterHelper::GetUTFNFromUTF8(reinterpret_cast<unsigned char *>(spUTF8.GetPtr())), true);
+                if (spUTFN)
                 {
-                    strBuffer = spUTF16;
+                    strBuffer = spUTFN;
                     bRetVal = true;
                 }
             }
