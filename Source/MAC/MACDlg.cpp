@@ -32,6 +32,8 @@ CMACDlg::CMACDlg(CStringArrayEx * paryFiles, CWnd * pParent) :
     m_hAcceleratorTable = APE_NULL;
     m_nMonitorDPI = 0;
     m_nFontHeight = 0;
+    m_pToolbarMenu = APE_NULL;
+    m_nCheckedFormatMenuItem = 0;
 
     m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -88,6 +90,9 @@ BEGIN_MESSAGE_MAP(CMACDlg, CDialog)
     ON_WM_QUERYENDSESSION()
     ON_MESSAGE(WM_DPICHANGED, &CMACDlg::OnDPIChanged)
     ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST, &CMACDlg::OnListItemChanged)
+    ON_WM_MEASUREITEM()
+    ON_WM_DRAWITEM()
+    ON_WM_CLOSE()
 END_MESSAGE_MAP()
 
 BOOL CMACDlg::OnInitDialog()
@@ -155,16 +160,19 @@ BOOL CMACDlg::OnInitDialog()
     return true;  // return TRUE  unless you set the focus to a control
 }
 
-bool CMACDlg::LoadMenuAndToolbar(bool bProcessing)
+bool CMACDlg::LoadMenuAndToolbar(bool bProcessing, bool bForce)
 {
-    if (m_bInitialized && (bProcessing == m_bLastLoadMenuAndToolbarProcessing))
+    if (m_bInitialized && (bProcessing == m_bLastLoadMenuAndToolbarProcessing) && (bForce == false))
         return true;
     m_bLastLoadMenuAndToolbarProcessing = bProcessing;
     // BTNS_WHOLEDROPDOWN -- requires IE 5.0 //
 
     m_menuMain.DestroyMenu();
     m_menuMain.LoadMenu(bProcessing ? IDR_STOP_MENU : IDR_MAIN_MENU);
+
+    ChangeMenuToOwnerDraw(&m_menuMain, 0);
     SetMenu(&m_menuMain);
+    UpdateEnabledStates();
 
     while (m_ctrlToolbar.GetToolBarCtrl().DeleteButton(0)) { }
 
@@ -315,8 +323,14 @@ void CMACDlg::OnToolbarDropDown(NMHDR * pnmtb, LRESULT *)
         m_ctrlToolbar.SendMessage(TB_GETRECT, pNMToolbar->iItem, reinterpret_cast<LPARAM>(&rectItem));
         m_ctrlToolbar.ClientToScreen(&rectItem);
 
+        ChangeMenuToOwnerDraw(pMenu);
+
+        m_pToolbarMenu = pMenu;
+
         int nRetVal = pMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_VERTICAL | TPM_RETURNCMD,
             rectItem.left, rectItem.bottom, this, &rectItem);
+
+        m_pToolbarMenu = NULL;
 
         if (pNMToolbar->iItem == ID_FILE_ADD_FILES)
         {
@@ -902,16 +916,6 @@ void CMACDlg::OnToolsOptions()
     }
 }
 
-int CMACDlg::GetScaledFontHeight(int nStart) const
-{
-    // get size
-    //nStart = theApp.GetSize(nStart); // no need to do this because the font is already sized for the scale
-    double dHeight = static_cast<double>(nStart);
-    dHeight = dHeight * static_cast<double>(m_nFontHeight) / 15.0;
-    int nHeight = static_cast<int>(dHeight);
-    return nHeight;
-}
-
 BOOL CMACDlg::PreTranslateMessage(MSG * pMsg)
 {
     if (TranslateAccelerator(m_hWnd, m_hAcceleratorTable, pMsg) != 0)
@@ -932,39 +936,25 @@ void CMACDlg::OnInitMenuPopup(CMenu * pPopupMenu, UINT nIndex, BOOL bSysMenu)
     // compression menu
     if (pPopupMenu->GetMenuItemID(0) == ID_COMPRESSION_NA)
     {
+        SetCheckedFormatMenuItem(0);
         pPopupMenu->RemoveMenu(0, MF_BYPOSITION);
         theApp.GetFormatArray()->FillCompressionMenu(pPopupMenu);
+        ChangeMenuToOwnerDraw(pPopupMenu);
     }
 
     // check the mode
-    int nModeID = -1;
-    switch (theApp.GetSettings()->GetMode())
-    {
-    case MODE_COMPRESS: nModeID = ID_MODE_COMPRESS; break;
-    case MODE_DECOMPRESS: nModeID = ID_MODE_DECOMPRESS; break;
-    case MODE_VERIFY: nModeID = ID_MODE_VERIFY; break;
-    case MODE_CONVERT: nModeID = ID_MODE_CONVERT; break;
-    case MODE_MAKE_APL: nModeID = ID_MODE_MAKE_APL; break;
-    case MODE_CHECK: case MODE_COUNT: nModeID = -1; break;
-    }
-    if (nModeID >= 0)
-        pPopupMenu->CheckMenuItem(static_cast<UINT>(nModeID), MF_CHECKED | MF_BYCOMMAND);
-
+    pPopupMenu->CheckMenuItem(ID_MODE_COMPRESS, ((theApp.GetSettings()->GetMode() == MODE_COMPRESS) ? MF_CHECKED : 0) | MF_BYCOMMAND);
+    pPopupMenu->CheckMenuItem(ID_MODE_DECOMPRESS, ((theApp.GetSettings()->GetMode() == MODE_DECOMPRESS) ? MF_CHECKED : 0) | MF_BYCOMMAND);
+    pPopupMenu->CheckMenuItem(ID_MODE_VERIFY, ((theApp.GetSettings()->GetMode() == MODE_VERIFY) ? MF_CHECKED : 0) | MF_BYCOMMAND);
+    pPopupMenu->CheckMenuItem(ID_MODE_CONVERT, ((theApp.GetSettings()->GetMode() == MODE_CONVERT) ? MF_CHECKED : 0) | MF_BYCOMMAND);
+    pPopupMenu->CheckMenuItem(ID_MODE_MAKE_APL, ((theApp.GetSettings()->GetMode() == MODE_MAKE_APL) ? MF_CHECKED : 0) | MF_BYCOMMAND);
+    
     // check the compression
-    int nCompressionID = -1;
-    if (theApp.GetSettings()->GetFormat() == COMPRESSION_APE)
-    {
-        switch (theApp.GetSettings()->GetLevel())
-        {
-        case APE_COMPRESSION_LEVEL_FAST: nCompressionID = ID_COMPRESSION_APE_FAST; break;
-        case APE_COMPRESSION_LEVEL_NORMAL: nCompressionID = ID_COMPRESSION_APE_NORMAL; break;
-        case APE_COMPRESSION_LEVEL_HIGH: nCompressionID = ID_COMPRESSION_APE_HIGH; break;
-        case APE_COMPRESSION_LEVEL_EXTRA_HIGH: nCompressionID = ID_COMPRESSION_APE_EXTRA_HIGH; break;
-        case APE_COMPRESSION_LEVEL_INSANE: nCompressionID = ID_COMPRESSION_APE_INSANE; break;
-        }
-    }
-    if (nCompressionID >= 0)
-        pPopupMenu->CheckMenuItem(static_cast<UINT>(nCompressionID), MF_CHECKED | MF_BYCOMMAND);
+    pPopupMenu->CheckMenuItem(ID_COMPRESSION_APE_FAST, (((theApp.GetSettings()->GetFormat() == COMPRESSION_APE) && (theApp.GetSettings()->GetLevel() == APE_COMPRESSION_LEVEL_FAST)) ? MF_CHECKED : 0) | MF_BYCOMMAND);
+    pPopupMenu->CheckMenuItem(ID_COMPRESSION_APE_NORMAL, (((theApp.GetSettings()->GetFormat() == COMPRESSION_APE) && (theApp.GetSettings()->GetLevel() == APE_COMPRESSION_LEVEL_NORMAL)) ? MF_CHECKED : 0) | MF_BYCOMMAND);
+    pPopupMenu->CheckMenuItem(ID_COMPRESSION_APE_HIGH, (((theApp.GetSettings()->GetFormat() == COMPRESSION_APE) && (theApp.GetSettings()->GetLevel() == APE_COMPRESSION_LEVEL_HIGH)) ? MF_CHECKED : 0) | MF_BYCOMMAND);
+    pPopupMenu->CheckMenuItem(ID_COMPRESSION_APE_EXTRA_HIGH, (((theApp.GetSettings()->GetFormat() == COMPRESSION_APE) && (theApp.GetSettings()->GetLevel() == APE_COMPRESSION_LEVEL_EXTRA_HIGH)) ? MF_CHECKED : 0) | MF_BYCOMMAND);
+    pPopupMenu->CheckMenuItem(ID_COMPRESSION_APE_INSANE, (((theApp.GetSettings()->GetFormat() == COMPRESSION_APE) && (theApp.GetSettings()->GetLevel() == APE_COMPRESSION_LEVEL_INSANE)) ? MF_CHECKED : 0) | MF_BYCOMMAND);
 
     // enable / disable the compression menu
     pPopupMenu->EnableMenuItem(ID_COMPRESSION_APE_FAST, ((theApp.GetSettings()->GetMode() == MODE_COMPRESS) ? MF_ENABLED : MF_GRAYED) | MF_BYCOMMAND);
@@ -1027,16 +1017,21 @@ void CMACDlg::WinHelp(DWORD_PTR, UINT nCmd)
 
 int CMACDlg::GetControlHeight(CWnd * pwndControl) const
 {
-    // get the height
-    int nHeight = GetScaledFontHeight(22);
+    int nHeight = 0;
 
-    // switch the height for static controls
+    // switch the height depending on the control type
     CString strClass;
     GetClassName(pwndControl->GetSafeHwnd(), strClass.GetBuffer(256), 255);
     strClass.ReleaseBuffer();
 
-    if (strClass.CompareNoCase(_T("static")) == 0)
+    if (strClass.CompareNoCase(_T("combobox")) == 0)
+        nHeight = m_nFontHeight + theApp.GetSize(14);
+    else if (strClass.CompareNoCase(_T("button")) == 0)
+        nHeight = m_nFontHeight + theApp.GetSize(10);
+    else if (strClass.CompareNoCase(_T("static")) == 0)
         nHeight = m_nFontHeight;
+    else
+        nHeight = m_nFontHeight; // catch-all, but hopefully nothing uses this
 
     return nHeight;
 }
@@ -1057,7 +1052,7 @@ void CMACDlg::LayoutControlTop(CWnd * pwndLayout, CRect & rectLayout, bool bOnly
     if (pwndRight != APE_NULL)
     {
         pwndRight->GetWindowRect(&rectRight);
-        pwndRight->SetWindowPos(APE_NULL, rectLayout.right - rectRight.Width(), rectLayout.top, rectRight.Width(), GetScaledFontHeight(22), SWP_NOZORDER);
+        pwndRight->SetWindowPos(APE_NULL, rectLayout.right - rectRight.Width(), rectLayout.top, rectRight.Width(), GetControlHeight(pwndRight), SWP_NOZORDER);
         rectLayout.right -= rectRight.Width() + theApp.GetSize(8);
     }
     pwndLayout->SetWindowPos(APE_NULL, rectLayout.left, rectLayout.top, bOnlyControlWidth ? rectWindow.Width() : rectLayout.Width(), bCombobox ? theApp.GetSize(500) : rectWindow.Height(), SWP_NOZORDER);
@@ -1201,7 +1196,7 @@ void CMACDlg::LoadScale(bool bForce)
     }
 
     // load menu and toolbar
-    LoadMenuAndToolbar(GetProcessing());
+    LoadMenuAndToolbar(GetProcessing(), true);
 
     // load columns
     m_ctrlList.LoadColumns();
@@ -1278,5 +1273,233 @@ void CMACDlg::UpdateEnabledStates()
 
     // redraw the toolbar because it changes size when we switch the text
     m_ctrlToolbar.Invalidate();
+}
 
+#define MENU_RIGHT_BORDER theApp.GetSize(16)
+#define MENU_CHECK_BORDER theApp.GetSize(2)
+
+void CMACDlg::OnMeasureItem(int, LPMEASUREITEMSTRUCT lpMIS)
+{
+    if (lpMIS->CtlType == ODT_MENU) 
+    {
+        MENUITEMINFO mii; CString strText;
+        GetMenuInfo(lpMIS->itemID, mii, strText);
+        if (lpMIS->itemID == 0)
+        {
+            // divider
+            lpMIS->itemHeight = static_cast<UINT>(theApp.GetSize(4));
+        }
+        else
+        {
+            // menu item
+            strText.Replace(_T("\t"), _T(" "));
+            strText.Replace(_T("&"), _T(""));
+            CSize sizeText = theApp.GetTextExtent(this, strText);
+            lpMIS->itemHeight = static_cast<UINT>(sizeText.cy + theApp.GetSize(12));
+
+            int nItemWidth = 0;
+            nItemWidth += MENU_CHECK_BORDER + MENU_CHECK_BORDER + static_cast<int>(lpMIS->itemHeight) + theApp.GetSize(2); // checkbox
+            nItemWidth += sizeText.cx; // text
+            nItemWidth += MENU_RIGHT_BORDER; // right border
+
+            lpMIS->itemWidth = static_cast<UINT>(nItemWidth);
+        }
+    }
+}
+
+void CMACDlg::OnDrawItem(int, LPDRAWITEMSTRUCT lpDIS)
+{
+    if (lpDIS->CtlType == ODT_MENU) 
+    {
+        // attach a DC
+        CDC dc;
+        dc.Attach(lpDIS->hDC);
+        CRect rc(lpDIS->rcItem);
+
+        // open theme data for the window
+        HTHEME hTheme = OpenThemeData(GetSafeHwnd(), L"WINDOW");
+
+        // check for dividers
+        bool bDivider = (lpDIS->itemID == 0);
+
+        // check for grayed
+        bool bGrayed = (lpDIS->itemState & ODS_GRAYED) || (lpDIS->itemState & ODS_DISABLED);
+
+        // draw background
+        if ((lpDIS->itemState & ODS_SELECTED) && (bDivider == false))
+            dc.FillSolidRect(rc, GetThemeSysColor(hTheme, COLOR_HIGHLIGHT)); // highlight color
+        else
+            dc.FillSolidRect(rc, GetThemeSysColor(hTheme, COLOR_MENU)); // normal color
+        
+        // select font
+        dc.SelectObject(theApp.GetFont());
+
+        // get menu info
+        MENUITEMINFO mii; CString strText;
+        GetMenuInfo(lpDIS->itemID, mii, strText);
+
+        if (bDivider)
+        {
+            // draw divider
+            dc.Draw3dRect(rc.left + 10, rc.top + rc.Height() / 2, rc.Width() - 20, 1, GetThemeSysColor(hTheme, COLOR_BTNSHADOW), GetThemeSysColor(hTheme, COLOR_BTNSHADOW));
+        }
+        else
+        {
+            if (strText.IsEmpty() == false)
+            {
+                // crop borders
+                int nBorderWidth = theApp.GetSize(4);
+                rc.DeflateRect(0, nBorderWidth, nBorderWidth + MENU_RIGHT_BORDER, nBorderWidth);
+
+                // set drawing mode
+                dc.SetBkMode(TRANSPARENT);
+                if (bGrayed)
+                    dc.SetTextColor(GetThemeSysColor(hTheme, COLOR_GRAYTEXT));
+                else if ((lpDIS->itemState & ODS_SELECTED) && (bDivider == false))
+                    dc.SetTextColor(GetThemeSysColor(hTheme, COLOR_HIGHLIGHTTEXT));
+                else
+                    dc.SetTextColor(GetThemeSysColor(hTheme, COLOR_MENUTEXT));
+
+                bool bUnderline = (GetKeyState(VK_MENU) & 0x8000) ? true : false;
+
+                // draw check
+                CRect rectCheck = rc;
+                rectCheck.OffsetRect(MENU_CHECK_BORDER, 0);
+                rectCheck.right = rectCheck.left + rc.Height(); // use the height as the width so the checkmark is square
+                
+                if ((lpDIS->itemState & ODS_CHECKED) || (mii.fState & MFS_CHECKED))
+                {
+                    CImageList * pCheckImageList = theApp.GetImageList(CMACApp::Image_Images);
+
+                    HICON hIcon = pCheckImageList->ExtractIcon(TBB_CHECKMARK);
+                    if (hIcon != APE_NULL)
+                    {
+                        DrawIconEx(dc.GetSafeHdc(), rectCheck.left, rectCheck.top, hIcon, rectCheck.Width(), rectCheck.Height(), 0, NULL, DI_NORMAL);
+                        DestroyIcon(hIcon);
+                    }
+                }
+                
+                // start the left just to the right of the checkmark
+                rc.left = rectCheck.right + MENU_CHECK_BORDER;
+
+                // split text and draw
+                int nTab = strText.Find(_T("\t"));
+                if (nTab >= 0)
+                {
+                    CString strLeft = strText.Left(nTab);
+                    CString strRight = strText.Right(strText.GetLength() - nTab - 1);
+
+                    if (bUnderline == false)
+                        strLeft.Replace(_T("&"), _T(""));
+
+                    dc.DrawText(strLeft, rc, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+                    dc.DrawText(strRight, rc, DT_RIGHT | DT_VCENTER | DT_SINGLELINE);
+                }
+                else
+                {
+                    if (bUnderline == false)
+                        strText.Replace(_T("&"), _T(""));
+
+                    dc.DrawText(strText, rc, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+                }
+            }
+        }
+
+        // close the theme handle
+        CloseThemeData(hTheme);
+
+        // detach the device context
+        dc.Detach();
+    }
+}
+
+void CMACDlg::OnClose()
+{
+    if (GetProcessing())
+    {
+        if (AfxMessageBox(_T("Please confirm that you want to cancel the running operation and close the program."), MB_YESNO | MB_ICONQUESTION) != IDYES)
+            return;
+    }
+
+    CDialog::OnClose();
+}
+
+void CMACDlg::GetMenuInfo(UINT nID, MENUITEMINFO & mi, CString & strText)
+{
+    APE_CLEAR(mi);
+    mi.cbSize = sizeof(MENUITEMINFO);
+    mi.fMask = MIIM_FTYPE | MIIM_STRING;
+
+    strText.Empty();
+
+    // loop all the program menus
+    CMenu * pmenuFound = APE_NULL;
+    if (m_menuMain.GetMenuItemInfo(nID, &mi, FALSE))
+    {
+        pmenuFound = &m_menuMain;
+    }
+    else 
+    {
+        if (m_pToolbarMenu->GetMenuItemInfo(nID, &mi, FALSE))
+        {
+            pmenuFound = m_pToolbarMenu;
+          }
+        else
+        {
+            for (int z = 0; z < theApp.GetFormatArray()->m_aryMenus.GetSize(); z++)
+            {
+                if (theApp.GetFormatArray()->m_aryMenus[z]->GetMenuItemInfo(nID, &mi, FALSE))
+                {
+                    pmenuFound = theApp.GetFormatArray()->m_aryMenus[z];
+                    break;
+                }
+            }
+        }
+    }
+
+    // mark as checked if we're the format menu item (we set MF_CHECKED as we append the menu but it doesn't make it through for some reason on 5/3/2026)
+    if (nID == m_nCheckedFormatMenuItem)
+    {
+        mi.fState |= MFS_CHECKED;
+    }
+
+    // get the text
+    if (mi.cch > 0)
+    {
+        mi.dwTypeData = strText.GetBuffer(static_cast<int>(mi.cch) + 1);
+        mi.cch++; // account for null terminator
+        pmenuFound->GetMenuItemInfo(nID, &mi, FALSE);
+        strText.ReleaseBuffer();
+    }
+}
+
+void CMACDlg::ChangeMenuToOwnerDraw(CMenu * pMenu, int nLevel)
+{
+    int nMenuCount = pMenu->GetMenuItemCount();
+    for (int i = 0; i < nMenuCount; i++)
+    {
+        CMenu * pSubMenu = pMenu->GetSubMenu(i);
+        if (pSubMenu)
+        {
+            // recurse into the submenu
+            ChangeMenuToOwnerDraw(pSubMenu, nLevel + 1);
+
+            // modify the popup menu itself to be owner-drawn
+            if (nLevel > 0)
+            {
+                pMenu->ModifyMenu(i, MF_BYPOSITION | MF_POPUP | MF_OWNERDRAW, reinterpret_cast<UINT_PTR>(pSubMenu->GetSafeHmenu()), _T(""));
+            }
+        }
+        else
+        {
+            // modify individual menu item to be owner-drawn
+            if (nLevel > 0)
+            {
+                UINT nID = pMenu->GetMenuItemID(i);
+                bool bDivider = (nID == 0);
+                if (bDivider == false)
+                    pMenu->ModifyMenu(i, MF_BYPOSITION | MF_OWNERDRAW, nID, _T(""));
+            }
+        }
+    }
 }

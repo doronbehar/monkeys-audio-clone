@@ -86,7 +86,7 @@ bool COptionsDlg::UpdatePage()
 
         // position / visibility
         const int nBorderWidth = theApp.GetSize(4);
-        const int nTopBorder = m_pMACDlg->GetScaledFontHeight(16);
+        const int nTopBorder = m_pMACDlg->GetFontHeight() + theApp.GetSize(1);
         CRect rectFrame; m_ctrlPageFrame.GetWindowRect(&rectFrame); ScreenToClient(&rectFrame);
 
         m_aryPages[nPage]->m_spDialog->SetWindowPos(APE_NULL, rectFrame.left + nBorderWidth, rectFrame.top + nBorderWidth + nTopBorder,
@@ -98,7 +98,7 @@ bool COptionsDlg::UpdatePage()
     int nHeight = 0;
     nHeight = APE_MAX(nHeight, m_aryPages[0]->m_nIdealHeight);
     nHeight = APE_MAX(nHeight, m_aryPages[1]->m_nIdealHeight);
-    nHeight += theApp.GetSize(50) + m_pMACDlg->GetScaledFontHeight(30);
+    nHeight += theApp.GetSize(50) + m_pMACDlg->GetFontHeight() + theApp.GetSize(10);
     int nWidth = theApp.GetSize(900);
     SetWindowPos(APE_NULL, 0, 0, nWidth, nHeight, SWP_NOMOVE);
 
@@ -136,7 +136,7 @@ void COptionsDlg::OnSize(UINT nType, int cx, int cy)
     int nBorder = theApp.GetSize(8);
     int nPageTopBorder = theApp.GetSize(4);
     int nTopBorder = theApp.GetSize(10);
-    int nButtonHeight = theApp.GetSize(m_pMACDlg->GetScaledFontHeight(23));
+    int nButtonHeight = m_pMACDlg->GetControlHeight(GetDlgItem(IDOK));
 
     // get list width
     IMAGEINFO Info; APE_CLEAR(Info);

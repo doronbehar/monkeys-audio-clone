@@ -447,7 +447,7 @@
     <ClInclude Include="..\..\..\Shared\CRC.h" />
     <ClInclude Include="..\..\..\Shared\GlobalFunctions.h" />
     <ClInclude Include="..\..\..\MACLib\MACProgressHelper.h" />
-    <ClInclude Include="..\..\..\MACLib\md5.h" />
+    <ClInclude Include="..\..\..\MACLib\MD5.h" />
     <ClInclude Include="..\..\..\Shared\NoWindows.h" />
     <ClInclude Include="..\..\..\MACLib\Prepare.h" />
     <ClInclude Include="..\..\..\Shared\SmartPtr.h" />

@@ -152,7 +152,7 @@ CMACSettings * CMACApp::GetSettings()
 
 CImageList * CMACApp::GetImageList(EImageList Image)
 {
-    CImageList * pImageList = (Image == Image_Toolbar) ? &m_ImageListToolbar : (Image == Image_ToolbarDisabled) ? &m_ImageListToolbarDisabled : (Image == Image_OptionsList) ? &m_ImageListOptionsList : (Image == Image_OptionsPages) ? &m_ImageListOptionsPages : APE_NULL;
+    CImageList * pImageList = (Image == Image_Toolbar) ? &m_ImageListToolbar : (Image == Image_ToolbarDisabled) ? &m_ImageListToolbarDisabled : (Image == Image_OptionsList) ? &m_ImageListOptionsList : (Image == Image_OptionsPages) ? &m_ImageListOptionsPages : (Image == Image_Images) ? &m_ImageListImages : APE_NULL;
     if ((pImageList != APE_NULL) && (pImageList->GetSafeHandle() == APE_NULL))
     {
         // load the image

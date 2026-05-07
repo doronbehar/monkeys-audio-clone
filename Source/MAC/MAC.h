@@ -30,7 +30,8 @@ public:
         Image_Toolbar,
         Image_ToolbarDisabled,
         Image_OptionsList,
-        Image_OptionsPages
+        Image_OptionsPages,
+        Image_Images
     };
     CImageList * GetImageList(EImageList Image);
     int GetSize(int nSize, double dAdditional = 1.0) const;
@@ -55,6 +56,7 @@ private:
     CImageList m_ImageListToolbarDisabled;
     CImageList m_ImageListOptionsList;
     CImageList m_ImageListOptionsPages;
+    CImageList m_ImageListImages;
     CGDIBitmapPtr m_spbmpButtons;
     CGDIBitmapPtr m_spbmpMonkey;
     double m_dScale;

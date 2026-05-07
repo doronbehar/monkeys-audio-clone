@@ -17,7 +17,7 @@ public:
 
     bool GetProcessing() { return (m_spProcessFiles != APE_NULL); }
     bool GetInitialized() const { return m_bInitialized; }
-    int GetScaledFontHeight(int nStart) const;
+    int GetFontHeight() { return m_nFontHeight; }
 
     virtual BOOL PreTranslateMessage(MSG * pMsg);
     virtual void WinHelp(DWORD_PTR dwData, UINT nCmd = HELP_CONTEXT);
@@ -28,6 +28,7 @@ public:
     bool SetMode(APE::APE_MODES Mode);
     void FilesChanged(MAC_FILE_ARRAY * paryFiles);
     MAC_FILE_ARRAY & GetFileArray() { return m_aryFiles; }
+    void SetCheckedFormatMenuItem(UINT_PTR nID) { m_nCheckedFormatMenuItem = nID; }
 
 protected:
     virtual void DoDataExchange(CDataExchange * pDX);
@@ -78,6 +79,9 @@ protected:
     afx_msg void OnEndSession [[ noreturn ]] (BOOL bEnding);
     afx_msg LRESULT OnDPIChanged(WPARAM wParam, LPARAM lParam);
     afx_msg void OnListItemChanged(NMHDR * pNMHDR, LRESULT * pResult);
+    afx_msg void OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpMeasureItemStruct);
+    afx_msg void OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct);
+    afx_msg void OnClose();
     DECLARE_MESSAGE_MAP()
 
     bool m_bInitialized;
@@ -91,14 +95,18 @@ protected:
     CStringArrayEx * m_paryFiles;
     UINT m_nMonitorDPI;
     int m_nFontHeight;
+    CMenu * m_pToolbarMenu;
+    UINT_PTR m_nCheckedFormatMenuItem;
 
     void LayoutWindow();
     void UpdateWindow();
     bool AddToolbarButton(int nID, int nBitmap, const CString & strText = _T(""), int nStyle = TBSTYLE_BUTTON);
     bool SetAPECompressionLevel(int nAPECompressionLevel);
-    bool LoadMenuAndToolbar(bool bProcessing);
+    bool LoadMenuAndToolbar(bool bProcessing, bool bForce = false);
     void SetToolbarButtonBitmap(int nID, int nBitmap) const;
     void PlayDefaultSound();
     void LoadScale(bool bForce = false);
     void UpdateEnabledStates();
+    void GetMenuInfo(UINT nID, MENUITEMINFO & mi, CString & strText);
+    void ChangeMenuToOwnerDraw(CMenu * pMenu, int nLevel = 100);
 };

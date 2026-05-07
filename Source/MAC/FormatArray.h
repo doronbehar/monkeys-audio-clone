@@ -33,4 +33,6 @@ protected:
     CArray<CMenu *, CMenu *> m_aryMenus;
 
     void ClearMenuCache();
+
+    friend class CMACDlg;
 };

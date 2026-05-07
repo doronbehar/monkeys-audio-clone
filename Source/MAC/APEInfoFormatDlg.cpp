@@ -27,12 +27,15 @@ void CAPEInfoFormatDlg::DoDataExchange(CDataExchange * pDX)
 
 BOOL CAPEInfoFormatDlg::OnInitDialog()
 {
+    // parent
+    BOOL bResult = CDialog::OnInitDialog();
+
     // set the font to all the controls
     SetFont(theApp.GetFont());
+    m_ctrlFormat.SetFont(theApp.GetFont());
     SendMessageToDescendants(WM_SETFONT, reinterpret_cast<WPARAM>(theApp.GetFont()->GetSafeHandle()), MAKELPARAM(false, 0), true);
 
-    // parent
-    return CDialog::OnInitDialog();
+    return bResult;
 }
 
 BEGIN_MESSAGE_MAP(CAPEInfoFormatDlg, CDialog)
@@ -115,8 +118,12 @@ CString CAPEInfoFormatDlg::GetSummary(const CString & strFilename)
         strLine.Format(_T("Compression: %.2f%%"), static_cast<double>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_AVERAGE_BITRATE) * 100) / static_cast<double>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_DECOMPRESSED_BITRATE)));
         strSummary += strLine + _T("\r\n");
 
+        // get tag information
         IAPETag * pTag = APE_GET_TAG(spAPEDecompress);
-        OutputAPETag(pTag, strSummary);
+        str_utfn cTag[4096];
+        APE_CLEAR(cTag);
+        pTag->OutputTag(cTag, 4096);
+        strSummary = cTag;
     }
     else
     {
@@ -141,7 +148,11 @@ CString CAPEInfoFormatDlg::GetSummary(const CString & strFilename)
             CSmartPtr<CAPETag> spAPETag(new CAPETag(strFilename, true));
             if (spAPETag->GetHasAPETag())
             {
-                OutputAPETag(spAPETag, strSummary);
+                // get tag information
+                str_utfn cTag[4096];
+                APE_CLEAR(cTag);
+                spAPETag->OutputTag(cTag, 4096);
+                strSummary = cTag;
             }
             else
             {
@@ -183,59 +194,4 @@ CString CAPEInfoFormatDlg::GetSummary(const CString & strFilename)
 
     strSummary.TrimRight();
     return strSummary;
-}
-
-void CAPEInfoFormatDlg::OutputAPETag(APE::IAPETag * pTag, CString & strSummary)
-{
-    if (pTag != APE_NULL)
-    {
-        CString strTag = _T("None");
-        if (pTag->GetHasAPETag())
-        {
-            strTag.Format(_T("APE Tag v%.2f"), static_cast<double>(pTag->GetAPETagVersion()) / static_cast<double>(1000));
-            if (pTag->GetHasID3Tag())
-                strTag += _T(", ID3v1.1");
-        }
-        else if (pTag->GetHasID3Tag())
-        {
-            strTag = _T("ID3v1.1");
-        }
-        CString strLine;
-        strLine.Format(_T("Tag: %s (%d bytes)"),
-            strTag.GetString(), pTag->GetTagBytes());
-        strSummary += strLine + _T("\r\n");
-
-        int nTagIndex = 0; IAPETagField * pTagField = APE_NULL;
-        while ((pTagField = pTag->GetTagField(nTagIndex++)) != APE_NULL)
-        {
-            if (pTagField->GetFieldFlags() & TAG_FIELD_FLAG_DATA_TYPE_BINARY)
-            {
-                strLine.Format(_T("    %s: binary value (%d bytes)"),
-                    pTagField->GetFieldName(),
-                    pTagField->GetFieldValueSize());
-                strSummary += strLine + _T("\r\n");
-            }
-            else
-            {
-                const int nMaximumSize = 1024;
-                WCHAR cValue[nMaximumSize];
-                APE_CLEAR(cValue);
-                int nValueBytes = nMaximumSize - 1;
-                pTag->GetFieldString(pTagField->GetFieldName(), &cValue[0], &nValueBytes);
-
-                CString strValue;
-                if (nValueBytes >= nMaximumSize)
-                    strValue.Format(_T("<too large to display> (%d bytes)"), nValueBytes);
-                else
-                    strValue = cValue;
-
-                strLine.Format(_T("    %s: %s"),
-                    pTagField->GetFieldName(),
-                    strValue.GetString());
-                strSummary += strLine + _T("\r\n");
-            }
-        }
-
-        strSummary.TrimRight(_T("\r\n"));
-    }
 }

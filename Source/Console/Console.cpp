@@ -11,18 +11,24 @@ Pretty simple and straightforward console front end.
 #include "APEInfo.h"
 #include "CharacterHelper.h"
 #include "APETicks.h"
+#ifdef PLATFORM_WINDOWS
+    #include <iostream>
+    #include <io.h>
+    #include <fcntl.h>
+#endif
 using namespace APE;
 
 // defines
-#define COMPRESS_MODE          0
-#define DECOMPRESS_MODE        1
-#define VERIFY_MODE            2
-#define CONVERT_MODE           3
-#define TAG_MODE               4
-#define VERIFY_FULL_MODE       5
-#define REMOVE_TAG_MODE        6
-#define CONVERT_TAG_TO_LEGACY  7
-#define UNDEFINED_MODE        -1
+#define COMPRESS_MODE               0
+#define DECOMPRESS_MODE             1
+#define VERIFY_MODE                 2
+#define CONVERT_MODE                3
+#define TAG_MODE                    4
+#define VERIFY_FULL_MODE            5
+#define REMOVE_TAG_MODE             6
+#define CONVERT_TAG_TO_LEGACY_MODE  7
+#define TAG_DUMP_MODE               8
+#define UNDEFINED_MODE              -1
 
 // global variables
 static CAPEDuration g_ProcessingDuration;
@@ -115,6 +121,10 @@ public:
             {
                 rbReadFullInput = true;
             }
+            else if (_wcsnicmp(spOption, L"-tagdump", 2) == 0)
+            {
+                rnMode = TAG_DUMP_MODE;
+            }
             else if (_wcsnicmp(spOption, L"-c", 2) == 0)
             {
                 rnMode = COMPRESS_MODE;
@@ -150,7 +160,7 @@ public:
             }
             else if (_wcsnicmp(spOption, L"-L", 2) == 0)
             {
-                rnMode = CONVERT_TAG_TO_LEGACY;
+                rnMode = CONVERT_TAG_TO_LEGACY_MODE;
             }
             else if (rspInputFilename == APE_NULL)
             {
@@ -467,6 +477,45 @@ static int ConvertTagsToLegacy(const str_utfn * pFilename)
 }
 
 /**************************************************************************************************
+Convert to legacy
+**************************************************************************************************/
+static int TagDump(const str_utfn * pFilename)
+{
+    int nRetVal = ERROR_UNDEFINED;
+
+    // create the decoder
+    int nFunctionRetVal = ERROR_SUCCESS;
+    CSmartPtr<IAPEDecompress> spAPEDecompress;
+    try
+    {
+        spAPEDecompress.Assign(CreateIAPEDecompress(pFilename, &nFunctionRetVal, false, true, false));
+        if (spAPEDecompress == APE_NULL || nFunctionRetVal != ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
+
+        // get the input format
+        APE::IAPETag * pTag = APE_GET_TAG(spAPEDecompress);
+        if (pTag == APE_NULL)
+            throw(ERROR_UNDEFINED);
+
+        // dump tag
+        str_utfn cTag[4096];
+        APE_CLEAR(cTag);
+        pTag->OutputTag(cTag, 4096);
+
+        // output
+        fwprintf(stderr, L"%s", cTag);
+
+        // success
+        nRetVal = ERROR_SUCCESS;
+    }
+    catch (...)
+    {
+        nRetVal = ERROR_UNDEFINED;
+    }
+
+    return nRetVal;
+}
+
+/**************************************************************************************************
 Handle auto for an output filename
 **************************************************************************************************/
 static void HandleAuto(CSmartPtr<str_utfn> & rspInputFilename, CSmartPtr<str_utfn> & rspOutputFilename, bool bAPEType)
@@ -520,6 +569,7 @@ int _tmain(int argc, TCHAR * argv[])
     #ifdef PLATFORM_WINDOWS
         SetErrorMode(SetErrorMode(0x0003) | 0x0003);
         SetConsoleCtrlHandler(CtrlHandlerCallback, true);
+        _setmode(_fileno(stderr), _O_U16TEXT);
     #endif
 
     // arguments
@@ -637,10 +687,15 @@ int _tmain(int argc, TCHAR * argv[])
         fwprintf(stderr, L"Removing tags...\n");
         nRetVal = RemoveTags(spInputFilename);
     }
-    else if (nMode == CONVERT_TAG_TO_LEGACY)
+    else if (nMode == CONVERT_TAG_TO_LEGACY_MODE)
     {
         fwprintf(stderr, L"Converting tag to ID3v1...\n");
         nRetVal = ConvertTagsToLegacy(spInputFilename);
+    }
+    else if (nMode == TAG_DUMP_MODE)
+    {
+        fwprintf(stderr, L"Dumping tags...\n");
+        nRetVal = TagDump(spInputFilename);
     }
 
     if (nRetVal == ERROR_SUCCESS)

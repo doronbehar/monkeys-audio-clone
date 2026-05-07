@@ -25,7 +25,6 @@ protected:
 
     CMACDlg * m_pMACDlg;
     CString GetSummary(const CString & strFilename);
-    void OutputAPETag(APE::IAPETag * pTag, CString & strSummary);
     CStringArray m_aryFiles;
 
 public:

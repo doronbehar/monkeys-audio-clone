@@ -47,25 +47,25 @@ int CFormatAPE::Process(MAC_FILE * pInfo)
     return nRetVal;
 }
 
-bool CFormatAPE::BuildMenu(CMenu * pMenu, int nBaseID)
+bool CFormatAPE::BuildMenu(CMenu * pMenu, int)
 {
     bool bCheck = (theApp.GetSettings()->GetFormat() == COMPRESSION_APE);
 
     pMenu->AppendMenu(MF_STRING |
         ((bCheck && (theApp.GetSettings()->GetLevel() == APE_COMPRESSION_LEVEL_FAST)) ? MF_CHECKED : MF_UNCHECKED),
-        UINT_PTR(nBaseID) + 0, _T("&Fast"));
+        ID_COMPRESSION_APE_FAST, _T("&Fast"));
     pMenu->AppendMenu(MF_STRING |
         ((bCheck && (theApp.GetSettings()->GetLevel() == APE_COMPRESSION_LEVEL_NORMAL)) ? MF_CHECKED : MF_UNCHECKED),
-        UINT_PTR(nBaseID) + 1, _T("&Normal"));
+        ID_COMPRESSION_APE_NORMAL, _T("&Normal"));
     pMenu->AppendMenu(MF_STRING |
         ((bCheck && (theApp.GetSettings()->GetLevel() == APE_COMPRESSION_LEVEL_HIGH)) ? MF_CHECKED : MF_UNCHECKED),
-        UINT_PTR(nBaseID) + 2, _T("&High"));
+        ID_COMPRESSION_APE_HIGH, _T("&High"));
     pMenu->AppendMenu(MF_STRING |
         ((bCheck && (theApp.GetSettings()->GetLevel() == APE_COMPRESSION_LEVEL_EXTRA_HIGH)) ? MF_CHECKED : MF_UNCHECKED),
-        UINT_PTR(nBaseID) + 3, _T("&Extra High"));
+        ID_COMPRESSION_APE_EXTRA_HIGH, _T("&Extra High"));
     pMenu->AppendMenu(MF_STRING |
         ((bCheck && (theApp.GetSettings()->GetLevel() == APE_COMPRESSION_LEVEL_INSANE)) ? MF_CHECKED : MF_UNCHECKED),
-        UINT_PTR(nBaseID) + 4, _T("&Insane"));
+        ID_COMPRESSION_APE_INSANE, _T("&Insane"));
 
     return true;
 }
