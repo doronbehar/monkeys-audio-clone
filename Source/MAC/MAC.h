@@ -31,9 +31,10 @@ public:
         Image_ToolbarDisabled,
         Image_OptionsList,
         Image_OptionsPages,
-        Image_Images
+        Image_Menu
     };
     CImageList * GetImageList(EImageList Image);
+    HICON GetCheckIcon();
     int GetSize(int nSize, double dAdditional = 1.0) const;
     int GetSizeReverse(int nSize) const;
     double GetScale() const { return m_dScale; }
@@ -41,14 +42,18 @@ public:
     CSize GetTextExtent(CWnd * pWnd, const CString & strText, CFont * pFont = APE_NULL);
     bool SetScale(double dScale, bool bForce = false);
     Gdiplus::Bitmap * GetMonkeyImage();
-    void LoadFont(bool bRebuild);
+    void LoadFont();
     void LoadFont(CFont & Font, int nSizeScale = 100, bool bBold = false);
+    void GetMenuColors(COLORREF & rgbMenuBackground, COLORREF & rgbMenuHighlight, COLORREF & rgbMenuText, COLORREF & rgbMenuGrayText, COLORREF & rgbMenuHighlightText, COLORREF & rgbDivider);
     UINT & GetMonitorDPI() { return m_nMonitorDPI; }
 
     // message map
     DECLARE_MESSAGE_MAP()
 
 private:
+    // helper functions
+    void DestroyObjects();
+
     // helper objects
     APE::CSmartPtr<CFormatArray> m_sparyFormats;
     APE::CSmartPtr<CMACSettings> m_spSettings;
@@ -56,7 +61,7 @@ private:
     CImageList m_ImageListToolbarDisabled;
     CImageList m_ImageListOptionsList;
     CImageList m_ImageListOptionsPages;
-    CImageList m_ImageListImages;
+    CImageList m_ImageListMenu;
     CGDIBitmapPtr m_spbmpButtons;
     CGDIBitmapPtr m_spbmpMonkey;
     double m_dScale;
@@ -65,6 +70,7 @@ private:
     CMACDlg * m_pMACDlg;
     CFont m_Font;
     UINT m_nMonitorDPI;
+    HICON m_hCheckIcon;
 };
 
 extern CMACApp theApp;

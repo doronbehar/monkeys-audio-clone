@@ -569,7 +569,7 @@ int _tmain(int argc, TCHAR * argv[])
     #ifdef PLATFORM_WINDOWS
         SetErrorMode(SetErrorMode(0x0003) | 0x0003);
         SetConsoleCtrlHandler(CtrlHandlerCallback, true);
-        _setmode(_fileno(stderr), _O_U16TEXT);
+        (void)_setmode(_fileno(stderr), _O_U16TEXT);
     #endif
 
     // arguments

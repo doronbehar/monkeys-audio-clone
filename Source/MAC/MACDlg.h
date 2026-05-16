@@ -5,6 +5,10 @@
 #include "MACProcessFiles.h"
 #include "MACFileArray.h"
 
+#define MENU_BORDER theApp.GetSize(2)
+#define MENU_RIGHT_BORDER theApp.GetSize(16)
+#define MENU_EXTRA_HEIGHT theApp.GetSize(8)
+
 class CMACDlg : public CDialog
 {
 public:
@@ -14,6 +18,7 @@ public:
     CMACListCtrl m_ctrlList;
     CMACStatusBar m_ctrlStatusBar;
     CToolBar m_ctrlToolbar;
+    CArray<CStatic *> m_aryMenus;
 
     bool GetProcessing() { return (m_spProcessFiles != APE_NULL); }
     bool GetInitialized() const { return m_bInitialized; }
@@ -23,12 +28,12 @@ public:
     virtual void WinHelp(DWORD_PTR dwData, UINT nCmd = HELP_CONTEXT);
 
     int GetControlHeight(CWnd * pwndControl) const;
-    void LayoutControlTop(CWnd * pwndLayout, CRect & rectLayout, bool bOnlyControlWidth = false, bool bCombobox = false, CWnd * pwndRight = APE_NULL);
-    void LayoutControlTopWithDivider(CWnd * pwndLayout, CWnd * pwndDivider, CWnd * pwndImage, CRect & rectLayout);
+    void LayoutControlTop(CWnd * pwndLayout, CRect & rectLayout, bool bOnlyControlWidth = false, bool bCombobox = false, CWnd * pwndRight = APE_NULL) const;
+    void LayoutControlTopWithDivider(CWnd * pwndLayout, CWnd * pwndDivider, CWnd * pwndImage, CRect & rectLayout) const;
     bool SetMode(APE::APE_MODES Mode);
     void FilesChanged(MAC_FILE_ARRAY * paryFiles);
     MAC_FILE_ARRAY & GetFileArray() { return m_aryFiles; }
-    void SetCheckedFormatMenuItem(UINT_PTR nID) { m_nCheckedFormatMenuItem = nID; }
+    void ChangeMenuToOwnerDraw(CMenu * pMenu, int nLevel = 100);
 
 protected:
     virtual void DoDataExchange(CDataExchange * pDX);
@@ -36,6 +41,12 @@ protected:
     virtual BOOL OnInitDialog();
     afx_msg void OnPaint();
     afx_msg HCURSOR OnQueryDragIcon();
+    afx_msg void OnMenuFile();
+    afx_msg void OnMenuMode();
+    afx_msg void OnMenuTools();
+    afx_msg void OnMenuHelp();
+    afx_msg void OnMenuStop();
+    afx_msg void OnMenuPause();
     afx_msg void OnFileProcessFiles();
     afx_msg void OnFileAddFiles();
     afx_msg void OnFileAddFolder();
@@ -95,8 +106,9 @@ protected:
     CStringArrayEx * m_paryFiles;
     UINT m_nMonitorDPI;
     int m_nFontHeight;
-    CMenu * m_pToolbarMenu;
-    UINT_PTR m_nCheckedFormatMenuItem;
+    CMenu * m_pTrackingMenu;
+    BOOL m_bMenuShortcutMode;
+    int m_nShowingMenu;
 
     void LayoutWindow();
     void UpdateWindow();
@@ -108,5 +120,10 @@ protected:
     void LoadScale(bool bForce = false);
     void UpdateEnabledStates();
     void GetMenuInfo(UINT nID, MENUITEMINFO & mi, CString & strText);
-    void ChangeMenuToOwnerDraw(CMenu * pMenu, int nLevel = 100);
+    void SetMenuShortcutMode(BOOL bMenuShortcutMode);
+    void ShowMenu(int nMenu);
+    void CreateMenu();
+    void DestroyMenus();
+
+    friend class CMACListCtrl;
 };

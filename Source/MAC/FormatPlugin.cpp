@@ -141,9 +141,6 @@ bool CFormatPlugin::BuildMenu(CMenu * pMenu, int nBaseID)
 
         UINT_PTR nNewID = static_cast<UINT_PTR>(nBaseID) + static_cast<UINT_PTR>(z)  + static_cast<UINT_PTR>(10);
         pMenu->AppendMenu(MF_STRING | (bChecked ? MF_CHECKED : MF_UNCHECKED), nNewID, m_aryModeInfo[MODE_COMPRESS][z].m_strName);
-
-        if (bChecked)
-            m_pMACDlg->SetCheckedFormatMenuItem(nNewID);
     }
 
     pMenu->AppendMenu(MF_SEPARATOR);

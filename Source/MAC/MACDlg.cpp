@@ -32,8 +32,9 @@ CMACDlg::CMACDlg(CStringArrayEx * paryFiles, CWnd * pParent) :
     m_hAcceleratorTable = APE_NULL;
     m_nMonitorDPI = 0;
     m_nFontHeight = 0;
-    m_pToolbarMenu = APE_NULL;
-    m_nCheckedFormatMenuItem = 0;
+    m_bMenuShortcutMode = FALSE;
+    m_nShowingMenu = -1;
+    m_pTrackingMenu = APE_NULL;
 
     m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -47,6 +48,12 @@ void CMACDlg::DoDataExchange(CDataExchange * pDX)
 BEGIN_MESSAGE_MAP(CMACDlg, CDialog)
     ON_WM_PAINT()
     ON_WM_QUERYDRAGICON()
+    ON_COMMAND(ID_MENU_FILE, &CMACDlg::OnMenuFile)
+    ON_COMMAND(ID_MENU_MODE, &CMACDlg::OnMenuMode)
+    ON_COMMAND(ID_MENU_TOOLS, &CMACDlg::OnMenuTools)
+    ON_COMMAND(ID_MENU_HELP, &CMACDlg::OnMenuHelp)
+    ON_COMMAND(ID_MENU_STOP, &CMACDlg::OnMenuStop)
+    ON_COMMAND(ID_MENU_PAUSE, &CMACDlg::OnMenuPause)
     ON_COMMAND(ID_FILE_PROCESS_FILES, &CMACDlg::OnFileProcessFiles)
     ON_COMMAND(ID_FILE_ADD_FILES, &CMACDlg::OnFileAddFiles)
     ON_COMMAND(ID_FILE_ADD_FOLDER, &CMACDlg::OnFileAddFolder)
@@ -171,7 +178,6 @@ bool CMACDlg::LoadMenuAndToolbar(bool bProcessing, bool bForce)
     m_menuMain.LoadMenu(bProcessing ? IDR_STOP_MENU : IDR_MAIN_MENU);
 
     ChangeMenuToOwnerDraw(&m_menuMain, 0);
-    SetMenu(&m_menuMain);
     UpdateEnabledStates();
 
     while (m_ctrlToolbar.GetToolBarCtrl().DeleteButton(0)) { }
@@ -196,6 +202,9 @@ bool CMACDlg::LoadMenuAndToolbar(bool bProcessing, bool bForce)
         AddToolbarButton(ID_SEPARATOR, TBB_NONE, _T(""), TBSTYLE_SEP);
         AddToolbarButton(ID_TOOLS_OPTIONS, TBB_OPTIONS, _T("Options"), TBSTYLE_BUTTON);
     }
+
+    // layout to keep the menus updated
+    LayoutWindow();
 
     return true;
 }
@@ -325,12 +334,12 @@ void CMACDlg::OnToolbarDropDown(NMHDR * pnmtb, LRESULT *)
 
         ChangeMenuToOwnerDraw(pMenu);
 
-        m_pToolbarMenu = pMenu;
+        m_pTrackingMenu = pMenu;
 
         int nRetVal = pMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_VERTICAL | TPM_RETURNCMD,
             rectItem.left, rectItem.bottom, this, &rectItem);
 
-        m_pToolbarMenu = NULL;
+        m_pTrackingMenu = APE_NULL;
 
         if (pNMToolbar->iItem == ID_FILE_ADD_FILES)
         {
@@ -364,6 +373,36 @@ void CMACDlg::OnToolbarDropDown(NMHDR * pnmtb, LRESULT *)
     }
 }
 
+void CMACDlg::OnMenuFile()
+{
+    ShowMenu(0);
+}
+
+void CMACDlg::OnMenuMode()
+{
+    ShowMenu(1);
+}
+
+void CMACDlg::OnMenuTools()
+{
+    ShowMenu(2);
+}
+
+void CMACDlg::OnMenuHelp()
+{
+    ShowMenu(3);
+}
+
+void CMACDlg::OnMenuStop()
+{
+    ShowMenu(0);
+}
+
+void CMACDlg::OnMenuPause()
+{
+    OnPause();
+}
+
 void CMACDlg::OnFileProcessFiles()
 {
     if (GetProcessing())
@@ -382,6 +421,7 @@ void CMACDlg::OnFileProcessFiles()
     else
     {
         m_spProcessFiles.Assign(new CMACProcessFiles);
+        CreateMenu();
         UpdateWindow();
         m_spProcessFiles->Process(&m_aryFiles);
         m_ctrlStatusBar.StartProcessing();
@@ -499,10 +539,21 @@ void CMACDlg::LayoutWindow()
         int cx = rectClient.Width(); int cy = rectClient.Height();
         const int nBorderWidth = theApp.GetSize(5);
 
+        // menu
+        int nMenuHeight = theApp.GetTextExtent(this, _T("Ay")).cy + theApp.GetSize(8);
+        int nMenuLeft = theApp.GetSize(8);
+        for (int z = 0; z < m_aryMenus.GetSize(); z++)
+        {
+            CString strText; m_aryMenus[z]->GetWindowText(strText);
+            CSize sizeText = theApp.GetTextExtent(this, strText);
+            m_aryMenus[z]->SetWindowPos(APE_NULL, nMenuLeft, 0, sizeText.cx, nMenuHeight, SWP_NOZORDER);
+            nMenuLeft += sizeText.cx + theApp.GetSize(24);
+        }
+
         // size toolbar
         CSize sizeText = theApp.GetTextExtent(this, _T("High"));
         int nToolbarHeight = sizeText.cy + theApp.GetSize(46) + 10;
-        m_ctrlToolbar.SetWindowPos(NULL, 0, 0, cx, nToolbarHeight, SWP_NOZORDER);
+        m_ctrlToolbar.SetWindowPos(NULL, 0, nMenuHeight, cx, nToolbarHeight, SWP_NOZORDER);
 
         // status bar
         int nStatusBarHeight = sizeText.cy + theApp.GetSize(7);
@@ -510,7 +561,7 @@ void CMACDlg::LayoutWindow()
         m_ctrlStatusBar.UpdateStatusbarSizes();
 
         // list
-        m_ctrlList.SetWindowPos(APE_NULL, nBorderWidth, nToolbarHeight, cx - (2 * nBorderWidth), cy - nStatusBarHeight - nBorderWidth - nToolbarHeight, SWP_NOZORDER);
+        m_ctrlList.SetWindowPos(APE_NULL, nBorderWidth, nToolbarHeight + nMenuHeight, cx - (2 * nBorderWidth), cy - nStatusBarHeight - nBorderWidth - nMenuHeight - nToolbarHeight, SWP_NOZORDER);
 
         // update
         UpdateWindow();
@@ -654,6 +705,7 @@ void CMACDlg::OnTimer(UINT_PTR nIDEvent)
 
             // clean up
             m_spProcessFiles.Delete();
+            CreateMenu();
             UpdateWindow();
             m_ctrlStatusBar.SetLastProcessTotalMS(m_aryFiles.m_StartProcessingDuration.GetElapsed());
             m_ctrlStatusBar.UpdateFiles(&m_aryFiles);
@@ -921,6 +973,41 @@ BOOL CMACDlg::PreTranslateMessage(MSG * pMsg)
     if (TranslateAccelerator(m_hWnd, m_hAcceleratorTable, pMsg) != 0)
         return true;
 
+    if (pMsg->message == WM_SYSKEYDOWN)
+    {
+        if (pMsg->wParam == VK_MENU)
+        {
+            SetMenuShortcutMode(!m_bMenuShortcutMode);
+        }
+        else if (pMsg->wParam == 'F')
+        {
+            SetMenuShortcutMode(TRUE);
+            OnMenuFile();
+        }
+        else if (pMsg->wParam == 'M')
+        {
+            SetMenuShortcutMode(TRUE);
+            OnMenuMode();
+            return TRUE;
+        }
+        else if (pMsg->wParam == 'T')
+        {
+            SetMenuShortcutMode(TRUE);
+            OnMenuTools();
+            return TRUE;
+        }
+        else if (pMsg->wParam == 'H')
+        {
+            SetMenuShortcutMode(TRUE);
+            OnMenuHelp();
+            return TRUE;
+        }
+    }
+    else if (pMsg->message == WM_SYSKEYUP)
+    {
+        SetMenuShortcutMode(FALSE);
+    }
+
     return CDialog::PreTranslateMessage(pMsg);
 }
 
@@ -936,7 +1023,6 @@ void CMACDlg::OnInitMenuPopup(CMenu * pPopupMenu, UINT nIndex, BOOL bSysMenu)
     // compression menu
     if (pPopupMenu->GetMenuItemID(0) == ID_COMPRESSION_NA)
     {
-        SetCheckedFormatMenuItem(0);
         pPopupMenu->RemoveMenu(0, MF_BYPOSITION);
         theApp.GetFormatArray()->FillCompressionMenu(pPopupMenu);
         ChangeMenuToOwnerDraw(pPopupMenu);
@@ -957,11 +1043,12 @@ void CMACDlg::OnInitMenuPopup(CMenu * pPopupMenu, UINT nIndex, BOOL bSysMenu)
     pPopupMenu->CheckMenuItem(ID_COMPRESSION_APE_INSANE, (((theApp.GetSettings()->GetFormat() == COMPRESSION_APE) && (theApp.GetSettings()->GetLevel() == APE_COMPRESSION_LEVEL_INSANE)) ? MF_CHECKED : 0) | MF_BYCOMMAND);
 
     // enable / disable the compression menu
-    pPopupMenu->EnableMenuItem(ID_COMPRESSION_APE_FAST, ((theApp.GetSettings()->GetMode() == MODE_COMPRESS) ? MF_ENABLED : MF_GRAYED) | MF_BYCOMMAND);
-    pPopupMenu->EnableMenuItem(ID_COMPRESSION_APE_NORMAL, ((theApp.GetSettings()->GetMode() == MODE_COMPRESS) ? MF_ENABLED : MF_GRAYED) | MF_BYCOMMAND);
-    pPopupMenu->EnableMenuItem(ID_COMPRESSION_APE_HIGH, ((theApp.GetSettings()->GetMode() == MODE_COMPRESS) ? MF_ENABLED : MF_GRAYED) | MF_BYCOMMAND);
-    pPopupMenu->EnableMenuItem(ID_COMPRESSION_APE_EXTRA_HIGH, ((theApp.GetSettings()->GetMode() == MODE_COMPRESS) ? MF_ENABLED : MF_GRAYED) | MF_BYCOMMAND);
-    pPopupMenu->EnableMenuItem(ID_COMPRESSION_APE_INSANE, ((theApp.GetSettings()->GetMode() == MODE_COMPRESS) ? MF_ENABLED : MF_GRAYED) | MF_BYCOMMAND);
+    bool bEnableCompressionMenu = (theApp.GetSettings()->GetMode() == MODE_COMPRESS) || (theApp.GetSettings()->GetMode() == MODE_CONVERT);
+    pPopupMenu->EnableMenuItem(ID_COMPRESSION_APE_FAST, (bEnableCompressionMenu ? MF_ENABLED : MF_GRAYED) | MF_BYCOMMAND);
+    pPopupMenu->EnableMenuItem(ID_COMPRESSION_APE_NORMAL, (bEnableCompressionMenu ? MF_ENABLED : MF_GRAYED) | MF_BYCOMMAND);
+    pPopupMenu->EnableMenuItem(ID_COMPRESSION_APE_HIGH, (bEnableCompressionMenu ? MF_ENABLED : MF_GRAYED) | MF_BYCOMMAND);
+    pPopupMenu->EnableMenuItem(ID_COMPRESSION_APE_EXTRA_HIGH, (bEnableCompressionMenu ? MF_ENABLED : MF_GRAYED) | MF_BYCOMMAND);
+    pPopupMenu->EnableMenuItem(ID_COMPRESSION_APE_INSANE, (bEnableCompressionMenu ? MF_ENABLED : MF_GRAYED) | MF_BYCOMMAND);
 }
 
 void CMACDlg::OnGetMinMaxInfo(MINMAXINFO FAR * lpMMI)
@@ -1036,7 +1123,7 @@ int CMACDlg::GetControlHeight(CWnd * pwndControl) const
     return nHeight;
 }
 
-void CMACDlg::LayoutControlTop(CWnd * pwndLayout, CRect & rectLayout, bool bOnlyControlWidth, bool bCombobox, CWnd * pwndRight)
+void CMACDlg::LayoutControlTop(CWnd * pwndLayout, CRect & rectLayout, bool bOnlyControlWidth, bool bCombobox, CWnd * pwndRight) const
 {
     if (pwndLayout == APE_NULL)
         return;
@@ -1074,7 +1161,7 @@ void CMACDlg::LayoutControlTop(CWnd * pwndLayout, CRect & rectLayout, bool bOnly
     }
 }
 
-void CMACDlg::LayoutControlTopWithDivider(CWnd * pwndLayout, CWnd * pwndDivider, CWnd * pwndImage, CRect & rectLayout)
+void CMACDlg::LayoutControlTopWithDivider(CWnd * pwndLayout, CWnd * pwndDivider, CWnd * pwndImage, CRect & rectLayout) const
 {
     if (pwndLayout == APE_NULL)
         return;
@@ -1187,6 +1274,9 @@ void CMACDlg::LoadScale(bool bForce)
     m_ctrlToolbar.GetToolBarCtrl().SetImageList(theApp.GetImageList(CMACApp::Image_Toolbar));
     m_ctrlToolbar.GetToolBarCtrl().SetDisabledImageList(theApp.GetImageList(CMACApp::Image_ToolbarDisabled));
 
+    // recreate the menu
+    CreateMenu();
+
     // set the font to all the controls
     {
         m_ctrlList.SetFont(theApp.GetFont());
@@ -1239,17 +1329,17 @@ void CMACDlg::UpdateEnabledStates()
 
     // set the state of the toolbar and menu items
     m_ctrlToolbar.GetToolBarCtrl().EnableButton(ID_FILE_REMOVE_FILES, bHasSelection);
-    GetMenu()->EnableMenuItem(ID_FILE_REMOVE_FILES, bHasSelection ? 0 : MF_GRAYED);
+    m_menuMain.EnableMenuItem(ID_FILE_REMOVE_FILES, bHasSelection ? 0 : MF_GRAYED);
 
     m_ctrlToolbar.GetToolBarCtrl().EnableButton(ID_FILE_CLEAR_FILES, bHasFiles);
-    GetMenu()->EnableMenuItem(ID_FILE_CLEAR_FILES, bHasFiles ? 0 : MF_GRAYED);
+    m_menuMain.EnableMenuItem(ID_FILE_CLEAR_FILES, bHasFiles ? 0 : MF_GRAYED);
 
-    GetMenu()->EnableMenuItem(ID_FILE_SELECTALL, bHasFiles ? 0 : MF_GRAYED);
+    m_menuMain.EnableMenuItem(ID_FILE_SELECTALL, bHasFiles ? 0 : MF_GRAYED);
 
-    GetMenu()->EnableMenuItem(ID_FILE_PROCESS_FILES, bHasFiles ? 0 : MF_GRAYED);
+    m_menuMain.EnableMenuItem(ID_FILE_PROCESS_FILES, bHasFiles ? 0 : MF_GRAYED);
 
     m_ctrlToolbar.GetToolBarCtrl().EnableButton(ID_FILE_FILE_INFO, bHasFiles);
-    GetMenu()->EnableMenuItem(ID_FILE_FILE_INFO, bHasFiles ? 0 : MF_GRAYED);
+    m_menuMain.EnableMenuItem(ID_FILE_FILE_INFO, bHasFiles ? 0 : MF_GRAYED);
 
     // update the process files and remove files text based on one or many for the menu
     MENUITEMINFO MenuInfo;
@@ -1261,10 +1351,10 @@ void CMACDlg::UpdateEnabledStates()
     MenuInfo.dwTypeData = aryTypeData; // use type data pointer and copy the strings into this buffer
 
     wcscpy_s(aryTypeData, 1024, bHasMultipleFiles ? L"Process Files\tEnter" : L"Process File\tEnter");
-    GetMenu()->SetMenuItemInfo(ID_FILE_PROCESS_FILES, &MenuInfo, 0);
+    m_menuMain.SetMenuItemInfo(ID_FILE_PROCESS_FILES, &MenuInfo, 0);
 
     wcscpy_s(aryTypeData, 1024, bHasMultipleSelection ? L"Remove Files\tCtrl+R" : L"Remove File\tCtrl+R");
-    GetMenu()->SetMenuItemInfo(ID_FILE_REMOVE_FILES, &MenuInfo, 0);
+    m_menuMain.SetMenuItemInfo(ID_FILE_REMOVE_FILES, &MenuInfo, 0);
 
     // update toolbar button for remove files
     int nRemoveIndex = m_ctrlToolbar.CommandToIndex(ID_FILE_REMOVE_FILES);
@@ -1275,16 +1365,14 @@ void CMACDlg::UpdateEnabledStates()
     m_ctrlToolbar.Invalidate();
 }
 
-#define MENU_RIGHT_BORDER theApp.GetSize(16)
-#define MENU_CHECK_BORDER theApp.GetSize(2)
-
 void CMACDlg::OnMeasureItem(int, LPMEASUREITEMSTRUCT lpMIS)
 {
     if (lpMIS->CtlType == ODT_MENU) 
     {
         MENUITEMINFO mii; CString strText;
         GetMenuInfo(lpMIS->itemID, mii, strText);
-        if (lpMIS->itemID == 0)
+        
+        if (mii.fType & MFT_SEPARATOR)
         {
             // divider
             lpMIS->itemHeight = static_cast<UINT>(theApp.GetSize(4));
@@ -1295,13 +1383,15 @@ void CMACDlg::OnMeasureItem(int, LPMEASUREITEMSTRUCT lpMIS)
             strText.Replace(_T("\t"), _T(" "));
             strText.Replace(_T("&"), _T(""));
             CSize sizeText = theApp.GetTextExtent(this, strText);
-            lpMIS->itemHeight = static_cast<UINT>(sizeText.cy + theApp.GetSize(12));
 
+            // height
+            lpMIS->itemHeight = static_cast<UINT>(sizeText.cy + MENU_BORDER + MENU_BORDER + MENU_EXTRA_HEIGHT);
+
+            // width
             int nItemWidth = 0;
-            nItemWidth += MENU_CHECK_BORDER + MENU_CHECK_BORDER + static_cast<int>(lpMIS->itemHeight) + theApp.GetSize(2); // checkbox
+            nItemWidth += MENU_BORDER + MENU_BORDER + static_cast<int>(lpMIS->itemHeight); // checkbox
             nItemWidth += sizeText.cx; // text
             nItemWidth += MENU_RIGHT_BORDER; // right border
-
             lpMIS->itemWidth = static_cast<UINT>(nItemWidth);
         }
     }
@@ -1316,21 +1406,13 @@ void CMACDlg::OnDrawItem(int, LPDRAWITEMSTRUCT lpDIS)
         dc.Attach(lpDIS->hDC);
         CRect rc(lpDIS->rcItem);
 
-        // open theme data for the window
-        HTHEME hTheme = OpenThemeData(GetSafeHwnd(), L"WINDOW");
-
-        // check for dividers
-        bool bDivider = (lpDIS->itemID == 0);
-
+        // get colors
+        COLORREF rgbMenuBackground = 0, rgbMenuHighlight = 0, rgbMenuText = 0, rgbMenuGrayText = 0, rgbMenuHighlightText = 0, rgbDivider = 0;
+        theApp.GetMenuColors(rgbMenuBackground, rgbMenuHighlight, rgbMenuText, rgbMenuGrayText, rgbMenuHighlightText, rgbDivider);
+        
         // check for grayed
         bool bGrayed = (lpDIS->itemState & ODS_GRAYED) || (lpDIS->itemState & ODS_DISABLED);
 
-        // draw background
-        if ((lpDIS->itemState & ODS_SELECTED) && (bDivider == false))
-            dc.FillSolidRect(rc, GetThemeSysColor(hTheme, COLOR_HIGHLIGHT)); // highlight color
-        else
-            dc.FillSolidRect(rc, GetThemeSysColor(hTheme, COLOR_MENU)); // normal color
-        
         // select font
         dc.SelectObject(theApp.GetFont());
 
@@ -1338,49 +1420,50 @@ void CMACDlg::OnDrawItem(int, LPDRAWITEMSTRUCT lpDIS)
         MENUITEMINFO mii; CString strText;
         GetMenuInfo(lpDIS->itemID, mii, strText);
 
-        if (bDivider)
+        // draw background
+        if ((lpDIS->itemState & ODS_SELECTED) && !(mii.fType & MFT_SEPARATOR))
+            dc.FillSolidRect(rc, rgbMenuHighlight); // highlight color
+        else
+            dc.FillSolidRect(rc, rgbMenuBackground); // normal color
+
+        if (mii.fType & MFT_SEPARATOR)
         {
             // draw divider
-            dc.Draw3dRect(rc.left + 10, rc.top + rc.Height() / 2, rc.Width() - 20, 1, GetThemeSysColor(hTheme, COLOR_BTNSHADOW), GetThemeSysColor(hTheme, COLOR_BTNSHADOW));
+            dc.Draw3dRect(rc.left + theApp.GetSize(10), rc.top + rc.Height() / 2, rc.Width() - theApp.GetSize(20), 1, rgbDivider, rgbDivider);
         }
         else
         {
             if (strText.IsEmpty() == false)
             {
                 // crop borders
-                int nBorderWidth = theApp.GetSize(4);
-                rc.DeflateRect(0, nBorderWidth, nBorderWidth + MENU_RIGHT_BORDER, nBorderWidth);
+                rc.DeflateRect(MENU_BORDER, MENU_BORDER, MENU_BORDER + MENU_RIGHT_BORDER, MENU_BORDER);
 
                 // set drawing mode
                 dc.SetBkMode(TRANSPARENT);
                 if (bGrayed)
-                    dc.SetTextColor(GetThemeSysColor(hTheme, COLOR_GRAYTEXT));
-                else if ((lpDIS->itemState & ODS_SELECTED) && (bDivider == false))
-                    dc.SetTextColor(GetThemeSysColor(hTheme, COLOR_HIGHLIGHTTEXT));
+                    dc.SetTextColor(rgbMenuGrayText);
+                else if ((lpDIS->itemState & ODS_SELECTED) && !(mii.fType & MFT_SEPARATOR))
+                    dc.SetTextColor(rgbMenuHighlightText);
                 else
-                    dc.SetTextColor(GetThemeSysColor(hTheme, COLOR_MENUTEXT));
+                    dc.SetTextColor(rgbMenuText);
 
                 bool bUnderline = (GetKeyState(VK_MENU) & 0x8000) ? true : false;
 
                 // draw check
                 CRect rectCheck = rc;
-                rectCheck.OffsetRect(MENU_CHECK_BORDER, 0);
                 rectCheck.right = rectCheck.left + rc.Height(); // use the height as the width so the checkmark is square
                 
                 if ((lpDIS->itemState & ODS_CHECKED) || (mii.fState & MFS_CHECKED))
                 {
-                    CImageList * pCheckImageList = theApp.GetImageList(CMACApp::Image_Images);
-
-                    HICON hIcon = pCheckImageList->ExtractIcon(TBB_CHECKMARK);
+                    HICON hIcon = theApp.GetCheckIcon();
                     if (hIcon != APE_NULL)
                     {
                         DrawIconEx(dc.GetSafeHdc(), rectCheck.left, rectCheck.top, hIcon, rectCheck.Width(), rectCheck.Height(), 0, NULL, DI_NORMAL);
-                        DestroyIcon(hIcon);
                     }
                 }
                 
                 // start the left just to the right of the checkmark
-                rc.left = rectCheck.right + MENU_CHECK_BORDER;
+                rc.left = rectCheck.right + MENU_BORDER;
 
                 // split text and draw
                 int nTab = strText.Find(_T("\t"));
@@ -1405,9 +1488,6 @@ void CMACDlg::OnDrawItem(int, LPDRAWITEMSTRUCT lpDIS)
             }
         }
 
-        // close the theme handle
-        CloseThemeData(hTheme);
-
         // detach the device context
         dc.Detach();
     }
@@ -1420,6 +1500,8 @@ void CMACDlg::OnClose()
         if (AfxMessageBox(_T("Please confirm that you want to cancel the running operation and close the program."), MB_YESNO | MB_ICONQUESTION) != IDYES)
             return;
     }
+
+    DestroyMenus();
 
     CDialog::OnClose();
 }
@@ -1440,10 +1522,10 @@ void CMACDlg::GetMenuInfo(UINT nID, MENUITEMINFO & mi, CString & strText)
     }
     else 
     {
-        if (m_pToolbarMenu->GetMenuItemInfo(nID, &mi, FALSE))
+        if (m_pTrackingMenu && m_pTrackingMenu->GetMenuItemInfo(nID, &mi, FALSE))
         {
-            pmenuFound = m_pToolbarMenu;
-          }
+            pmenuFound = m_pTrackingMenu;
+        }
         else
         {
             for (int z = 0; z < theApp.GetFormatArray()->m_aryMenus.GetSize(); z++)
@@ -1455,12 +1537,6 @@ void CMACDlg::GetMenuInfo(UINT nID, MENUITEMINFO & mi, CString & strText)
                 }
             }
         }
-    }
-
-    // mark as checked if we're the format menu item (we set MF_CHECKED as we append the menu but it doesn't make it through for some reason on 5/3/2026)
-    if (nID == m_nCheckedFormatMenuItem)
-    {
-        mi.fState |= MFS_CHECKED;
     }
 
     // get the text
@@ -1495,11 +1571,101 @@ void CMACDlg::ChangeMenuToOwnerDraw(CMenu * pMenu, int nLevel)
             // modify individual menu item to be owner-drawn
             if (nLevel > 0)
             {
-                UINT nID = pMenu->GetMenuItemID(i);
-                bool bDivider = (nID == 0);
-                if (bDivider == false)
-                    pMenu->ModifyMenu(i, MF_BYPOSITION | MF_OWNERDRAW, nID, _T(""));
+                MENUITEMINFO MenuItemInfo;
+                APE_CLEAR(MenuItemInfo);
+                MenuItemInfo.cbSize = sizeof(MenuItemInfo);
+                MenuItemInfo.fMask = MIIM_FTYPE;
+                pMenu->GetMenuItemInfoW(static_cast<UINT>(i), &MenuItemInfo, TRUE);
+                MenuItemInfo.fType |= MF_OWNERDRAW;
+                pMenu->SetMenuItemInfoW(static_cast<UINT>(i), &MenuItemInfo, TRUE);
             }
         }
     }
+}
+
+void CMACDlg::SetMenuShortcutMode(BOOL bMenuShortcutMode)
+{
+    if (GetProcessing() || (m_aryMenus.GetSize() != 4))
+        return;
+
+    if (bMenuShortcutMode)
+    {
+        m_aryMenus[0]->SetWindowText(_T("&File"));
+        m_aryMenus[1]->SetWindowText(_T("&Mode"));
+        m_aryMenus[2]->SetWindowText(_T("&Tools"));
+        m_aryMenus[3]->SetWindowText(_T("&Help"));
+        m_bMenuShortcutMode = TRUE;
+    }
+    else
+    {
+        m_bMenuShortcutMode = FALSE;
+        m_aryMenus[0]->SetWindowText(_T("File"));
+        m_aryMenus[1]->SetWindowText(_T("Mode"));
+        m_aryMenus[2]->SetWindowText(_T("Tools"));
+        m_aryMenus[3]->SetWindowText(_T("Help"));
+    }
+}
+
+void CMACDlg::ShowMenu(int nMenu)
+{
+    if ((nMenu < 0) || (nMenu >= m_aryMenus.GetSize()))
+        return;
+
+    m_nShowingMenu = nMenu;
+    CRect rectButton; 
+    if (GetProcessing())
+        m_aryMenus[nMenu]->GetWindowRect(&rectButton);
+    else
+        m_aryMenus[nMenu]->GetWindowRect(&rectButton);
+    int nRetVal = m_menuMain.GetSubMenu(nMenu)->TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_VERTICAL | TPM_RETURNCMD,
+        rectButton.left, rectButton.bottom, this, &rectButton);
+    PostMessage(WM_COMMAND, nRetVal, 0);
+    m_nShowingMenu = -1;
+}
+
+void CMACDlg::CreateMenu()
+{
+    DestroyMenus();
+
+    if (GetProcessing())
+    {
+        CStatic * pStatic = new CStatic;
+        pStatic->Create(_T("Stop"), WS_VISIBLE | WS_CHILD | SS_CENTER | SS_NOTIFY | SS_CENTERIMAGE, CRect(0, 0, 0, 0), this, ID_MENU_STOP);
+        m_aryMenus.Add(pStatic);
+
+        pStatic = new CStatic;
+        pStatic->Create(_T("Pause"), WS_VISIBLE | WS_CHILD | SS_CENTER | SS_NOTIFY | SS_CENTERIMAGE, CRect(0, 0, 0, 0), this, ID_MENU_PAUSE);
+        m_aryMenus.Add(pStatic);
+    }
+    else
+    {
+        CStatic * pStatic = new CStatic;
+        pStatic->Create(_T("File"), WS_VISIBLE | WS_CHILD | SS_CENTER | SS_NOTIFY | SS_CENTERIMAGE, CRect(0, 0, 0, 0), this, ID_MENU_FILE);
+        m_aryMenus.Add(pStatic);
+
+        pStatic = new CStatic;
+        pStatic->Create(_T("Mode"), WS_VISIBLE | WS_CHILD | SS_CENTER | SS_NOTIFY | SS_CENTERIMAGE, CRect(0, 0, 0, 0), this, ID_MENU_MODE);
+        m_aryMenus.Add(pStatic);
+
+        pStatic = new CStatic;
+        pStatic->Create(_T("Tools"), WS_VISIBLE | WS_CHILD | SS_CENTER | SS_NOTIFY | SS_CENTERIMAGE, CRect(0, 0, 0, 0), this, ID_MENU_TOOLS);
+        m_aryMenus.Add(pStatic);
+
+        pStatic = new CStatic;
+        pStatic->Create(_T("Help"), WS_VISIBLE | WS_CHILD | SS_CENTER | SS_NOTIFY | SS_CENTERIMAGE, CRect(0, 0, 0, 0), this, ID_MENU_HELP);
+        m_aryMenus.Add(pStatic);
+    }
+
+    for (int z = 0; z < m_aryMenus.GetSize(); z++)
+        m_aryMenus[z]->SetFont(theApp.GetFont());
+}
+
+void CMACDlg::DestroyMenus()
+{
+    for (int z = 0; z < m_aryMenus.GetSize(); z++)
+    {
+        m_aryMenus[z]->DestroyWindow();
+        delete m_aryMenus[z];
+    }
+    m_aryMenus.RemoveAll();
 }

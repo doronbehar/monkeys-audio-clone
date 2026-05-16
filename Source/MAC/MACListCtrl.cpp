@@ -628,9 +628,14 @@ void CMACListCtrl::OnRclick(NMHDR *, LRESULT * pResult)
     menuPopup.AppendMenu(MF_STRING, 1001, _T("Add Folder"));
     menuPopup.AppendMenu(MF_STRING, 1002, _T("File Info..."));
 
+    m_pParent->ChangeMenuToOwnerDraw(&menuPopup);
+    m_pParent->m_pTrackingMenu = &menuPopup;
+
     CPoint ptMouse; GetCursorPos(&ptMouse);
     int nRetVal = menuPopup.TrackPopupMenu(TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_RETURNCMD,
-        ptMouse.x, ptMouse.y, this);
+        ptMouse.x, ptMouse.y, m_pParent);
+
+    m_pParent->m_pTrackingMenu = APE_NULL;
 
     if (nRetVal == 1000)
     {

@@ -21,9 +21,13 @@ protected:
     CAPEInfoFormatDlg m_dlgFormat;
 
 public:
-    CListCtrl m_ctrlFiles;
     afx_msg void OnBnClickedFilesSelectAll();
     afx_msg void OnBnClickedFilesSelectNone();
-    CTabCtrl m_ctrlTabs;
     afx_msg void OnLvnItemchangedFileList(NMHDR * pNMHDR, LRESULT * pResult);
+
+    CListCtrl m_ctrlFiles;
+    CTabCtrl m_ctrlTabs;
+    CButton m_ctrlSelectAll;
+    CButton m_ctrlSelectNone;
+    CButton m_ctrlOK;
 };

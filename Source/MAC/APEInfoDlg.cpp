@@ -17,6 +17,9 @@ void CAPEInfoDlg::DoDataExchange(CDataExchange * pDX)
 
     DDX_Control(pDX, IDC_FILE_LIST, m_ctrlFiles);
     DDX_Control(pDX, IDC_TABS, m_ctrlTabs);
+    DDX_Control(pDX, IDC_FILES_SELECT_ALL, m_ctrlSelectAll);
+    DDX_Control(pDX, IDC_FILES_SELECT_NONE, m_ctrlSelectNone);
+    DDX_Control(pDX, IDOK, m_ctrlOK);
 }
 
 BEGIN_MESSAGE_MAP(CAPEInfoDlg, CDialog)
@@ -49,6 +52,20 @@ BOOL CAPEInfoDlg::OnInitDialog()
     int nTabTitleBarHeight = rectTab.Height() + theApp.GetSize(2);
 
     m_dlgFormat.Create(IDD_APE_INFO_FORMAT, this);
+
+    int nButtonHeight = theApp.GetTextExtent(this, _T("Ay")).cy + theApp.GetSize(8);
+    CRect rectSelectAll; m_ctrlSelectAll.GetWindowRect(&rectSelectAll); ScreenToClient(&rectSelectAll);
+    m_ctrlSelectAll.SetWindowPos(APE_NULL, rectSelectAll.left, rectSelectAll.top - (nButtonHeight - rectSelectAll.Height()), rectSelectAll.Width(), nButtonHeight, SWP_NOZORDER);
+    m_ctrlSelectAll.GetWindowRect(&rectSelectAll); ScreenToClient(&rectSelectAll); // update because we use below
+    CRect rectSelectNone; m_ctrlSelectNone.GetWindowRect(&rectSelectNone); ScreenToClient(&rectSelectNone);
+    m_ctrlSelectNone.SetWindowPos(APE_NULL, rectSelectNone.left, rectSelectNone.top - (nButtonHeight - rectSelectNone.Height()), rectSelectNone.Width(), nButtonHeight, SWP_NOZORDER);
+    CRect rectOK; m_ctrlOK.GetWindowRect(&rectOK); ScreenToClient(&rectOK);
+    m_ctrlOK.SetWindowPos(APE_NULL, rectOK.left, rectOK.top - (nButtonHeight - rectOK.Height()), rectOK.Width(), nButtonHeight, SWP_NOZORDER);
+
+    m_ctrlFiles.SetWindowPos(APE_NULL, rectFiles.left, rectFiles.top, rectFiles.Width(), rectSelectAll.top - rectFiles.top - theApp.GetSize(8), SWP_NOZORDER);
+
+    m_ctrlTabs.SetWindowPos(APE_NULL, rectTabs.left, rectTabs.top, rectTabs.Width(), rectSelectAll.top - rectTabs.top - theApp.GetSize(8), SWP_NOZORDER);
+    m_ctrlTabs.GetWindowRect(&rectTabs); ScreenToClient(&rectTabs); // update
 
     int nBorder = theApp.GetSize(8);
     m_dlgFormat.SetWindowPos(&m_ctrlTabs, rectTabs.left + nBorder, rectTabs.top + nTabTitleBarHeight + nBorder, rectTabs.Width() - (2 * nBorder), rectTabs.Height() - (2 * nBorder) - nTabTitleBarHeight, SWP_SHOWWINDOW);

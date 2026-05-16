@@ -116,14 +116,14 @@ CString CAPEInfoFormatDlg::GetSummary(const CString & strFilename)
 
         // the compression ratio
         strLine.Format(_T("Compression: %.2f%%"), static_cast<double>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_AVERAGE_BITRATE) * 100) / static_cast<double>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_DECOMPRESSED_BITRATE)));
-        strSummary += strLine + _T("\r\n");
+        strSummary += strLine + _T("\r\n\r\n");
 
         // get tag information
         IAPETag * pTag = APE_GET_TAG(spAPEDecompress);
-        str_utfn cTag[4096];
-        APE_CLEAR(cTag);
-        pTag->OutputTag(cTag, 4096);
-        strSummary = cTag;
+        CSmartPtr<str_utfn> spTagString(new str_utfn [4096], true);
+        spTagString[0] = 0;
+        pTag->OutputTag(spTagString, 4096);
+        strSummary += spTagString;
     }
     else
     {
@@ -149,10 +149,10 @@ CString CAPEInfoFormatDlg::GetSummary(const CString & strFilename)
             if (spAPETag->GetHasAPETag())
             {
                 // get tag information
-                str_utfn cTag[4096];
-                APE_CLEAR(cTag);
-                spAPETag->OutputTag(cTag, 4096);
-                strSummary = cTag;
+                CSmartPtr<str_utfn> spTagString(new str_utfn[4096], true);
+                spTagString[0] = 0;
+                spAPETag->OutputTag(spTagString, 4096);
+                strSummary = spTagString;
             }
             else
             {

@@ -24,6 +24,7 @@ CMACApp::CMACApp()
     m_bAnotherInstanceRunning = (dwLastError == ERROR_ALREADY_EXISTS);
     m_pMACDlg = APE_NULL;
     m_nMonitorDPI = 0;
+    m_hCheckIcon = APE_NULL;
 
     // turn on high DPI support (also done in the manifest)
     EnableHighDPISupport();
@@ -118,9 +119,8 @@ BOOL CMACApp::InitInstance()
 
 int CMACApp::ExitInstance()
 {
-    // delete images
-    m_spbmpButtons.Delete();
-    m_spbmpMonkey.Delete();
+    // destroy everything
+    DestroyObjects();
 
     // close single instance handle
     if (m_hSingleInstance != APE_NULL)
@@ -152,7 +152,7 @@ CMACSettings * CMACApp::GetSettings()
 
 CImageList * CMACApp::GetImageList(EImageList Image)
 {
-    CImageList * pImageList = (Image == Image_Toolbar) ? &m_ImageListToolbar : (Image == Image_ToolbarDisabled) ? &m_ImageListToolbarDisabled : (Image == Image_OptionsList) ? &m_ImageListOptionsList : (Image == Image_OptionsPages) ? &m_ImageListOptionsPages : (Image == Image_Images) ? &m_ImageListImages : APE_NULL;
+    CImageList * pImageList = (Image == Image_Toolbar) ? &m_ImageListToolbar : (Image == Image_ToolbarDisabled) ? &m_ImageListToolbarDisabled : (Image == Image_OptionsList) ? &m_ImageListOptionsList : (Image == Image_OptionsPages) ? &m_ImageListOptionsPages : (Image == Image_Menu) ? &m_ImageListMenu : APE_NULL;
     if ((pImageList != APE_NULL) && (pImageList->GetSafeHandle() == APE_NULL))
     {
         // load the image
@@ -168,6 +168,13 @@ CImageList * CMACApp::GetImageList(EImageList Image)
 
         // build the image list
         int nSizeImageList = GetSize(32);
+        if (Image == Image_Menu)
+        {
+            // the approximate size of the check
+            int nHeight = theApp.GetTextExtent(m_pMACDlg, _T("Ay")).cy;
+            nHeight += MENU_EXTRA_HEIGHT;
+            nSizeImageList = nHeight;
+        } 
         pImageList->Create(nSizeImageList, nSizeImageList, ILC_COLOR32, TBB_COUNT + 1, 10);
 
         // setup drawing
@@ -188,13 +195,30 @@ CImageList * CMACApp::GetImageList(EImageList Image)
             Gdiplus::SolidBrush b(Gdiplus::Color(255, 255, 255, 255));
             graphics.FillRectangle(&b, 0, 0, TBB_COUNT * nSizeImageList, nSizeImageList);
         }
+        else if (Image == Image_Menu)
+        {
+            COLORREF rgbMenuBackground = 0, rgbMenuHighlight = 0, rgbMenuText = 0, rgbMenuGrayText = 0, rgbMenuHighlightText = 0, rgbDivider = 0;
+            GetMenuColors(rgbMenuBackground, rgbMenuHighlight, rgbMenuText, rgbMenuGrayText, rgbMenuHighlightText, rgbDivider);
+
+            Gdiplus::SolidBrush b(rgbMenuBackground);
+            graphics.FillRectangle(&b, 0, 0, TBB_COUNT * nSizeImageList, nSizeImageList);
+        }
 
         // draw the image over the top
         int nSizeBitmap = static_cast<int>(m_spbmpButtons->GetHeight());
         Gdiplus::Bitmap bmpSingle(nSizeBitmap, nSizeBitmap, PixelFormat32bppPARGB);
         Gdiplus::Graphics graphicsSingle(&bmpSingle);
+        graphicsSingle.SetInterpolationMode(Gdiplus::InterpolationMode::InterpolationModeHighQualityBicubic);
+        graphicsSingle.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
         for (int z = 0; z < TBB_COUNT; z++)
         {
+            // only do certain images in some cases
+            if (Image == Image_Menu)
+            {
+                if (z != TBB_CHECKMARK)
+                    continue;
+            }
+
             // copy the individual image to the single buffer
             // we do this because there were artifacts drawing from an image that had all the images next to each other
             // the artifacts were found 12/3/2021 and was a line next to the Make APL icon
@@ -240,6 +264,16 @@ CImageList * CMACApp::GetImageList(EImageList Image)
     return pImageList;
 }
 
+HICON CMACApp::GetCheckIcon()
+{
+    if (m_hCheckIcon == APE_NULL)
+    {
+        CImageList * pCheckImageList = theApp.GetImageList(CMACApp::Image_Menu);
+        m_hCheckIcon = pCheckImageList->ExtractIcon(TBB_CHECKMARK);
+    }
+    return m_hCheckIcon;
+}
+
 int CMACApp::GetSize(int nSize, double dAdditional) const
 {
     int nSizeFinished = static_cast<int>(m_dScale * dAdditional * static_cast<double>(nSize));
@@ -277,17 +311,11 @@ bool CMACApp::SetScale(double dScale, bool bForce)
         // store scale
         m_dScale = dScale;
 
-        // reset the font
-        m_Font.DeleteObject();
-
-        // reset images
-        m_ImageListToolbar.DeleteImageList();
-        m_ImageListToolbarDisabled.DeleteImageList();
-        m_ImageListOptionsList.DeleteImageList();
-        m_ImageListOptionsPages.DeleteImageList();
+        // reset everyting
+        DestroyObjects();
 
         // build the font again
-        LoadFont(true);
+        LoadFont();
 
         // success
         bResult = true;
@@ -321,12 +349,8 @@ Gdiplus::Bitmap * CMACApp::GetMonkeyImage()
     return m_spbmpMonkey;
 }
 
-void CMACApp::LoadFont(bool bRebuild)
+void CMACApp::LoadFont()
 {
-    // if we rebuild delete the existing
-    if (bRebuild)
-        m_Font.DeleteObject();
-
     // reset if we already exist
     if (m_Font.GetSafeHandle() != APE_NULL)
         m_Font.DeleteObject();
@@ -379,4 +403,51 @@ void CMACApp::LoadFont(CFont & Font, int nSizeScale, bool bBold)
 
     // build font
     Font.CreateFontIndirect(&ncm.lfMessageFont);
+}
+
+void CMACApp::GetMenuColors(COLORREF & rgbMenuBackground, COLORREF & rgbMenuHighlight, COLORREF & rgbMenuText, COLORREF & rgbMenuGrayText, COLORREF & rgbMenuHighlightText, COLORREF & rgbDivider)
+{
+    HTHEME hTheme = OpenThemeData(m_pMACDlg ? m_pMACDlg->GetSafeHwnd() : APE_NULL, L"WINDOW");
+    if (hTheme != APE_NULL)
+    {
+        rgbMenuBackground = GetThemeSysColor(hTheme, COLOR_MENU);
+        rgbMenuHighlight = GetThemeSysColor(hTheme, COLOR_HIGHLIGHT);
+        rgbMenuText = GetThemeSysColor(hTheme, COLOR_MENUTEXT);
+        rgbMenuGrayText = GetThemeSysColor(hTheme, COLOR_GRAYTEXT);
+        rgbMenuHighlightText = GetThemeSysColor(hTheme, COLOR_HIGHLIGHTTEXT);
+        rgbDivider = GetThemeSysColor(hTheme, COLOR_BTNSHADOW);
+    }
+    else
+    {
+        rgbMenuBackground = GetSysColor(COLOR_MENU);
+        rgbMenuHighlight = GetSysColor(COLOR_HIGHLIGHT);
+        rgbMenuText = GetSysColor(COLOR_MENUTEXT);
+        rgbMenuGrayText = GetSysColor(COLOR_GRAYTEXT);
+        rgbMenuHighlightText = GetSysColor(COLOR_HIGHLIGHTTEXT);
+        rgbDivider = GetSysColor(COLOR_BTNSHADOW);
+    }
+}
+
+void CMACApp::DestroyObjects()
+{
+    // reset the font
+    m_Font.DeleteObject();
+
+    // reset images
+    m_ImageListToolbar.DeleteImageList();
+    m_ImageListToolbarDisabled.DeleteImageList();
+    m_ImageListOptionsList.DeleteImageList();
+    m_ImageListOptionsPages.DeleteImageList();
+    m_ImageListMenu.DeleteImageList();
+
+    // reset images
+    m_spbmpButtons.Delete();
+    m_spbmpMonkey.Delete();
+
+    // release icon
+    if (m_hCheckIcon != APE_NULL)
+    {
+        DestroyIcon(m_hCheckIcon);
+        m_hCheckIcon = APE_NULL;
+    }
 }
