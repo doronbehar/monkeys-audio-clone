@@ -243,17 +243,20 @@ int CFormatPlugin::Process(MAC_FILE * pInfo)
         strCommandLine.Replace(_T("[CONFIGURE 3]"), m_strConfigureValue[2]);
 
         // try to create the working file to check for UAC permission problems
-        HANDLE hFile = CreateFile(pInfo->m_strWorkingFilename, GENERIC_WRITE, 0, APE_NULL, CREATE_ALWAYS, 0, APE_NULL);
-        if (hFile == INVALID_HANDLE_VALUE)
+        if (pInfo->m_strWorkingFilename.IsEmpty() == false)
         {
-            DWORD dwError = GetLastError();
-            if (dwError == ERROR_ACCESS_DENIED)
-                return ERROR_UAC_PERMISSION;
-            else
-                return ERROR_UNDEFINED;
+            HANDLE hFile = CreateFile(pInfo->m_strWorkingFilename, GENERIC_WRITE, 0, APE_NULL, CREATE_ALWAYS, 0, APE_NULL);
+            if (hFile == INVALID_HANDLE_VALUE)
+            {
+                DWORD dwError = GetLastError();
+                if (dwError == ERROR_ACCESS_DENIED)
+                    return ERROR_UAC_PERMISSION;
+                else
+                    return ERROR_UNDEFINED;
+            }
+            CloseHandle(hFile);
+            DeleteFile(pInfo->m_strWorkingFilename);
         }
-        CloseHandle(hFile);
-        DeleteFile(pInfo->m_strWorkingFilename);
 
         // set everything up
         pInfo->m_nStageProgress = 0;

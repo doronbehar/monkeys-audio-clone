@@ -20,7 +20,7 @@ public:
             #endif
         #else
             struct timeval t;
-            gettimeofday(&t, NULL);
+            gettimeofday(&t, APE_NULL);
             nTicks = t.tv_sec * 1000000LLU + t.tv_usec;
         #endif
         return nTicks;

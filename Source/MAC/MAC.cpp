@@ -174,7 +174,7 @@ CImageList * CMACApp::GetImageList(EImageList Image)
             int nHeight = theApp.GetTextExtent(m_pMACDlg, _T("Ay")).cy;
             nHeight += MENU_EXTRA_HEIGHT;
             nSizeImageList = nHeight;
-        } 
+        }
         pImageList->Create(nSizeImageList, nSizeImageList, ILC_COLOR32, TBB_COUNT + 1, 10);
 
         // setup drawing

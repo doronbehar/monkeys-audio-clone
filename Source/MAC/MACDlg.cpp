@@ -17,10 +17,18 @@ using namespace APE;
 #define IDT_UPDATE_PROGRESS_MS         100
 #define IDT_LAYOUT_WINDOW              2
 #define IDT_UPDATE_ENBALBED_STATES     3
+#define IDT_SHOW_MENU                  4
 
 #define WM_DPICHANGED              0x02E0
 
 #define TBI(ID) (m_ctrlToolbar.GetToolBarCtrl().CommandToIndex(ID))
+
+static LRESULT CALLBACK s_MouseProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+    return CMACDlg::s_pThis->MouseProc(nCode, wParam, lParam);
+}
+
+CMACDlg * CMACDlg::s_pThis = APE_NULL;
 
 CMACDlg::CMACDlg(CStringArrayEx * paryFiles, CWnd * pParent) :
     CDialog(CMACDlg::IDD, pParent),
@@ -35,6 +43,8 @@ CMACDlg::CMACDlg(CStringArrayEx * paryFiles, CWnd * pParent) :
     m_bMenuShortcutMode = FALSE;
     m_nShowingMenu = -1;
     m_pTrackingMenu = APE_NULL;
+    m_hMouseHook = APE_NULL;
+    m_nTimerMenuShow = 0;
 
     m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -145,6 +155,10 @@ BOOL CMACDlg::OnInitDialog()
 
     // load file list
     m_ctrlList.LoadFileList(GetUserDataPath() + _T("File Lists\\Current.m3u"), m_paryFiles);
+
+    // load the mouse hook
+    s_pThis = this;
+    m_hMouseHook = ::SetWindowsHookEx(WH_MOUSE, s_MouseProc, NULL, ::GetCurrentThreadId());
 
     // layout the window (again)
     APE_CLEAR(WindowPlacement);
@@ -375,27 +389,27 @@ void CMACDlg::OnToolbarDropDown(NMHDR * pnmtb, LRESULT *)
 
 void CMACDlg::OnMenuFile()
 {
-    ShowMenu(0);
+    ShowMenu(0, true);
 }
 
 void CMACDlg::OnMenuMode()
 {
-    ShowMenu(1);
+    ShowMenu(1, true);
 }
 
 void CMACDlg::OnMenuTools()
 {
-    ShowMenu(2);
+    ShowMenu(2, true);
 }
 
 void CMACDlg::OnMenuHelp()
 {
-    ShowMenu(3);
+    ShowMenu(3, true);
 }
 
 void CMACDlg::OnMenuStop()
 {
-    ShowMenu(0);
+    ShowMenu(0, true);
 }
 
 void CMACDlg::OnMenuPause()
@@ -553,7 +567,7 @@ void CMACDlg::LayoutWindow()
         // size toolbar
         CSize sizeText = theApp.GetTextExtent(this, _T("High"));
         int nToolbarHeight = sizeText.cy + theApp.GetSize(46) + 10;
-        m_ctrlToolbar.SetWindowPos(NULL, 0, nMenuHeight, cx, nToolbarHeight, SWP_NOZORDER);
+        m_ctrlToolbar.SetWindowPos(APE_NULL, 0, nMenuHeight, cx, nToolbarHeight, SWP_NOZORDER);
 
         // status bar
         int nStatusBarHeight = sizeText.cy + theApp.GetSize(7);
@@ -731,6 +745,11 @@ void CMACDlg::OnTimer(UINT_PTR nIDEvent)
 
         // update enabled states
         UpdateEnabledStates();
+    }
+    else if (nIDEvent == IDT_SHOW_MENU)
+    {
+        KillTimer(IDT_SHOW_MENU);
+        ShowMenu(m_nTimerMenuShow);
     }
 
     CDialog::OnTimer(nIDEvent);
@@ -1007,7 +1026,7 @@ BOOL CMACDlg::PreTranslateMessage(MSG * pMsg)
     {
         SetMenuShortcutMode(FALSE);
     }
-
+    
     return CDialog::PreTranslateMessage(pMsg);
 }
 
@@ -1034,7 +1053,7 @@ void CMACDlg::OnInitMenuPopup(CMenu * pPopupMenu, UINT nIndex, BOOL bSysMenu)
     pPopupMenu->CheckMenuItem(ID_MODE_VERIFY, ((theApp.GetSettings()->GetMode() == MODE_VERIFY) ? MF_CHECKED : 0) | MF_BYCOMMAND);
     pPopupMenu->CheckMenuItem(ID_MODE_CONVERT, ((theApp.GetSettings()->GetMode() == MODE_CONVERT) ? MF_CHECKED : 0) | MF_BYCOMMAND);
     pPopupMenu->CheckMenuItem(ID_MODE_MAKE_APL, ((theApp.GetSettings()->GetMode() == MODE_MAKE_APL) ? MF_CHECKED : 0) | MF_BYCOMMAND);
-    
+
     // check the compression
     pPopupMenu->CheckMenuItem(ID_COMPRESSION_APE_FAST, (((theApp.GetSettings()->GetFormat() == COMPRESSION_APE) && (theApp.GetSettings()->GetLevel() == APE_COMPRESSION_LEVEL_FAST)) ? MF_CHECKED : 0) | MF_BYCOMMAND);
     pPopupMenu->CheckMenuItem(ID_COMPRESSION_APE_NORMAL, (((theApp.GetSettings()->GetFormat() == COMPRESSION_APE) && (theApp.GetSettings()->GetLevel() == APE_COMPRESSION_LEVEL_NORMAL)) ? MF_CHECKED : 0) | MF_BYCOMMAND);
@@ -1082,7 +1101,7 @@ LRESULT CMACDlg::OnDPIChanged(WPARAM, LPARAM lParam)
 
         // position (this should perform a layout)
         CRect rect(reinterpret_cast<RECT *>(lParam));
-        SetWindowPos(NULL, rect.left, rect.top, rect.Width(), rect.Height(), SWP_NOZORDER | SWP_NOACTIVATE);
+        SetWindowPos(APE_NULL, rect.left, rect.top, rect.Width(), rect.Height(), SWP_NOZORDER | SWP_NOACTIVATE);
     }
 
     // this means we handled the message
@@ -1092,7 +1111,7 @@ LRESULT CMACDlg::OnDPIChanged(WPARAM, LPARAM lParam)
 void CMACDlg::OnListItemChanged(NMHDR *, LRESULT * pResult)
 {
     // run on a timer because this gets fired over and over and we just want to update once everything settles down
-    SetTimer(IDT_UPDATE_ENBALBED_STATES, 100, NULL);
+    SetTimer(IDT_UPDATE_ENBALBED_STATES, 100, APE_NULL);
     *pResult = 0;
 }
 
@@ -1319,7 +1338,7 @@ void CMACDlg::UpdateEnabledStates()
     bool bHasMultipleFiles = (m_ctrlList.GetItemCount() > 1);
     POSITION posListSelection = m_ctrlList.GetFirstSelectedItemPosition();
     int nListSelectionCount = 0;
-    while (posListSelection != NULL)
+    while (posListSelection != APE_NULL)
     {
         m_ctrlList.GetNextSelectedItem(posListSelection);
         nListSelectionCount++;
@@ -1367,11 +1386,11 @@ void CMACDlg::UpdateEnabledStates()
 
 void CMACDlg::OnMeasureItem(int, LPMEASUREITEMSTRUCT lpMIS)
 {
-    if (lpMIS->CtlType == ODT_MENU) 
+    if (lpMIS->CtlType == ODT_MENU)
     {
         MENUITEMINFO mii; CString strText;
         GetMenuInfo(lpMIS->itemID, mii, strText);
-        
+
         if (mii.fType & MFT_SEPARATOR)
         {
             // divider
@@ -1399,7 +1418,7 @@ void CMACDlg::OnMeasureItem(int, LPMEASUREITEMSTRUCT lpMIS)
 
 void CMACDlg::OnDrawItem(int, LPDRAWITEMSTRUCT lpDIS)
 {
-    if (lpDIS->CtlType == ODT_MENU) 
+    if (lpDIS->CtlType == ODT_MENU)
     {
         // attach a DC
         CDC dc;
@@ -1409,7 +1428,7 @@ void CMACDlg::OnDrawItem(int, LPDRAWITEMSTRUCT lpDIS)
         // get colors
         COLORREF rgbMenuBackground = 0, rgbMenuHighlight = 0, rgbMenuText = 0, rgbMenuGrayText = 0, rgbMenuHighlightText = 0, rgbDivider = 0;
         theApp.GetMenuColors(rgbMenuBackground, rgbMenuHighlight, rgbMenuText, rgbMenuGrayText, rgbMenuHighlightText, rgbDivider);
-        
+
         // check for grayed
         bool bGrayed = (lpDIS->itemState & ODS_GRAYED) || (lpDIS->itemState & ODS_DISABLED);
 
@@ -1452,16 +1471,16 @@ void CMACDlg::OnDrawItem(int, LPDRAWITEMSTRUCT lpDIS)
                 // draw check
                 CRect rectCheck = rc;
                 rectCheck.right = rectCheck.left + rc.Height(); // use the height as the width so the checkmark is square
-                
+
                 if ((lpDIS->itemState & ODS_CHECKED) || (mii.fState & MFS_CHECKED))
                 {
                     HICON hIcon = theApp.GetCheckIcon();
                     if (hIcon != APE_NULL)
                     {
-                        DrawIconEx(dc.GetSafeHdc(), rectCheck.left, rectCheck.top, hIcon, rectCheck.Width(), rectCheck.Height(), 0, NULL, DI_NORMAL);
+                        DrawIconEx(dc.GetSafeHdc(), rectCheck.left, rectCheck.top, hIcon, rectCheck.Width(), rectCheck.Height(), 0, APE_NULL, DI_NORMAL);
                     }
                 }
-                
+
                 // start the left just to the right of the checkmark
                 rc.left = rectCheck.right + MENU_BORDER;
 
@@ -1503,6 +1522,12 @@ void CMACDlg::OnClose()
 
     DestroyMenus();
 
+    if (m_hMouseHook != APE_NULL)
+    {
+        ::UnhookWindowsHookEx(m_hMouseHook);
+        m_hMouseHook = APE_NULL;
+    }
+
     CDialog::OnClose();
 }
 
@@ -1520,7 +1545,7 @@ void CMACDlg::GetMenuInfo(UINT nID, MENUITEMINFO & mi, CString & strText)
     {
         pmenuFound = &m_menuMain;
     }
-    else 
+    else
     {
         if (m_pTrackingMenu && m_pTrackingMenu->GetMenuItemInfo(nID, &mi, FALSE))
         {
@@ -1606,20 +1631,66 @@ void CMACDlg::SetMenuShortcutMode(BOOL bMenuShortcutMode)
     }
 }
 
-void CMACDlg::ShowMenu(int nMenu)
+LRESULT CMACDlg::MouseProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+    if (wParam == WM_MOUSEMOVE)
+    {
+        MOUSEHOOKSTRUCT * pMouse = reinterpret_cast<MOUSEHOOKSTRUCT *>(lParam);
+        // pMouse->pt contains the current screen coordinates of the mouse
+
+        // only switch menus if we're currently showing a menu
+        if ((m_nShowingMenu != -1) && (GetProcessing() == false))
+        {
+            // loop each menu item
+            for (int z = 0; z < m_aryMenus.GetSize(); z++)
+            {
+                // get window rectangle
+                CRect rectMenu;
+                m_aryMenus[z]->GetWindowRect(&rectMenu);
+                
+                // if we're in the menu and it's different than what we're showing
+                if (rectMenu.PtInRect(pMouse->pt) && (z != m_nShowingMenu))
+                {
+                    // close the menu
+                    SendMessage(WM_CANCELMODE);
+
+                    // show the menu on a timer (doing it directly doesn't work)
+                    m_nTimerMenuShow = z;
+                    SetTimer(IDT_SHOW_MENU, 10, NULL);
+
+                    // quit
+                    break;
+                }
+            }
+        }
+    }
+
+    return ::CallNextHookEx(m_hMouseHook, nCode, wParam, lParam);
+}
+
+
+void CMACDlg::ShowMenu(int nMenu, bool bCheckForRecentHide)
 {
     if ((nMenu < 0) || (nMenu >= m_aryMenus.GetSize()))
         return;
 
+    if (bCheckForRecentHide)
+    {
+        if (m_timerMenuHide.GetElapsedSeconds() < 0.2)
+            return;
+    }
+
     m_nShowingMenu = nMenu;
-    CRect rectButton; 
+    CRect rectButton;
     if (GetProcessing())
         m_aryMenus[nMenu]->GetWindowRect(&rectButton);
     else
         m_aryMenus[nMenu]->GetWindowRect(&rectButton);
     int nRetVal = m_menuMain.GetSubMenu(nMenu)->TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_VERTICAL | TPM_RETURNCMD,
         rectButton.left, rectButton.bottom, this, &rectButton);
-    PostMessage(WM_COMMAND, nRetVal, 0);
+    m_timerMenuHide.Reset();
+    if (nRetVal != 0)
+        PostMessage(WM_COMMAND, nRetVal, 0);
     m_nShowingMenu = -1;
 }
 

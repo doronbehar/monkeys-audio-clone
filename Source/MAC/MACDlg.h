@@ -14,6 +14,8 @@ class CMACDlg : public CDialog
 public:
     CMACDlg(CStringArrayEx * paryFiles, CWnd * pParent = APE_NULL);
 
+    static CMACDlg * s_pThis;
+
     enum { IDD = IDD_MAC_DIALOG };
     CMACListCtrl m_ctrlList;
     CMACStatusBar m_ctrlStatusBar;
@@ -34,6 +36,7 @@ public:
     void FilesChanged(MAC_FILE_ARRAY * paryFiles);
     MAC_FILE_ARRAY & GetFileArray() { return m_aryFiles; }
     void ChangeMenuToOwnerDraw(CMenu * pMenu, int nLevel = 100);
+    LRESULT MouseProc(int nCode, WPARAM wParam, LPARAM lParam);
 
 protected:
     virtual void DoDataExchange(CDataExchange * pDX);
@@ -109,6 +112,9 @@ protected:
     CMenu * m_pTrackingMenu;
     BOOL m_bMenuShortcutMode;
     int m_nShowingMenu;
+    HHOOK m_hMouseHook;
+    int m_nTimerMenuShow;
+    CAPEDuration m_timerMenuHide;
 
     void LayoutWindow();
     void UpdateWindow();
@@ -121,7 +127,7 @@ protected:
     void UpdateEnabledStates();
     void GetMenuInfo(UINT nID, MENUITEMINFO & mi, CString & strText);
     void SetMenuShortcutMode(BOOL bMenuShortcutMode);
-    void ShowMenu(int nMenu);
+    void ShowMenu(int nMenu, bool bCheckForRecentHide = false);
     void CreateMenu();
     void DestroyMenus();
 

@@ -34,9 +34,10 @@ protected:
     // other
     int m_nCurrentIndex;
     int m_nBitsPerSample;
-    CSmartPtr< CNNFilter<INTTYPE, DATATYPE> > m_spNNFilter;
-    CSmartPtr< CNNFilter<INTTYPE, DATATYPE> > m_spNNFilter1;
-    CSmartPtr< CNNFilter<INTTYPE, DATATYPE> > m_spNNFilter2;
+    typedef CNNFilter<INTTYPE, DATATYPE> CNNFilterThis;
+    CSmartPtr<CNNFilterThis> m_spNNFilter;
+    CSmartPtr<CNNFilterThis> m_spNNFilter1;
+    CSmartPtr<CNNFilterThis> m_spNNFilter2;
 
     // adaption
     INTTYPE m_aryM[9];
@@ -64,8 +65,9 @@ protected:
     // other
     int m_nCurrentIndex;
     int m_nLastValue;
-    CSmartPtr< CNNFilter<int, short> > m_spNNFilter;
-    CSmartPtr< CNNFilter<int, short> > m_spNNFilter1;
+    typedef CNNFilter<int, short> CNNFilterThis;
+    CSmartPtr<CNNFilterThis> m_spNNFilter;
+    CSmartPtr<CNNFilterThis> m_spNNFilter1;
 };
 
 template <class INTTYPE, class DATATYPE> class CPredictorDecompress3950toCurrent : public IPredictorDecompress
@@ -91,9 +93,10 @@ protected:
     CScaledFirstOrderFilter<INTTYPE, 31, 5> m_Stage1FilterB;
 
     // pointers
-    CSmartPtr< CNNFilter<INTTYPE, DATATYPE> > m_spNNFilter;
-    CSmartPtr< CNNFilter<INTTYPE, DATATYPE> > m_spNNFilter1;
-    CSmartPtr< CNNFilter<INTTYPE, DATATYPE> > m_spNNFilter2;
+    typedef CNNFilter<INTTYPE, DATATYPE> CNNFilterThis;
+    CSmartPtr<CNNFilterThis> m_spNNFilter;
+    CSmartPtr<CNNFilterThis> m_spNNFilter1;
+    CSmartPtr<CNNFilterThis> m_spNNFilter2;
 
     // adaption
     INTTYPE m_aryMA[M_COUNT];

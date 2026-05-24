@@ -23,22 +23,22 @@ template <class INTTYPE, class DATATYPE> CPredictorCompressNormal<INTTYPE, DATAT
     }
     else if (nCompressionLevel == APE_COMPRESSION_LEVEL_NORMAL)
     {
-        m_spNNFilter.Assign(new CNNFilter<INTTYPE, DATATYPE>(16, 11));
+        m_spNNFilter.Assign(new CNNFilterThis(16, 11));
     }
     else if (nCompressionLevel == APE_COMPRESSION_LEVEL_HIGH)
     {
-        m_spNNFilter.Assign(new CNNFilter<INTTYPE, DATATYPE>(64, 11));
+        m_spNNFilter.Assign(new CNNFilterThis(64, 11));
     }
     else if (nCompressionLevel == APE_COMPRESSION_LEVEL_EXTRA_HIGH)
     {
-        m_spNNFilter.Assign(new CNNFilter<INTTYPE, DATATYPE>(256, 13));
-        m_spNNFilter1.Assign(new CNNFilter<INTTYPE, DATATYPE>(32, 10));
+        m_spNNFilter.Assign(new CNNFilterThis(256, 13));
+        m_spNNFilter1.Assign(new CNNFilterThis(32, 10));
     }
     else if (nCompressionLevel == APE_COMPRESSION_LEVEL_INSANE)
     {
-        m_spNNFilter.Assign(new CNNFilter<INTTYPE, DATATYPE>(1024 + 256, 15));
-        m_spNNFilter1.Assign(new CNNFilter<INTTYPE, DATATYPE>(256, 13));
-        m_spNNFilter2.Assign(new CNNFilter<INTTYPE, DATATYPE>(16, 11));
+        m_spNNFilter.Assign(new CNNFilterThis(1024 + 256, 15));
+        m_spNNFilter1.Assign(new CNNFilterThis(256, 13));
+        m_spNNFilter2.Assign(new CNNFilterThis(16, 11));
     }
     else
     {
@@ -164,16 +164,16 @@ CPredictorDecompressNormal3930to3950::CPredictorDecompressNormal3930to3950(int n
     }
     else if (nCompressionLevel == APE_COMPRESSION_LEVEL_NORMAL)
     {
-        m_spNNFilter.Assign(new CNNFilter<int, short>(16, 11, nVersion));
+        m_spNNFilter.Assign(new CNNFilterThis(16, 11, nVersion));
     }
     else if (nCompressionLevel == APE_COMPRESSION_LEVEL_HIGH)
     {
-        m_spNNFilter.Assign(new CNNFilter<int, short>(64, 11, nVersion));
+        m_spNNFilter.Assign(new CNNFilterThis(64, 11, nVersion));
     }
     else if (nCompressionLevel == APE_COMPRESSION_LEVEL_EXTRA_HIGH)
     {
-        m_spNNFilter.Assign(new CNNFilter<int, short>(256, 13, nVersion));
-        m_spNNFilter1.Assign(new CNNFilter<int, short>(32, 10, nVersion));
+        m_spNNFilter.Assign(new CNNFilterThis(256, 13, nVersion));
+        m_spNNFilter1.Assign(new CNNFilterThis(32, 10, nVersion));
     }
     else
     {
@@ -271,22 +271,22 @@ template <class INTTYPE, class DATATYPE> CPredictorDecompress3950toCurrent<INTTY
     }
     else if (nCompressionLevel == APE_COMPRESSION_LEVEL_NORMAL)
     {
-        m_spNNFilter.Assign(new CNNFilter<INTTYPE, DATATYPE>(16, 11, nVersion));
+        m_spNNFilter.Assign(new CNNFilterThis(16, 11, nVersion));
     }
     else if (nCompressionLevel == APE_COMPRESSION_LEVEL_HIGH)
     {
-        m_spNNFilter.Assign(new CNNFilter<INTTYPE, DATATYPE>(64, 11, nVersion));
+        m_spNNFilter.Assign(new CNNFilterThis(64, 11, nVersion));
     }
     else if (nCompressionLevel == APE_COMPRESSION_LEVEL_EXTRA_HIGH)
     {
-        m_spNNFilter.Assign(new CNNFilter<INTTYPE, DATATYPE>(256, 13, nVersion));
-        m_spNNFilter1.Assign(new CNNFilter<INTTYPE, DATATYPE>(32, 10, nVersion));
+        m_spNNFilter.Assign(new CNNFilterThis(256, 13, nVersion));
+        m_spNNFilter1.Assign(new CNNFilterThis(32, 10, nVersion));
     }
     else if (nCompressionLevel == APE_COMPRESSION_LEVEL_INSANE)
     {
-        m_spNNFilter.Assign(new CNNFilter<INTTYPE, DATATYPE>(1024 + 256, 15, nVersion));
-        m_spNNFilter1.Assign(new CNNFilter<INTTYPE, DATATYPE>(256, 13, nVersion));
-        m_spNNFilter2.Assign(new CNNFilter<INTTYPE, DATATYPE>(16, 11, nVersion));
+        m_spNNFilter.Assign(new CNNFilterThis(1024 + 256, 15, nVersion));
+        m_spNNFilter1.Assign(new CNNFilterThis(256, 13, nVersion));
+        m_spNNFilter2.Assign(new CNNFilterThis(16, 11, nVersion));
     }
     else
     {

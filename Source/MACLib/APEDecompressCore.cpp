@@ -167,12 +167,16 @@ int CAPEDecompressCore::InitializeDecompressor()
     for (int nChannel = 0; nChannel < nChannels; nChannel++)
     {
         if (nVersion >= 3950)
+        {
             if (nBitsPerSample < 32)
                 m_aryPredictor[nChannel] = new CPredictorDecompress3950toCurrent<int, short>(nCompressionLevel, nVersion, nBitsPerSample);
             else
                 m_aryPredictor[nChannel] = new CPredictorDecompress3950toCurrent<int64, int>(nCompressionLevel, nVersion, nBitsPerSample);
+        }
         else
+        {
             m_aryPredictor[nChannel] = new CPredictorDecompressNormal3930to3950(nCompressionLevel, nVersion);
+        }
     }
 
     return ERROR_SUCCESS;

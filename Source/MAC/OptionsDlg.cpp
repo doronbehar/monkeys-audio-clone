@@ -141,7 +141,7 @@ void COptionsDlg::OnSize(UINT nType, int cx, int cy)
     // get list width
     IMAGEINFO Info; APE_CLEAR(Info);
     CImageList * pImageList = m_ctrlPageList.GetImageList(LVSIL_SMALL);
-    if (pImageList != NULL)
+    if (pImageList != APE_NULL)
         pImageList->GetImageInfo(0, &Info);
     int nListWidth = theApp.GetTextExtent(this, _T("Processing")).cx + theApp.GetSize(20) + (Info.rcImage.right - Info.rcImage.left);
 

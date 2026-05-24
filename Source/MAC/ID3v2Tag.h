@@ -33,7 +33,7 @@ public:
 
 private:
 
-    void ConvertID3v2String(CSmartPtr<str_utfn> * pTag, ID3v2TextEncoding Encoding, unsigned char * pStart, int * pnLengthBytes = NULL, int nBytes = -1);
+    void ConvertID3v2String(CSmartPtr<str_utfn> * pTag, ID3v2TextEncoding Encoding, unsigned char * pStart, int * pnLengthBytes = APE_NULL, int nBytes = -1);
     void ReadTag(int z, uint32 nFrameBytes, CSmartPtr<str_utfn> * pTag);
 
     #pragma pack(push, 1)

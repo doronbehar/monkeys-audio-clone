@@ -375,7 +375,7 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
                         }
                     }
 
-                    if (spFLACTag->m_spPicture != NULL)
+                    if (spFLACTag->m_spPicture != APE_NULL)
                     {
                         int nBufferBytes = static_cast<int>(spFLACTag->m_nPictureBytes) + spFLACTag->m_strImageExtension.GetLength() + 1;
                         CSmartPtr<char> spBuffer(new char [static_cast<size_t>(nBufferBytes)], true);
@@ -414,7 +414,7 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
                     spAPETagNew->SetFieldString(APE_TAG_FIELD_TRACK, pInfo->m_Tag.m_spTrackNumber);
                 if (pInfo->m_Tag.m_spDiscNumber != APE_NULL)
                     spAPETagNew->SetFieldString(APE_TAG_FIELD_DISC, pInfo->m_Tag.m_spDiscNumber);
-                if (pInfo->m_Tag.m_spImage != NULL)
+                if (pInfo->m_Tag.m_spImage != APE_NULL)
                 {
                     // get the MIME type
                     CString strMimeType; strMimeType.SetString(pInfo->m_Tag.m_spImageMimeType);
