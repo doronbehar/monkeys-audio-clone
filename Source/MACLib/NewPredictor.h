@@ -8,17 +8,17 @@
 namespace APE
 {
 
-/**************************************************************************************************
-Functions to create the interfaces
-**************************************************************************************************/
 #define WINDOW_BLOCKS           256
 #define M_COUNT                 8
 
-template <class INTTYPE, class DATATYPE> class CPredictorCompressNormal : public IPredictorCompress
+/**************************************************************************************************
+CPredictorCompress
+**************************************************************************************************/
+template <class INTTYPE, class DATATYPE> class CPredictorCompress : public IPredictorCompress
 {
 public:
-    CPredictorCompressNormal(int nCompressionLevel, int nBitsPerSample);
-    virtual ~CPredictorCompressNormal() APE_OVERRIDE;
+    CPredictorCompress(int nCompressionLevel, int nBitsPerSample);
+    virtual ~CPredictorCompress() APE_OVERRIDE;
 
     int64 CompressValue(int nA, int nB = 0) APE_OVERRIDE;
     int Flush() APE_OVERRIDE;
@@ -43,33 +43,9 @@ protected:
     INTTYPE m_aryM[9];
 };
 
-class CPredictorDecompressNormal3930to3950 : public IPredictorDecompress
-{
-public:
-    CPredictorDecompressNormal3930to3950(int nCompressionLevel, int nVersion);
-    virtual ~CPredictorDecompressNormal3930to3950() APE_OVERRIDE;
-
-    int DecompressValue(int64 nInput, int64) APE_OVERRIDE;
-    int Flush() APE_OVERRIDE;
-
-protected:
-    // buffer information
-    CSmartPtr<int> m_spBuffer;
-
-    // adaption
-    int m_aryM[M_COUNT];
-
-    // buffer pointers
-    int * m_pInputBuffer;
-
-    // other
-    int m_nCurrentIndex;
-    int m_nLastValue;
-    typedef CNNFilter<int, short> CNNFilterThis;
-    CSmartPtr<CNNFilterThis> m_spNNFilter;
-    CSmartPtr<CNNFilterThis> m_spNNFilter1;
-};
-
+/**************************************************************************************************
+CPredictorDecompress3950toCurrent
+**************************************************************************************************/
 template <class INTTYPE, class DATATYPE> class CPredictorDecompress3950toCurrent : public IPredictorDecompress
 {
 public:
@@ -115,8 +91,8 @@ protected:
 
 // forward declare the classes because it helps with a Clang warning
 #ifdef _MSC_VER
-extern template class CPredictorCompressNormal<int, short>;
-extern template class CPredictorCompressNormal<int64, int>;
+extern template class CPredictorCompress<int, short>;
+extern template class CPredictorCompress<int64, int>;
 extern template class CPredictorDecompress3950toCurrent<int, short>;
 extern template class CPredictorDecompress3950toCurrent<int64, int>;
 #endif

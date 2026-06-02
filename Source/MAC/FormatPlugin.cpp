@@ -20,7 +20,6 @@ CFormatPlugin::CFormatPlugin(CMACDlg * pMACDlg, int nIndex)
 
 CFormatPlugin::~CFormatPlugin()
 {
-
 }
 
 bool CFormatPlugin::Load(const CString & strAPXFilename)

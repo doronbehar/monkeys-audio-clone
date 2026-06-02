@@ -5,12 +5,10 @@
 namespace APE
 {
 
-#define HISTORY_ELEMENTS 8
-
 /**************************************************************************************************
-CPredictorCompressNormal
+CPredictorCompress
 **************************************************************************************************/
-template <class INTTYPE, class DATATYPE> CPredictorCompressNormal<INTTYPE, DATATYPE>::CPredictorCompressNormal(int nCompressionLevel, int nBitsPerSample)
+template <class INTTYPE, class DATATYPE> CPredictorCompress<INTTYPE, DATATYPE>::CPredictorCompress(int nCompressionLevel, int nBitsPerSample)
 {
     m_nBitsPerSample = nBitsPerSample;
 
@@ -46,14 +44,14 @@ template <class INTTYPE, class DATATYPE> CPredictorCompressNormal<INTTYPE, DATAT
     }
 }
 
-template <class INTTYPE, class DATATYPE> CPredictorCompressNormal<INTTYPE, DATATYPE>::~CPredictorCompressNormal()
+template <class INTTYPE, class DATATYPE> CPredictorCompress<INTTYPE, DATATYPE>::~CPredictorCompress()
 {
     m_spNNFilter.Delete();
     m_spNNFilter1.Delete();
     m_spNNFilter2.Delete();
 }
 
-template <class INTTYPE, class DATATYPE> int CPredictorCompressNormal<INTTYPE, DATATYPE>::Flush()
+template <class INTTYPE, class DATATYPE> int CPredictorCompress<INTTYPE, DATATYPE>::Flush()
 {
     if (m_spNNFilter) m_spNNFilter->Flush();
     if (m_spNNFilter1) m_spNNFilter1->Flush();
@@ -76,7 +74,7 @@ template <class INTTYPE, class DATATYPE> int CPredictorCompressNormal<INTTYPE, D
     return ERROR_SUCCESS;
 }
 
-template <class INTTYPE, class DATATYPE> int64 CPredictorCompressNormal<INTTYPE, DATATYPE>::CompressValue(int _nA, int _nB)
+template <class INTTYPE, class DATATYPE> int64 CPredictorCompress<INTTYPE, DATATYPE>::CompressValue(int _nA, int _nB)
 {
     // roll the buffers if necessary
     if (m_nCurrentIndex == WINDOW_BLOCKS)
@@ -142,113 +140,8 @@ template <class INTTYPE, class DATATYPE> int64 CPredictorCompressNormal<INTTYPE,
     return nOutput;
 }
 
-template class CPredictorCompressNormal<int, short>;
-template class CPredictorCompressNormal<int64, int>;
-
-/**************************************************************************************************
-CPredictorDecompressNormal3930to3950
-**************************************************************************************************/
-CPredictorDecompressNormal3930to3950::CPredictorDecompressNormal3930to3950(int nCompressionLevel, int nVersion)
-{
-    // initialize (to avoid warnings)
-    APE_CLEAR(m_aryM);
-    m_pInputBuffer = APE_NULL;
-    m_nLastValue = 0;
-    m_nCurrentIndex = 0;
-
-    m_spBuffer.Assign(new int [HISTORY_ELEMENTS + WINDOW_BLOCKS], true);
-
-    if (nCompressionLevel == APE_COMPRESSION_LEVEL_FAST)
-    {
-        // no filters
-    }
-    else if (nCompressionLevel == APE_COMPRESSION_LEVEL_NORMAL)
-    {
-        m_spNNFilter.Assign(new CNNFilterThis(16, 11, nVersion));
-    }
-    else if (nCompressionLevel == APE_COMPRESSION_LEVEL_HIGH)
-    {
-        m_spNNFilter.Assign(new CNNFilterThis(64, 11, nVersion));
-    }
-    else if (nCompressionLevel == APE_COMPRESSION_LEVEL_EXTRA_HIGH)
-    {
-        m_spNNFilter.Assign(new CNNFilterThis(256, 13, nVersion));
-        m_spNNFilter1.Assign(new CNNFilterThis(32, 10, nVersion));
-    }
-    else
-    {
-        throw(1);
-    }
-}
-
-CPredictorDecompressNormal3930to3950::~CPredictorDecompressNormal3930to3950()
-{
-    m_spNNFilter.Delete();
-    m_spNNFilter1.Delete();
-    m_spBuffer.Delete();
-}
-
-int CPredictorDecompressNormal3930to3950::Flush()
-{
-    if (m_spNNFilter) m_spNNFilter->Flush();
-    if (m_spNNFilter1) m_spNNFilter1->Flush();
-
-    APE_CLEAR_ARRAY(m_spBuffer, HISTORY_ELEMENTS + 1);
-    APE_CLEAR_ARRAY(m_aryM, M_COUNT);
-
-    m_aryM[0] = 360;
-    m_aryM[1] = 317;
-    m_aryM[2] = -109;
-    m_aryM[3] = 98;
-
-    m_pInputBuffer = &m_spBuffer[HISTORY_ELEMENTS];
-
-    m_nLastValue = 0;
-    m_nCurrentIndex = 0;
-
-    return ERROR_SUCCESS;
-}
-
-int CPredictorDecompressNormal3930to3950::DecompressValue(int64 nInput, int64)
-{
-    if (m_nCurrentIndex == WINDOW_BLOCKS)
-    {
-        // copy forward and adjust pointers
-        memmove(&m_spBuffer[0], &m_spBuffer[WINDOW_BLOCKS], HISTORY_ELEMENTS * sizeof(m_spBuffer[0]));
-        m_pInputBuffer = &m_spBuffer[HISTORY_ELEMENTS];
-
-        m_nCurrentIndex = 0;
-    }
-
-    int nInput32 = static_cast<int>(nInput);
-
-    // stage 2: NNFilter
-    if (m_spNNFilter1)
-        nInput32 = m_spNNFilter1->Decompress(nInput32);
-    if (m_spNNFilter)
-        nInput32 = m_spNNFilter->Decompress(nInput32);
-
-    // stage 1: multiple predictors (order 2 and offset 1)
-    const int p1 = m_pInputBuffer[-1];
-    const int p2 = m_pInputBuffer[-1] - m_pInputBuffer[-2];
-    const int p3 = m_pInputBuffer[-2] - m_pInputBuffer[-3];
-    const int p4 = m_pInputBuffer[-3] - m_pInputBuffer[-4];
-
-    m_pInputBuffer[0] = nInput32 + (((p1 * m_aryM[0]) + (p2 * m_aryM[1]) + (p3 * m_aryM[2]) + (p4 * m_aryM[3])) >> 9);
-
-    m_aryM[0] += (((p1 >> 30) & 2) - 1) * ((nInput32 < 0) - (nInput32 > 0));
-    m_aryM[1] += (((p2 >> 30) & 2) - 1) * ((nInput32 < 0) - (nInput32 > 0));
-    m_aryM[2] += (((p3 >> 30) & 2) - 1) * ((nInput32 < 0) - (nInput32 > 0));
-    m_aryM[3] += (((p4 >> 30) & 2) - 1) * ((nInput32 < 0) - (nInput32 > 0));
-
-    const int nResult = m_pInputBuffer[0] + ((m_nLastValue * 31) >> 5);
-    m_nLastValue = nResult;
-
-    m_nCurrentIndex++;
-    m_pInputBuffer++;
-
-    return nResult;
-}
+template class CPredictorCompress<int, short>;
+template class CPredictorCompress<int64, int>;
 
 /**************************************************************************************************
 CPredictorDecompress3950toCurrent

@@ -145,6 +145,7 @@ set(MAC_LIBRARY_HEADERS
         Source/MACLib/UnBitArray.h
         Source/MACLib/UnBitArrayBase.h
         Source/MACLib/WAVInputSource.h
+        Source/MACLib/Old/NewPredictorOld.h
         Source/MACLib/Old/AntiPredictorOld.h
         Source/MACLib/Old/APEDecompressCoreOld.h
         Source/MACLib/Old/APEDecompressOld.h
@@ -195,6 +196,7 @@ set(MAC_LIBRARY_SOURCE_FILES
         Source/MACLib/UnBitArray.cpp
         Source/MACLib/UnBitArrayBase.cpp
         Source/MACLib/WAVInputSource.cpp
+        Source/MACLib/Old/NewPredictorOld.cpp
         Source/MACLib/Old/AntiPredictorOld.cpp
         Source/MACLib/Old/AntiPredictorExtraHighOld.cpp
         Source/MACLib/Old/AntiPredictorFastOld.cpp

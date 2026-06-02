@@ -76,7 +76,7 @@ bool CMACProcessFiles::Pause(bool bPause)
     }
     else
     {
-        m_nPausedTotalMS += m_PausedDuration.GetElapsed();
+        m_nPausedTotalMS += m_PausedDuration.GetElapsedMS();
     }
 
     return true;
@@ -87,7 +87,7 @@ int CMACProcessFiles::GetPausedTotalMS() const
     int nPausedMS = static_cast<int>(m_nPausedTotalMS);
     if (m_bPaused)
     {
-        nPausedMS += m_PausedDuration.GetElapsed();
+        nPausedMS += m_PausedDuration.GetElapsedMS();
     }
     return nPausedMS;
 }
@@ -483,7 +483,7 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
         nRetVal = ERROR_SKIPPED;
     }
 
-    pInfo->m_nProcessingElapsed = pInfo->m_ProcessingDuration.GetElapsed();
+    pInfo->m_nProcessingElapsedMS = pInfo->m_ProcessingDuration.GetElapsedMS();
     pInfo->m_nRetVal = nRetVal;
     pInfo->m_bDone = true;
     pInfo->m_bNeedsUpdate = true;

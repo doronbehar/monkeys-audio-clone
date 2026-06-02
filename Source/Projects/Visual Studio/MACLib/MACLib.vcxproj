@@ -379,6 +379,7 @@
     <ClCompile Include="..\..\..\MACLib\Old\AntiPredictorNormalOld.cpp" />
     <ClCompile Include="..\..\..\MACLib\Old\APEDecompressCoreOld.cpp" />
     <ClCompile Include="..\..\..\MACLib\Old\APEDecompressOld.cpp" />
+    <ClCompile Include="..\..\..\MACLib\Old\NewPredictorOld.cpp" />
     <ClCompile Include="..\..\..\MACLib\Old\UnBitArrayOld.cpp" />
     <ClCompile Include="..\..\..\MACLib\Old\UnMACOld.cpp" />
     <ClCompile Include="..\..\..\MACLib\UnBitArray.cpp" />
@@ -414,6 +415,7 @@
     <ClInclude Include="..\..\..\MACLib\Old\AntiPredictorOld.h" />
     <ClInclude Include="..\..\..\MACLib\Old\APEDecompressCoreOld.h" />
     <ClInclude Include="..\..\..\MACLib\Old\APEDecompressOld.h" />
+    <ClInclude Include="..\..\..\MACLib\Old\NewPredictorOld.h" />
     <ClInclude Include="..\..\..\MACLib\Old\UnBitArrayOld.h" />
     <ClInclude Include="..\..\..\MACLib\Old\UnMACOld.h" />
     <ClInclude Include="..\..\..\Shared\All.h" />

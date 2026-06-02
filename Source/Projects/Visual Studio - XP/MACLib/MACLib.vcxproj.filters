@@ -194,6 +194,9 @@
     <ClCompile Include="..\..\..\MACLib\Old\UnMACOld.cpp">
       <Filter>Source Files\Old</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\MACLib\Old\NewPredictorOld.cpp">
+      <Filter>Source Files\Old</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Shared\All.h">
@@ -342,6 +345,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Shared\APETicks.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\MACLib\Old\NewPredictorOld.h">
+      <Filter>Header Files\Old %28h%29</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

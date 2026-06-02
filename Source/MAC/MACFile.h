@@ -29,7 +29,7 @@ public:
     bool m_bNeedsUpdate;
     int m_nRetVal;
     CAPEDuration m_ProcessingDuration;
-    int m_nProcessingElapsed;
+    int m_nProcessingElapsedMS;
     CString m_strFormat;
     int m_nLevel;
     int m_nKillFlag;

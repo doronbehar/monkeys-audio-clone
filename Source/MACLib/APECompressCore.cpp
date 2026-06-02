@@ -25,9 +25,9 @@ CAPECompressCore::CAPECompressCore(const WAVEFORMATEX * pwfeInput, int nMaxFrame
     for (int nChannel = 0; nChannel < pwfeInput->nChannels; nChannel++)
     {
         if (pwfeInput->wBitsPerSample < 32)
-            m_aryPredictors[nChannel] = new CPredictorCompressNormal<int, short>(nCompressionLevel, pwfeInput->wBitsPerSample);
+            m_aryPredictors[nChannel] = new CPredictorCompress<int, short>(nCompressionLevel, pwfeInput->wBitsPerSample);
         else
-            m_aryPredictors[nChannel] = new CPredictorCompressNormal<int64, int>(nCompressionLevel, pwfeInput->wBitsPerSample);
+            m_aryPredictors[nChannel] = new CPredictorCompress<int64, int>(nCompressionLevel, pwfeInput->wBitsPerSample);
     }
     memcpy(&m_wfeInput, pwfeInput, sizeof(WAVEFORMATEX));
     m_nInputBytes = 0;

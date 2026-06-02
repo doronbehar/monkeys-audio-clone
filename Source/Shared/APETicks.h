@@ -50,14 +50,20 @@ public:
     {
         m_Ticks = CAPETicks::GetTicks();
     }
-    int GetElapsed() const
+    int GetElapsedTicks() const
     {
         return static_cast<int>(CAPETicks::GetTicks() - m_Ticks);
     }
     double GetElapsedSeconds() const
     {
-        double dElapsedSeconds = static_cast<double>(GetElapsed()) / static_cast<double>(CAPETicks::GetFrequency());
+        double dElapsedSeconds = static_cast<double>(GetElapsedTicks()) / static_cast<double>(CAPETicks::GetFrequency());
         return dElapsedSeconds;
+    }
+    int GetElapsedMS() const
+    {
+        double dElapsedSeconds = GetElapsedSeconds();
+        int nElapsedMilliseconds = static_cast<int>(dElapsedSeconds * 1000.0);
+        return nElapsedMilliseconds;
     }
 
 protected:

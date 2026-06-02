@@ -134,7 +134,7 @@ bool MAC_FILE_ARRAY::GetProcessingProgress(double & rdProgress, double & rdSecon
         }
     }
 
-    double dElapsed = static_cast<double>(m_StartProcessingDuration.GetElapsed()) - static_cast<double>(nPausedTotalMS);
+    double dElapsed = static_cast<double>(m_StartProcessingDuration.GetElapsedMS()) - static_cast<double>(nPausedTotalMS);
 
     rdProgress = dDone / dTotal;
     if (rdProgress <= 0)

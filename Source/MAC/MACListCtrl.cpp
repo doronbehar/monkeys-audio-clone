@@ -519,7 +519,7 @@ void CMACListCtrl::OnGetdispinfo(NMHDR * pNMHDR, LRESULT * pResult)
                 {
                     if (File.m_bStarted && File.m_bDone)
                     {
-                        int64 nElapsedMS = static_cast<int64>(File.m_nProcessingElapsed);
+                        int64 nElapsedMS = static_cast<int64>(File.m_nProcessingElapsedMS);
                         strValue.Format(_T("%.2f"), static_cast<double>(nElapsedMS) / static_cast<double>(1000));
                     }
                     break;
@@ -726,7 +726,7 @@ int CMACListCtrl::Compare(const void * pOne, const void * pTwo)
     }
     else if (m_nCompareColumn == COLUMN_TIME_ELAPSED)
     {
-        nReturn = static_cast<int>((pFileOne->m_nProcessingElapsed) - (pFileTwo->m_nProcessingElapsed));
+        nReturn = static_cast<int>((pFileOne->m_nProcessingElapsedMS) - (pFileTwo->m_nProcessingElapsedMS));
     }
     else if (m_nCompareColumn == COLUMN_STATUS)
     {

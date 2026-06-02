@@ -24,7 +24,6 @@ CMACSettings::~CMACSettings()
     Save();
 }
 
-
 bool CMACSettings::Save()
 {
     // general
@@ -198,7 +197,7 @@ CString CMACSettings::GetCompressionName()
         }
         else
         {
-            strRetVal = _T("External");
+            strRetVal = GetFormat();
         }
     }
 
