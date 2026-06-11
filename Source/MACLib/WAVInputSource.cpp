@@ -139,7 +139,7 @@ int CInputSource::GetHeaderDataHelper(bool bIsValid, unsigned char * pBuffer, ui
             pIO->Seek(0, SeekFileBegin);
         }
 
-        unsigned int nBytesRead = 0;
+        int64 nBytesRead = 0;
         const int nReadRetVal = pIO->Read(pBuffer, nHeaderBytes, &nBytesRead);
 
         if ((nReadRetVal != ERROR_SUCCESS) || (nHeaderBytes != nBytesRead))
@@ -165,7 +165,7 @@ int CInputSource::GetTerminatingDataHelper(bool bIsValid, unsigned char * pBuffe
 
         pIO->Seek(-static_cast<int64>(nTerminatingBytes), SeekFileEnd);
 
-        unsigned int nBytesRead = 0;
+        int64 nBytesRead = 0;
         const int nReadRetVal = pIO->Read(pBuffer, nTerminatingBytes, &nBytesRead);
 
         if ((nReadRetVal != ERROR_SUCCESS) || (nTerminatingBytes != nBytesRead))
@@ -390,7 +390,7 @@ int CWAVInputSource::AnalyzeSource()
     #endif
 
     // if the format is an odd bits per sample, just update to a known number -- decoding stores the header so will still be correct (and the block align is that size anyway)
-    const int nSampleBits = 8 * WAVFormatHeader.nBlockAlign / APE_MAX(1, WAVFormatHeader.nChannels);
+    const int nSampleBits = 8 * WAVFormatHeader.nBlockAlign / APE_MAX<int>(1, WAVFormatHeader.nChannels);
     if (nSampleBits > 0)
         WAVFormatHeader.nBitsPerSample = static_cast<uint16>(((WAVFormatHeader.nBitsPerSample + (nSampleBits - 1)) / nSampleBits) * nSampleBits);
 
@@ -623,9 +623,9 @@ int CWAVInputSource::GetData(unsigned char * pBuffer, int nBlocks, int * pBlocks
     if (!m_bIsValid) return ERROR_UNDEFINED;
 
     const int nBytes = (m_wfeSource.nBlockAlign * nBlocks);
-    unsigned int nBytesRead = 0;
+    int64 nBytesRead = 0;
 
-    const int nReadResult = m_spIO->Read(pBuffer, static_cast<unsigned int>(nBytes), &nBytesRead);
+    const int nReadResult = m_spIO->Read(pBuffer, nBytes, &nBytesRead);
     if (nReadResult != ERROR_SUCCESS)
         return nReadResult;
 
@@ -946,9 +946,9 @@ int CAIFFInputSource::GetData(unsigned char * pBuffer, int nBlocks, int * pBlock
     if (!m_bIsValid) return ERROR_UNDEFINED;
 
     const int nBytes = (m_wfeSource.nBlockAlign * nBlocks);
-    unsigned int nBytesRead = 0;
+    int64 nBytesRead = 0;
 
-    if (m_spIO->Read(pBuffer, static_cast<unsigned int>(nBytes), &nBytesRead) != ERROR_SUCCESS)
+    if (m_spIO->Read(pBuffer, nBytes, &nBytesRead) != ERROR_SUCCESS)
         return ERROR_IO_READ;
 
     if (m_wfeSource.wBitsPerSample == 8)
@@ -1087,7 +1087,7 @@ int CW64InputSource::AnalyzeSource()
     bool bDataChunkRead = false;
     bool bFormatChunkRead = false;
     W64ChunkHeader RIFFHeader;
-    unsigned int nBytesRead = 0;
+    int64 nBytesRead = 0;
     m_nFileBytes = m_spIO->GetSize();
 
     m_spIO->Read(&RIFFHeader, sizeof(RIFFHeader), &nBytesRead);
@@ -1099,7 +1099,7 @@ int CW64InputSource::AnalyzeSource()
     {
         // read and verify the wave data type header
         GUID DataHeader;
-        const unsigned int nDataHeaderSize = static_cast<unsigned int>(sizeof(DataHeader));
+        const int64 nDataHeaderSize = sizeof(DataHeader);
         m_spIO->Read(&DataHeader, nDataHeaderSize, &nBytesRead);
         if (memcmp(&DataHeader, &guidWAVE, sizeof(GUID)) == 0)
         {
@@ -1112,7 +1112,7 @@ int CW64InputSource::AnalyzeSource()
                 m_spIO->Read(&Header, sizeof(Header), &nBytesRead);
 
                 // perhaps we have reached EOF
-                if (nBytesRead < sizeof(Header))
+                if (nBytesRead < static_cast<int64>(sizeof(Header)))
                     break;
 
                 Header.nBytes = ConvertU64LE(Header.nBytes);
@@ -1216,8 +1216,8 @@ int CW64InputSource::GetData(unsigned char * pBuffer, int nBlocks, int * pBlocks
 {
     if (!m_bIsValid) return ERROR_UNDEFINED;
 
-    const unsigned int nBytes = static_cast<unsigned int>(m_wfeSource.nBlockAlign * nBlocks);
-    unsigned int nBytesRead = 0;
+    const int64 nBytes = static_cast<int64>(m_wfeSource.nBlockAlign * nBlocks);
+    int64 nBytesRead = 0;
 
     if (m_spIO->Read(pBuffer, nBytes, &nBytesRead) != ERROR_SUCCESS)
         return ERROR_IO_READ;
@@ -1321,7 +1321,7 @@ int CSNDInputSource::AnalyzeSource(int32 * pFlags)
         uint32_t m_nChannels;
     };
     CAUHeader Header; APE_CLEAR(Header);
-    unsigned int nBytesRead = 0;
+    int64 nBytesRead = 0;
     if ((m_spIO->Read(&Header, sizeof(Header), &nBytesRead) == ERROR_SUCCESS) &&
         (nBytesRead == sizeof(Header)))
     {
@@ -1356,7 +1356,7 @@ int CSNDInputSource::AnalyzeSource(int32 * pFlags)
             m_nHeaderBytes = Header.m_nDataOffset;
             m_nDataBytes = m_nFileBytes - m_nHeaderBytes;
             if (Header.m_nDataSize > 0)
-                m_nDataBytes = APE_MIN(static_cast<int64>(Header.m_nDataSize), m_nDataBytes);
+                m_nDataBytes = APE_MIN<int64>(Header.m_nDataSize, m_nDataBytes);
             m_nTerminatingBytes = static_cast<uint32>(m_nFileBytes - m_nHeaderBytes - m_nDataBytes);
 
             // set format
@@ -1437,8 +1437,8 @@ int CSNDInputSource::GetData(unsigned char * pBuffer, int nBlocks, int * pBlocks
 {
     if (!m_bIsValid) return ERROR_UNDEFINED;
 
-    const unsigned int nBytes = static_cast<unsigned int>(m_wfeSource.nBlockAlign * nBlocks);
-    unsigned int nBytesRead = 0;
+    const int64 nBytes = static_cast<int64>(m_wfeSource.nBlockAlign * nBlocks);
+    int64 nBytesRead = 0;
 
     if (m_spIO->Read(pBuffer, nBytes, &nBytesRead) != ERROR_SUCCESS)
         return ERROR_IO_READ;
@@ -1690,8 +1690,8 @@ int CCAFInputSource::GetData(unsigned char * pBuffer, int nBlocks, int * pBlocks
 {
     if (!m_bIsValid) return ERROR_UNDEFINED;
 
-    const unsigned int nBytes = static_cast<unsigned int>(m_wfeSource.nBlockAlign * nBlocks);
-    unsigned int nBytesRead = 0;
+    const int64 nBytes = static_cast<int64>(m_wfeSource.nBlockAlign * nBlocks);
+    int64 nBytesRead = 0;
 
     if (m_spIO->Read(pBuffer, nBytes, &nBytesRead) != ERROR_SUCCESS)
         return ERROR_IO_READ;

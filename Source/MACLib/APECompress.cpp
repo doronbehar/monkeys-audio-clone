@@ -176,7 +176,7 @@ int CAPECompress::ProcessBuffer(bool bFinalize)
 
         while ((m_nBufferTail - m_nBufferHead) >= nThreshold)
         {
-            int64 nFrameBytes = APE_MIN(m_spAPECompressCreate->GetFullFrameBytes(), m_nBufferTail - m_nBufferHead);
+            int64 nFrameBytes = APE_MIN<int64>(m_spAPECompressCreate->GetFullFrameBytes(), m_nBufferTail - m_nBufferHead);
 
             // truncate to the size of a floating point number in float mode (since CFloatTransform::Process can only work on full samples)
             if (m_bFloat)

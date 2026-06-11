@@ -29,18 +29,20 @@ int CMemoryIO::Close()
     return ERROR_UNDEFINED;
 }
 
-int CMemoryIO::Read(void * pBuffer, unsigned int nBytesToRead, unsigned int * pBytesRead)
+int CMemoryIO::Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead)
 {
-    *pBytesRead = APE_MIN(nBytesToRead, static_cast<unsigned int>(m_nBufferBytes - m_nPosition));
-    memcpy(pBuffer, m_pBuffer + m_nPosition, *pBytesRead);
-    m_nPosition += *pBytesRead;
+    int64 nBytesRead = APE_MIN(nBytesToRead, static_cast<int64>(m_nBufferBytes - m_nPosition));
+    memcpy(pBuffer, m_pBuffer + m_nPosition, static_cast<size_t>(nBytesRead));
+    m_nPosition += nBytesRead;
+    if (pBytesRead != APE_NULL)
+        *pBytesRead = nBytesRead;
     return ERROR_SUCCESS;
 }
 
-int CMemoryIO::Write(const void * pBuffer, unsigned int nBytesToWrite, unsigned int * pBytesWritten)
+int CMemoryIO::Write(const void * pBuffer, int64 nBytesToWrite, int64 * pBytesWritten)
 {
-    unsigned int nBytesWritten = APE_MIN(nBytesToWrite, static_cast<unsigned int>(m_nBufferBytes - m_nPosition));
-    memcpy(m_pBuffer + m_nPosition, pBuffer, nBytesWritten);
+    int64 nBytesWritten = APE_MIN(nBytesToWrite, static_cast<int64>(m_nBufferBytes - m_nPosition));
+    memcpy(m_pBuffer + m_nPosition, pBuffer, static_cast<size_t>(nBytesWritten));
     m_nPosition += nBytesWritten;
     if (pBytesWritten != APE_NULL)
         *pBytesWritten = nBytesWritten;

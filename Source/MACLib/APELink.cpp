@@ -30,7 +30,7 @@ CAPELink::CAPELink(const str_utfn * pFilename)
         // fill the buffer from the file and null terminate it
         // we read enough to get all the data at the front (the tag follows which could be big)
         // this might read less if the file is shorter, but that's fine
-        unsigned int nBytesRead = 0;
+        int64 nBytesRead = 0;
         spioLinkFile->Read(spBuffer.GetPtr(), 4096, &nBytesRead);
         spBuffer[nBytesRead] = 0;
 

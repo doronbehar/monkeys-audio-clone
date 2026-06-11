@@ -181,7 +181,7 @@ void CAntiPredictorNormal3320To3800::AntiPredict(int * pInputArray, int * pOutpu
     }
 }
 
-void CAntiPredictorNormal3800ToCurrent::AntiPredict(int * pInputArray, int * pOutputArray, int NumberOfElements)
+void CAntiPredictorNormal3800To3929::AntiPredict(int * pInputArray, int * pOutputArray, int NumberOfElements)
 {
     // the frame to start prediction on
     #define FIRST_ELEMENT    4

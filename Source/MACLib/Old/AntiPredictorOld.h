@@ -40,7 +40,7 @@ public:
 /**************************************************************************************************
 Fast anti-predictor (new 'fast' mode release with version 3.32)
 **************************************************************************************************/
-class CAntiPredictorFast3320ToCurrent : public CAntiPredictor
+class CAntiPredictorFast3320To3930 : public CAntiPredictor
 {
 public:
     void AntiPredict(int * pInputArray, int * pOutputArray, int NumberOfElements) APE_OVERRIDE;
@@ -67,7 +67,7 @@ public:
 /**************************************************************************************************
 Normal anti-predictor
 **************************************************************************************************/
-class CAntiPredictorNormal3800ToCurrent : public CAntiPredictor
+class CAntiPredictorNormal3800To3929 : public CAntiPredictor
 {
 public:
     void AntiPredict(int * pInputArray, int * pOutputArray, int NumberOfElements) APE_OVERRIDE;
@@ -112,7 +112,7 @@ public:
 /**************************************************************************************************
 High anti-predictor
 **************************************************************************************************/
-class CAntiPredictorHigh3800ToCurrent : public CAntiPredictor
+class CAntiPredictorHigh3800To3929 : public CAntiPredictor
 {
 public:
     void AntiPredict(int * pInputArray, int * pOutputArray, int NumberOfElements) APE_OVERRIDE;
@@ -178,7 +178,7 @@ private:
 /**************************************************************************************************
 Extra high anti-predictor
 **************************************************************************************************/
-class CAntiPredictorExtraHigh3800ToCurrent : public CAntiPredictor
+class CAntiPredictorExtraHigh3800To3929 : public CAntiPredictor
 {
 public:
     void AntiPredictCustom(int * pInputArray, int * pOutputArray, int NumberOfElements, intn nVersion);

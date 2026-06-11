@@ -8,14 +8,14 @@ namespace APE
 
 void CAntiPredictorFast0000To3320::AntiPredict(int * pInputArray, int * pOutputArray, int NumberOfElements) {
 
-    //short frame handling
+    // short frame handling
     if (NumberOfElements < 32)
     {
         memcpy(pOutputArray, pInputArray, static_cast<size_t>(NumberOfElements) * 4);
         return;
     }
 
-    //the initial
+    // the initial
     pOutputArray[0] = pInputArray[0];
     pOutputArray[1] = pInputArray[1] + pOutputArray[0];
     pOutputArray[2] = pInputArray[2] + pOutputArray[1];
@@ -25,7 +25,7 @@ void CAntiPredictorFast0000To3320::AntiPredict(int * pInputArray, int * pOutputA
     pOutputArray[6] = pInputArray[6] + pOutputArray[5];
     pOutputArray[7] = pInputArray[7] + pOutputArray[6];
 
-    //the rest
+    // the rest
     int p, pw;
     int m = 4000;
     int * ip, * op, * op1;
@@ -49,8 +49,8 @@ void CAntiPredictorFast0000To3320::AntiPredict(int * pInputArray, int * pOutputA
     }
 }
 
-///////note: no output - overwrites input/////////////////
-void CAntiPredictorFast3320ToCurrent::AntiPredict(int * pInputArray, int * pOutputArray, int NumberOfElements)
+/////// note: no output - overwrites input /////////////////
+void CAntiPredictorFast3320To3930::AntiPredict(int * pInputArray, int * pOutputArray, int NumberOfElements)
 {
     (void) pOutputArray;
 

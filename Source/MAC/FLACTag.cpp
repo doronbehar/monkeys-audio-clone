@@ -24,9 +24,8 @@ CFLACTag::CFLACTag(const TCHAR * pFilename)
     if (m_spIO->Open(pFilename) == ERROR_SUCCESS)
     {
         // read FLAC header
-        unsigned int nBytesRead = 0;
         char cFLAC[5] = { 0 };
-        m_spIO->Read(cFLAC, 4, &nBytesRead);
+        m_spIO->Read(cFLAC, 4);
         if (strcmp(cFLAC, "fLaC") == 0)
         {
             // loop chunks
@@ -37,7 +36,7 @@ CFLACTag::CFLACTag(const TCHAR * pFilename)
             {
                 // read the buffer
                 unsigned char cBuffer[4] = { 0 };
-                if (m_spIO->Read(cBuffer, 4, &nBytesRead) != ERROR_SUCCESS)
+                if (m_spIO->Read(cBuffer, 4) != ERROR_SUCCESS)
                     break;
 
                 // buffer size
@@ -62,7 +61,7 @@ CFLACTag::CFLACTag(const TCHAR * pFilename)
                     {
                         // tag
                         CSmartPtr<char> spTag(new char [nBufferBytes + 1], true);
-                        m_spIO->Read(spTag, nBufferBytes, &nBytesRead);
+                        m_spIO->Read(spTag, nBufferBytes);
 
                         // skip vendor
                         uint32 nStartByte = 0;
@@ -109,7 +108,7 @@ CFLACTag::CFLACTag(const TCHAR * pFilename)
                     {
                         // picture
                         CSmartPtr<char> spPicture(new char [nBufferBytes], true);
-                        m_spIO->Read(spPicture, nBufferBytes, &nBytesRead);
+                        m_spIO->Read(spPicture, nBufferBytes);
 
                         // picture type
                         //int nPictureType = ReadInteger(spPicture, 0);

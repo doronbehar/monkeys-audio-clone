@@ -628,7 +628,7 @@ int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, IAPEProgressCal
         try
         {
             CMD5Helper MD5Helper;
-            unsigned int nBytesRead = 0;
+            int64 nBytesRead = 0;
 
             IAPEIO * pIO = APE_GET_IO(spAPEDecompress);
             const APE_FILE_INFO * pInfo = APE_GET_INFO(spAPEDecompress);
@@ -639,17 +639,17 @@ int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, IAPEProgressCal
             // read APE header
             CSmartPtr<unsigned char> spAPEHeader(pInfo->spAPEDescriptor->nHeaderBytes);
             pIO->Seek(static_cast<int64>(pInfo->nJunkHeaderBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nDescriptorBytes), SeekFileBegin);
-            pIO->Read(spAPEHeader, pInfo->spAPEDescriptor->nHeaderBytes, &nBytesRead);
+            THROW_ON_ERROR(pIO->Read(spAPEHeader, pInfo->spAPEDescriptor->nHeaderBytes, &nBytesRead))
 
             // read seek table
             CSmartPtr<unsigned char> spSeekTable(pInfo->spAPEDescriptor->nSeekTableBytes);
             ASSERT(pIO->GetPosition() == (static_cast<int64>(pInfo->nJunkHeaderBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nDescriptorBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nHeaderBytes)));
-            pIO->Read(spSeekTable, pInfo->spAPEDescriptor->nSeekTableBytes, &nBytesRead);
+            THROW_ON_ERROR(pIO->Read(spSeekTable, pInfo->spAPEDescriptor->nSeekTableBytes, &nBytesRead))
 
             // read header data
             CSmartPtr<unsigned char> spHeader(pInfo->spAPEDescriptor->nHeaderDataBytes);
             ASSERT(pIO->GetPosition() == (static_cast<int64>(pInfo->nJunkHeaderBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nDescriptorBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nHeaderBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nSeekTableBytes)));
-            pIO->Read(spHeader, static_cast<unsigned int>(pInfo->spAPEDescriptor->nHeaderDataBytes), &nBytesRead);
+            THROW_ON_ERROR(pIO->Read(spHeader, pInfo->spAPEDescriptor->nHeaderDataBytes, &nBytesRead))
 
             // seek to the data (we should already be there)
             ASSERT(pIO->GetPosition() == (static_cast<int64>(pInfo->nJunkHeaderBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nDescriptorBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nHeaderBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nSeekTableBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nHeaderDataBytes)));
@@ -669,7 +669,7 @@ int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, IAPEProgressCal
             nBytesRead = 1;
             while ((nBytesLeft > 0) && (nBytesRead > 0))
             {
-                const unsigned int nBytesToRead = static_cast<unsigned int>(APE_MIN(16384, nBytesLeft));
+                const int64 nBytesToRead = APE_MIN<int64>(16384, nBytesLeft);
                 if (pIO->Read(spBuffer, nBytesToRead, &nBytesRead) != ERROR_SUCCESS)
                     throw(static_cast<intn>(ERROR_IO_READ));
 
@@ -792,7 +792,7 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
             spioOutput.Assign(CreateIAPEIO()); THROW_ON_ERROR(spioOutput->Create(pOutputFilename))
 
             // output the header
-            THROW_ON_ERROR(spioOutput->Write(spTempBuffer, static_cast<unsigned int>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_HEADER_BYTES))))
+            THROW_ON_ERROR(spioOutput->Write(spTempBuffer, spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_HEADER_BYTES)))
         }
 #ifdef APE_SUPPORT_COMPRESS
         else if (nOutputMode == UNMAC_DECODER_OUTPUT_APE)
@@ -850,7 +850,7 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
                 if (wfeInput.wBitsPerSample >= 16)
                     SwitchBufferBytes(spTempBuffer, wfeInput.wBitsPerSample / 8, nBlocksDecoded * wfeInput.nChannels);
 #endif
-                const unsigned int nBytesToWrite = static_cast<unsigned int>(nBlocksDecoded * spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BLOCK_ALIGN));
+                const int64 nBytesToWrite = nBlocksDecoded * spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BLOCK_ALIGN);
                 const int nWriteResult = spioOutput->Write(spTempBuffer, nBytesToWrite);
                 if (nWriteResult != ERROR_SUCCESS)
                     throw(static_cast<intn>(ERROR_IO_WRITE));
@@ -879,7 +879,7 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
                 if (spTempBuffer == APE_NULL) throw(static_cast<intn>(ERROR_INSUFFICIENT_MEMORY));
                 THROW_ON_ERROR(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_DATA, APE_POINTER_TO_INT64(spTempBuffer.GetPtr()), spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES)))
 
-                const unsigned int nBytesToWrite = static_cast<unsigned int>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES));
+                const int64 nBytesToWrite = spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES);
                 const int nResult = spioOutput->Write(spTempBuffer, nBytesToWrite);
                 if (nResult != ERROR_SUCCESS)
                     throw(static_cast<intn>(ERROR_IO_WRITE));
@@ -903,9 +903,9 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
 
                 if (bHasTag)
                 {
-                    unsigned int nBytesRead = 0;
+                    int64 nBytesRead = 0;
                     THROW_ON_ERROR(APE_GET_IO(spAPEDecompress)->Seek(-(nTagBytes), SeekFileEnd))
-                    THROW_ON_ERROR(APE_GET_IO(spAPEDecompress)->Read(&spTempBuffer[spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES)], static_cast<unsigned int>(nTagBytes), &nBytesRead))
+                    THROW_ON_ERROR(APE_GET_IO(spAPEDecompress)->Read(&spTempBuffer[spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES)], nTagBytes, &nBytesRead))
                 }
 
                 THROW_ON_ERROR(spAPECompress->Finish(spTempBuffer, nTerminatingBytes, static_cast<int>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES))))

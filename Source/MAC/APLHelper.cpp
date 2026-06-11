@@ -196,10 +196,10 @@ bool CAPLHelper::GenerateLinkFiles(const CString & strImage, const CString & str
                 strImageFile.GetString(), strStartBlock.GetString(), strFinishBlock.GetString());
 
             CSmartPtr<char> spHeader(CAPECharacterHelper::GetANSIFromUTFN(strHeader), true);
-            spFileIO->Write(spHeader.GetPtr(), static_cast<unsigned int>(strlen(spHeader)));
+            spFileIO->Write(spHeader.GetPtr(), static_cast<int64>(strlen(spHeader)));
 
             const char * pcTagHeader = "\r\n----- APE TAG (DO NOT TOUCH!!!) -----\r\n";
-            spFileIO->Write(pcTagHeader, static_cast<unsigned int>(strlen(pcTagHeader)));
+            spFileIO->Write(pcTagHeader, static_cast<int64>(strlen(pcTagHeader)));
 
             CAPETag APETag(spFileIO, true);
             APETag.SetFieldString(APE_TAG_FIELD_ARTIST, strArtist);

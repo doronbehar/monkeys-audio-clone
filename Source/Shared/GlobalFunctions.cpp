@@ -51,13 +51,13 @@ void EnableHighDPISupport()
 #endif
 }
 
-int ReadSafe(IAPEIO * pIO, void * pBuffer, int nBytes)
+int ReadSafe(IAPEIO * pIO, void * pBuffer, int64 nBytes)
 {
-    unsigned int nBytesRead = 0;
-    int nResult = pIO->Read(pBuffer, static_cast<unsigned int>(nBytes), &nBytesRead);
+    int64 nBytesRead = 0;
+    int nResult = pIO->Read(pBuffer, nBytes, &nBytesRead);
     if (nResult == ERROR_SUCCESS)
     {
-        if (nBytes != static_cast<int>(nBytesRead))
+        if (nBytes != nBytesRead)
             nResult = ERROR_IO_READ;
     }
 

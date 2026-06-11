@@ -19,8 +19,8 @@ public:
     int Close();
 
     // read / write
-    int Read(void * pBuffer, unsigned int nBytesToRead, unsigned int * pBytesRead);
-    int Write(const void * pBuffer, unsigned int nBytesToWrite, unsigned int * pBytesWritten = APE_NULL);
+    int Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead = APE_NULL);
+    int Write(const void * pBuffer, int64 nBytesToWrite, int64 * pBytesWritten = APE_NULL);
 
     // seek
     int Seek(int64 nPosition, SeekMethod nMethod);
@@ -40,7 +40,7 @@ public:
     int GetHandle();
 
 private:
-    str_utfn m_cFileName[MAX_PATH];
+    str_utfn m_cFileName[APE_MAX_PATH];
     bool m_bReadOnly;
     bool m_bPipe;
     FILE * m_pFile;

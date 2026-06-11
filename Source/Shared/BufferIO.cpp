@@ -33,13 +33,13 @@ int CBufferIO::Close()
     return m_spSource->Close();
 }
 
-int CBufferIO::Read(void * pBuffer, unsigned int nBytesToRead, unsigned int * pBytesRead)
+int CBufferIO::Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead)
 {
     const int nResult = m_spSource->Read(pBuffer, nBytesToRead, pBytesRead);
 
     if (m_bReadToBuffer && (m_spBuffer != APE_NULL) && (*pBytesRead > 0))
     {
-        const int nBufferBytes = APE_MIN(m_nBufferTotalBytes - m_nBufferBytes, *reinterpret_cast<int *>(pBytesRead));
+        const int64 nBufferBytes = APE_MIN<int64>(static_cast<int64>(m_nBufferTotalBytes - m_nBufferBytes), *reinterpret_cast<int64 *>(pBytesRead));
         if (nBufferBytes <= 0)
         {
             m_bReadToBuffer = false;
@@ -47,14 +47,14 @@ int CBufferIO::Read(void * pBuffer, unsigned int nBytesToRead, unsigned int * pB
         else
         {
             memcpy(&m_spBuffer[m_nBufferBytes], pBuffer, static_cast<size_t>(nBufferBytes));
-            m_nBufferBytes += *pBytesRead;
+            m_nBufferBytes += static_cast<int>(*pBytesRead);
         }
     }
 
     return nResult;
 }
 
-int CBufferIO::Write(const void *, unsigned int, unsigned int *)
+int CBufferIO::Write(const void *, int64, int64 *)
 {
     return ERROR_IO_WRITE;
 }
@@ -155,34 +155,44 @@ int CHeaderIO::Close()
     return m_spSource->Close();
 }
 
-int CHeaderIO::Read(void * pBuffer, unsigned int nBytesToRead, unsigned int * pBytesRead)
+int CHeaderIO::Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead)
 {
     // if we're inside the header, just copy out of it for the first part of the read
+    int64 nBytesRead = 0;
     int nResult = ERROR_SUCCESS;
     if (m_nPosition < m_nHeaderBytes)
     {
-        int64 nBytesFromBuffer = APE_MIN(m_nHeaderBytes - m_nPosition, nBytesToRead);
+        // read from header
+        int64 nBytesFromBuffer = APE_MIN<int64>(m_nHeaderBytes - m_nPosition, nBytesToRead);
         memcpy(pBuffer, &m_aryHeader[m_nPosition], static_cast<size_t>(nBytesFromBuffer));
         char * pBufferChar = reinterpret_cast<char *>(pBuffer);
-        unsigned int nBytesFromReader = static_cast<unsigned int>(static_cast<int64>(nBytesToRead) - nBytesFromBuffer);
-        *pBytesRead = 0; // zero-out so if we read nothing it stays zero (and we pass a zero into read)
+        int64 nBytesFromReader = nBytesToRead - nBytesFromBuffer;
+        
+        // reader
         if (nBytesFromReader > 0)
-            nResult = m_spSource->Read(&pBufferChar[nBytesFromBuffer], nBytesFromReader, pBytesRead);
-        *pBytesRead += static_cast<unsigned int>(nBytesFromBuffer); // add the number of bytes we read from the buffer
+            nResult = m_spSource->Read(&pBufferChar[nBytesFromBuffer], nBytesFromReader, &nBytesRead);
+
+        // add the number of bytes we read from the buffer
+        nBytesRead += nBytesFromBuffer;
     }
     else
     {
-        nResult = m_spSource->Read(pBuffer, nBytesToRead, pBytesRead);
+        // just pass through to the reader
+        nResult = m_spSource->Read(pBuffer, nBytesToRead, &nBytesRead);
     }
 
     // increment position
-    m_nPosition += *pBytesRead;
+    m_nPosition += nBytesRead;
+
+    // set bytes read
+    if (pBytesRead != APE_NULL)
+        *pBytesRead = nBytesRead;
 
     // return result
     return nResult;
 }
 
-int CHeaderIO::Write(const void *, unsigned int, unsigned int *)
+int CHeaderIO::Write(const void *, int64, int64 *)
 {
     return ERROR_IO_WRITE;
 }

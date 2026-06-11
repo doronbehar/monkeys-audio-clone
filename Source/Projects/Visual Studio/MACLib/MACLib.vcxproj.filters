@@ -346,9 +346,6 @@
     <ClInclude Include="..\..\..\Shared\APETicks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\MACLib\IAPETag.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Shared\IAPETag.h">
       <Filter>Header Files\Info %28h%29</Filter>
     </ClInclude>

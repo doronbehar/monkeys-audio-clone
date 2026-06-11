@@ -1,5 +1,4 @@
 #include "All.h"
-
 #ifdef APE_BACKWARDS_COMPATIBILITY
 
 #include "APEDecompressOld.h"
@@ -64,7 +63,7 @@ int CAPEDecompressOld::InitializeDecompressor()
     RETURN_ON_ERROR(m_UnMAC.Initialize(this))
 
     const int64 nMaximumDecompressedFrameBytes = m_nBlockAlign * static_cast<intn>(GetInfo(APE_INFO_BLOCKS_PER_FRAME));
-    const int64 nTotalBufferBytes = APE_MAX(65536, (nMaximumDecompressedFrameBytes + 16) * 2);
+    const int64 nTotalBufferBytes = APE_MAX<int64>(65536, (nMaximumDecompressedFrameBytes + 16) * 2);
     m_spBuffer.AllocateArray(nTotalBufferBytes);
     if (m_spBuffer == APE_NULL)
         return ERROR_INSUFFICIENT_MEMORY;

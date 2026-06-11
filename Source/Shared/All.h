@@ -93,11 +93,32 @@ Global includes
     #include <wchar.h>
     #include "NoWindows.h"
 #endif
-#define APE_MAX(a, b) (((a) > (b)) ? (a) : (b))
-#define APE_MIN(a, b) (((a) < (b)) ? (a) : (b))
-#define APE_CAP(value, low, high) (((value) < (low)) ? (low) : ((value) > (high)) ? (high) : (value))
 #define APE_CLEAR(destination) memset(&destination, 0, sizeof(destination))
 #define APE_CLEAR_ARRAY(destination, elements) memset(&destination[0], 0, sizeof(destination[0]) * static_cast<size_t>(elements))
+
+/**************************************************************************************************
+Min, max, and cap (as functions so we don't need to evaluate the number two times)
+**************************************************************************************************/
+template<typename TYPE>
+static inline TYPE APE_MIN(TYPE Number1, TYPE Number2)
+{
+    return (Number1 < Number2) ? Number1 : Number2;
+}
+
+template<typename TYPE>
+static inline TYPE APE_MAX(TYPE Number1, TYPE Number2)
+{
+    return (Number1 > Number2) ? Number1 : Number2;
+}
+
+template<typename TYPE>
+static inline TYPE APE_CAP(TYPE Number, TYPE Minimum, TYPE Maximum)
+{
+    TYPE NewNumber = Number;
+    if (NewNumber > Maximum) NewNumber = Maximum;
+    if (NewNumber < Minimum) NewNumber = Minimum;
+    return NewNumber;
+}
 
 /**************************************************************************************************
 Version

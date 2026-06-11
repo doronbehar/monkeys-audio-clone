@@ -21,8 +21,8 @@ public:
     virtual int Close() = 0;
 
     // read / write
-    virtual int Read(void * pBuffer, unsigned int nBytesToRead, unsigned int * pBytesRead) = 0;
-    virtual int Write(const void * pBuffer, unsigned int nBytesToWrite, unsigned int * pBytesWritten = APE_NULL) = 0;
+    virtual int Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead = APE_NULL) = 0;
+    virtual int Write(const void * pBuffer, int64 nBytesToWrite, int64 * pBytesWritten = APE_NULL) = 0;
 
     // seek
     virtual int Seek(int64 nPosition, SeekMethod nMethod) = 0;

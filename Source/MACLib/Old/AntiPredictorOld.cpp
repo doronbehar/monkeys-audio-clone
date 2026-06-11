@@ -20,7 +20,7 @@ CAntiPredictor * CreateAntiPredictor(intn nCompressionLevel, intn nVersion)
             }
             else
             {
-                pAntiPredictor = new CAntiPredictorFast3320ToCurrent;
+                pAntiPredictor = new CAntiPredictorFast3320To3930;
             }
             break;
 
@@ -35,7 +35,7 @@ CAntiPredictor * CreateAntiPredictor(intn nCompressionLevel, intn nVersion)
             }
             else
             {
-                pAntiPredictor = new CAntiPredictorNormal3800ToCurrent;
+                pAntiPredictor = new CAntiPredictorNormal3800To3929;
             }
             break;
 
@@ -58,7 +58,7 @@ CAntiPredictor * CreateAntiPredictor(intn nCompressionLevel, intn nVersion)
             }
             else
             {
-                pAntiPredictor = new CAntiPredictorHigh3800ToCurrent;
+                pAntiPredictor = new CAntiPredictorHigh3800To3929;
             }
             break;
 
@@ -81,7 +81,7 @@ CAntiPredictor * CreateAntiPredictor(intn nCompressionLevel, intn nVersion)
             }
             else
             {
-                pAntiPredictor = new CAntiPredictorExtraHigh3800ToCurrent;
+                pAntiPredictor = new CAntiPredictorExtraHigh3800To3929;
             }
             break;
 

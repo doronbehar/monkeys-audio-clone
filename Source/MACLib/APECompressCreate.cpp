@@ -159,7 +159,7 @@ int CAPECompressCreate::WriteFrame(unsigned char * pOutputData, uint32 nBytes)
     m_MD5.AddData(pOutputData, static_cast<int64>(nBytes / 4 * 4));
 
     // write data
-    nResult = m_spIO->Write(pOutputData, nBytes / 4 * 4);
+    nResult = m_spIO->Write(pOutputData, static_cast<int64>(nBytes / 4 * 4));
     if (nResult != ERROR_SUCCESS)
         return nResult;
 
@@ -278,7 +278,7 @@ int CAPECompressCreate::InitializeFile(IAPEIO * pIO, const WAVEFORMATEX * pwfeIn
     // write an empty seek table
     m_spSeekTable.AllocateArray(nMaxFrames, true);
     if (m_spSeekTable == APE_NULL) { return ERROR_INSUFFICIENT_MEMORY; }
-    RETURN_ON_ERROR(pIO->Write(m_spSeekTable, static_cast<unsigned int>(nMaxFrames * 4)))
+    RETURN_ON_ERROR(pIO->Write(m_spSeekTable, nMaxFrames * 4))
     m_nMaxFrames = nMaxFrames;
 
     // write the WAV data
@@ -286,7 +286,7 @@ int CAPECompressCreate::InitializeFile(IAPEIO * pIO, const WAVEFORMATEX * pwfeIn
     {
         // MD5 and write data
         m_MD5.AddData(pHeaderData, nHeaderBytes);
-        RETURN_ON_ERROR(pIO->Write(pHeaderData, static_cast<unsigned int>(nHeaderBytes)))
+        RETURN_ON_ERROR(pIO->Write(pHeaderData, nHeaderBytes))
     }
 
     return ERROR_SUCCESS;
@@ -298,7 +298,7 @@ int CAPECompressCreate::FinalizeFile(IAPEIO * pIO, int nNumberOfFrames, int nFin
     const int64 nTailPosition = pIO->GetPosition();
 
     // append the terminating data
-    unsigned int nBytesRead = 0;
+    int64 nBytesRead = 0;
     int64 nResult = 0;
 
     if ((pTerminatingData != APE_NULL) && (nTerminatingBytes > 0))
@@ -311,7 +311,7 @@ int CAPECompressCreate::FinalizeFile(IAPEIO * pIO, int nNumberOfFrames, int nFin
         m_MD5.AddData(pTerminatingData, nWAVTerminatingBytes);
 
         // get the write size
-        const unsigned int nWriteSize = static_cast<unsigned int>(nTerminatingBytes);
+        const int64 nWriteSize = static_cast<int64>(nTerminatingBytes);
 
         // write the entire chunk to the new file
         if (pIO->Write(pTerminatingData, nWriteSize) != ERROR_SUCCESS)
@@ -354,7 +354,7 @@ int CAPECompressCreate::FinalizeFile(IAPEIO * pIO, int nNumberOfFrames, int nFin
     if (pIO->Write(&APEHeader, sizeof(APEHeader)) != ERROR_SUCCESS) { return ERROR_IO_WRITE; }
 
     // write the updated seek table
-    if (pIO->Write(m_spSeekTable, static_cast<unsigned int>(m_nMaxFrames * 4)) != ERROR_SUCCESS) { return ERROR_IO_WRITE; }
+    if (pIO->Write(m_spSeekTable, static_cast<int64>(m_nMaxFrames * 4)) != ERROR_SUCCESS) { return ERROR_IO_WRITE; }
 
     return ERROR_SUCCESS;
 }

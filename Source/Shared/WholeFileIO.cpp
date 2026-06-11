@@ -34,8 +34,8 @@ CWholeFileIO * CreateWholeFileIO(IAPEIO * pSource, int64 nSize)
 
         // allocate the first buffer then start the read loop
         unsigned char * pBuffer = new unsigned char [static_cast<size_t>(nGrowBytes)];
-        unsigned int nBytesRead = 0;
-        while ((pBuffer != APE_NULL) && (pSource->Read(&pBuffer[nBytes], static_cast<unsigned int>(nGrowBytes), &nBytesRead) == ERROR_SUCCESS))
+        int64 nBytesRead = 0;
+        while ((pBuffer != APE_NULL) && (pSource->Read(&pBuffer[nBytes], nGrowBytes, &nBytesRead) == ERROR_SUCCESS))
         {
             // increment the position
             nBytes += nBytesRead;
@@ -89,7 +89,7 @@ CWholeFileIO * CreateWholeFileIO(IAPEIO * pSource, int64 nSize)
         if (spWholeFile != APE_NULL)
         {
             // read
-            unsigned int nBytesRead = 0;
+            int64 nBytesRead = 0;
             nResult = pSource->Read(spWholeFile, n32BitSize, &nBytesRead);
             if (nBytesRead < n32BitSize)
                 nResult = ERROR_IO_READ;
@@ -133,26 +133,19 @@ int CWholeFileIO::Close()
     return m_spSource->Close();
 }
 
-int CWholeFileIO::Read(void * pBuffer, unsigned int nBytesToRead, unsigned int * pBytesRead)
+int CWholeFileIO::Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead)
 {
-    bool bRetVal = true;
-
-    *pBytesRead = 0; // reset
-
     const int64 nBytesLeft = GetSize() - m_nWholeFilePointer;
-    nBytesToRead = APE_MIN(static_cast<unsigned int> (nBytesLeft), nBytesToRead);
-    memcpy(pBuffer, &m_spWholeFile[m_nWholeFilePointer], nBytesToRead);
+    nBytesToRead = APE_MIN(nBytesLeft, nBytesToRead);
+    memcpy(pBuffer, &m_spWholeFile[m_nWholeFilePointer], static_cast<size_t>(nBytesToRead));
     m_nWholeFilePointer += nBytesToRead;
-    *pBytesRead = nBytesToRead;
+    if (pBytesRead != APE_NULL)
+        *pBytesRead = nBytesToRead;
 
-    // succeed if we actually read data then fail next call
-    if ((bRetVal == false) && (*pBytesRead > 0))
-        bRetVal = true;
-
-    return bRetVal ? ERROR_SUCCESS : ERROR_IO_READ;
+    return ERROR_SUCCESS;
 }
 
-int CWholeFileIO::Write(const void * , unsigned int , unsigned int *)
+int CWholeFileIO::Write(const void * , int64, int64 *)
 {
     return ERROR_IO_WRITE;
 }

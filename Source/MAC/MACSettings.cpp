@@ -77,7 +77,7 @@ bool CMACSettings::Load()
 
     // processing
     // std::thread::hardware_concurrency() returns 32 on my i9-13900KF
-    int nDefaultSimultaneousFiles = APE_MAX(4, std::thread::hardware_concurrency() / 4);
+    int nDefaultSimultaneousFiles = APE_MAX<int>(4, std::thread::hardware_concurrency() / 4);
     m_nProcessingSimultaneousFiles = LoadSetting(_T("Processing Simultaneous Files"), nDefaultSimultaneousFiles);
     m_nProcessingPriorityMode = LoadSetting(_T("Processing Priority Mode"), PROCESSING_PRIORITY_MODE_NORMAL);
     m_bProcessingStopOnErrors = LoadSettingBoolean(_T("Processing Stop On Errors"), true);

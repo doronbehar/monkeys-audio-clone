@@ -390,7 +390,7 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nPara
             {
                 // variables
                 const int64 nOriginalFileLocation = m_spIO->GetPosition();
-                unsigned int nBytesRead = 0;
+                int64 nBytesRead = 0;
 
                 // check for a tag
                 m_spIO->Seek(-(static_cast<int64>(m_spAPETag->GetTagBytes()) + static_cast<int64>(m_APEFileInfo.nWAVTerminatingBytes)), SeekFileEnd);

@@ -17,8 +17,8 @@ public:
     int Close() APE_OVERRIDE;
 
     // read / write
-    int Read(void * pBuffer, unsigned int nBytesToRead, unsigned int * pBytesRead) APE_OVERRIDE;
-    int Write(const void * pBuffer, unsigned int nBytesToWrite, unsigned int * pBytesWritten = APE_NULL) APE_OVERRIDE;
+    int Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead = APE_NULL) APE_OVERRIDE;
+    int Write(const void * pBuffer, int64 nBytesToWrite, int64 * pBytesWritten = APE_NULL) APE_OVERRIDE;
 
     // seek
     int Seek(int64 nPosition, SeekMethod nMethod) APE_OVERRIDE;
@@ -39,7 +39,7 @@ private:
     unsigned char * m_pBuffer;
     int m_nBufferBytes;
 
-    int m_nPosition;
+    int64 m_nPosition;
 };
 
 }

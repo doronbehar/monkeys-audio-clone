@@ -1,4 +1,6 @@
 #include "All.h"
+#ifdef APE_BACKWARDS_COMPATIBILITY
+
 #include "NewPredictorOld.h"
 #include "MACLib.h"
 
@@ -10,7 +12,6 @@ namespace APE
 /**************************************************************************************************
 CPredictorDecompressNormal3930to3950
 **************************************************************************************************/
-#ifdef APE_BACKWARDS_COMPATIBILITY
 CPredictorDecompress3930to3950::CPredictorDecompress3930to3950(int nCompressionLevel, int nVersion)
 {
     // initialize (to avoid warnings)

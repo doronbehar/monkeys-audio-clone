@@ -215,15 +215,15 @@ int CUnBitArrayBase::FillBitArray()
     }
 
     // read the new data
-    unsigned int nBytesRead = 0;
-    const int nResult = m_pIO->Read(m_spBitArray + m_nElements - nBitArrayIndex, static_cast<unsigned int>(nBytesToRead), &nBytesRead);
+    int64 nBytesRead = 0;
+    const int nResult = m_pIO->Read(m_spBitArray + m_nElements - nBitArrayIndex, nBytesToRead, &nBytesRead);
 
 #if APE_BYTE_ORDER == APE_BIG_ENDIAN
     SwitchBufferBytes(&m_spBitArray[m_nElements - nBitArrayIndex], 4, nBitArrayIndex);
 #endif
 
     // zero anything at the tail we didn't fill
-    m_nGoodBytes = ((m_nElements - nBitArrayIndex) * 4) + nBytesRead;
+    m_nGoodBytes = ((m_nElements - nBitArrayIndex) * 4) + static_cast<uint32>(nBytesRead);
     if (m_nGoodBytes < m_nBytes)
         memset(&(reinterpret_cast<unsigned char *>(m_spBitArray.GetPtr()))[m_nGoodBytes], 0, static_cast<size_t>(m_nBytes - m_nGoodBytes));
 

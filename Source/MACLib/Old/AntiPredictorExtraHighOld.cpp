@@ -198,9 +198,9 @@ void CAntiPredictorExtraHigh3700To3800::AntiPredictorOffset(const int * pInputAr
 }
 
 /**************************************************************************************************
-Extra high 3800 to Current
+Extra high 3800 to 3930
 **************************************************************************************************/
-void CAntiPredictorExtraHigh3800ToCurrent::AntiPredictCustom(int * pInputArray, int * pOutputArray, int NumberOfElements, intn nVersion)
+void CAntiPredictorExtraHigh3800To3929::AntiPredictCustom(int * pInputArray, int * pOutputArray, int NumberOfElements, intn nVersion)
 {
     const int nFilterStageElements = (nVersion < 3830) ? 128 : 256;
     const int nFilterStageShift = (nVersion < 3830) ? 11 : 12;

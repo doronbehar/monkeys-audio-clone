@@ -374,8 +374,7 @@ static int Tag(const str_utfn * pFilename, const str_utfn * pTagString)
                             spBuffer[z] = static_cast<char>(pExtension[z]);
 
                         // read data
-                        unsigned int nBytesRead = 0;
-                        spIO->Read(&spBuffer[wcslen(pExtension) + 1], static_cast<unsigned int>(spIO->GetSize()), &nBytesRead);
+                        spIO->Read(&spBuffer[wcslen(pExtension) + 1], spIO->GetSize());
 
                         // set
                         pTag->SetFieldBinary(APE_TAG_FIELD_COVER_ART_FRONT, spBuffer, static_cast<intn>(nBufferBytes), TAG_FIELD_FLAG_DATA_TYPE_BINARY);
@@ -563,7 +562,7 @@ int _tmain(int argc, TCHAR * argv[])
 {
     // variable declares
     int nRetVal = ERROR_UNDEFINED;
-    int nPercentageDone;
+    int nPercentageDone = 0;
 
     // initialize
     #ifdef PLATFORM_WINDOWS

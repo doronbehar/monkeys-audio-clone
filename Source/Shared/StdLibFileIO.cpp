@@ -104,7 +104,6 @@
 # define SETBINARY_OUT(__fp)    (__fp)
 #endif
 
-
 namespace APE
 {
 
@@ -130,7 +129,7 @@ int CStdLibFileIO::Open(const str_utfn * pName, bool)
 {
     Close();
 
-    if (wcslen(pName) >= MAX_PATH)
+    if (wcslen(pName) >= APE_MAX_PATH)
         return ERROR_UNDEFINED;
 
     m_bReadOnly = false;
@@ -148,12 +147,20 @@ int CStdLibFileIO::Open(const str_utfn * pName, bool)
     }
     else
     {
-        CSmartPtr<char> spFilenameUTF8((char *) CAPECharacterHelper::GetUTF8FromUTFN(pName), true);
-        m_pFile = fopen(spFilenameUTF8, "r+be");
+        #ifdef PLATFORM_WINDOWS
+            m_pFile = _wfopen(pName, L"r+bN");
+        #else
+            CSmartPtr<char> spFilenameUTF8((char *)CAPECharacterHelper::GetUTF8FromUTFN(pName), true);
+            m_pFile = fopen(spFilenameUTF8, "r+be");
+        #endif
         if (m_pFile == APE_NULL && (errno == EACCES || errno == EPERM || errno == EROFS))
         {
             // failed asking for read/write mode on open, try read-only
-            m_pFile = fopen(spFilenameUTF8, "rbe");
+            #ifdef PLATFORM_WINDOWS
+                m_pFile = _wfopen(pName, L"rbN");
+            #else
+                m_pFile = fopen(spFilenameUTF8, "rbe");
+            #endif
             if (m_pFile)
                 m_bReadOnly = true;
         }
@@ -180,16 +187,22 @@ int CStdLibFileIO::Close()
     return nResult;
 }
 
-int CStdLibFileIO::Read(void * pBuffer, unsigned int nBytesToRead, unsigned int * pBytesRead)
+int CStdLibFileIO::Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead)
 {
-    *pBytesRead = (unsigned int) fread(pBuffer, 1, nBytesToRead, m_pFile);
-    if ((*pBytesRead == 0) && (nBytesToRead > 0)) return ERROR_IO_READ;
-    else return ferror(m_pFile) ? ERROR_IO_READ : ERROR_SUCCESS;
+    int64 nBytesRead = static_cast<int64>(fread(pBuffer, 1, static_cast<size_t>(nBytesToRead), m_pFile));
+    if (pBytesRead != APE_NULL)
+        *pBytesRead = nBytesRead;
+    int nRetVal = ERROR_SUCCESS;
+    if ((nBytesRead == 0) && (nBytesToRead > 0))
+        nRetVal = ERROR_IO_READ;
+    else if (ferror(m_pFile))
+        nRetVal = ERROR_IO_READ;
+    return nRetVal;
 }
 
-int CStdLibFileIO::Write(const void * pBuffer, unsigned  int nBytesToWrite, unsigned int * pBytesWritten)
+int CStdLibFileIO::Write(const void * pBuffer, int64 nBytesToWrite, int64 * pBytesWritten)
 {
-    unsigned int nBytesWritten = (unsigned int) fwrite(pBuffer, 1, nBytesToWrite, m_pFile);
+    int64 nBytesWritten = static_cast<int64>(fwrite(pBuffer, 1, static_cast<size_t>(nBytesToWrite), m_pFile));
     if (pBytesWritten != APE_NULL)
         *pBytesWritten = nBytesWritten;
     return (ferror(m_pFile) || (nBytesWritten != nBytesToWrite)) ? ERROR_IO_WRITE : ERROR_SUCCESS;

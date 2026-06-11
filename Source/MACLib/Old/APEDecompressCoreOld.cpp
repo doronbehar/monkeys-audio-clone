@@ -149,7 +149,7 @@ void CAPEDecompressCoreOld::GenerateDecodedArray(int * pInputArray, int nNumberE
             else
             {
                 m_spUnBitArray->GenerateArray(m_spTempData, nNumberElements, nFrameBytes);
-                static_cast<CAntiPredictorExtraHigh3800ToCurrent *>(pAntiPredictor)->AntiPredictCustom(m_spTempData, pInputArray, nNumberElements, static_cast<intn>(m_pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION)));
+                static_cast<CAntiPredictorExtraHigh3800To3929 *>(pAntiPredictor)->AntiPredictCustom(m_spTempData, pInputArray, nNumberElements, static_cast<intn>(m_pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION)));
             }
 
             break;

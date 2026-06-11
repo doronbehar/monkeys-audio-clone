@@ -271,7 +271,7 @@ int CAPEDecompress::ScheduleFrameDecode(CAPEDecompressCore * pWorker, int64 nFra
 
     unsigned char * pFrameBuffer = pWorker->GetInputBuffer(nFrameBytes);
 
-    unsigned int nBytesRead = 0;
+    int64 nBytesRead = 0;
     int result = m_spIO->Seek(GetInfo(APE_INFO_SEEK_BYTE, nFrameIndex) - nSeekRemainder, SeekFileBegin);
     if (result != ERROR_SUCCESS)
         return pWorker->SetErrorState(result);

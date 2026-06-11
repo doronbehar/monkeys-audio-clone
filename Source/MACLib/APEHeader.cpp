@@ -25,7 +25,7 @@ int CAPEHeader::FindDescriptor(bool bSeek)
     int nJunkBytes = 0;
 
     // skip an ID3v2 tag (which we really don't support anyway...)
-    unsigned int nBytesRead = 0;
+    int64 nBytesRead = 0;
     unsigned char cID3v2Header[10];
     APE_CLEAR(cID3v2Header);
     m_pIO->Read(cID3v2Header, 10, &nBytesRead);
@@ -137,7 +137,7 @@ int CAPEHeader::Analyze(APE_FILE_INFO * pInfo)
         return ERROR_BAD_PARAMETER;
 
     // variables
-    unsigned int nBytesRead = 0;
+    int64 nBytesRead = 0;
 
     // find the descriptor
     pInfo->nJunkHeaderBytes = FindDescriptor(true);
@@ -184,7 +184,7 @@ int CAPEHeader::Analyze(APE_FILE_INFO * pInfo)
 int CAPEHeader::AnalyzeCurrent(APE_FILE_INFO * pInfo)
 {
     // variable declares
-    unsigned int nBytesRead = 0;
+    int64 nBytesRead = 0;
     pInfo->spAPEDescriptor.Assign(new APE_DESCRIPTOR);
     APE_CLEAR(*pInfo->spAPEDescriptor);
     APE_HEADER APEHeader;
@@ -325,7 +325,7 @@ int CAPEHeader::AnalyzeCurrent(APE_FILE_INFO * pInfo)
 int CAPEHeader::AnalyzeOld(APE_FILE_INFO * pInfo)
 {
     // variable declares
-    unsigned int nBytesRead = 0;
+    int64 nBytesRead = 0;
 
     // read the MAC header from the file
     APE_HEADER_OLD APEHeader;

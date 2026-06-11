@@ -99,19 +99,24 @@ int CWinFileIO::Close()
     return ERROR_SUCCESS;
 }
 
-int CWinFileIO::Read(void * pBuffer, unsigned int nBytesToRead, unsigned int * pBytesRead)
+int CWinFileIO::Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead)
 {
     bool bRetVal = true;
 
-    unsigned int nTotalBytesRead = 0;
-    unsigned int nBytesLeft = nBytesToRead;
+    int64 nTotalBytesRead = 0;
+    int64 nBytesLeft = nBytesToRead;
     unsigned char * pucBuffer = static_cast<unsigned char *>(pBuffer);
+
+    // error out if we try to read more than the Windows API allows with one call
+    // we could also loop and read over and over, but nothing uses that today so we just error
+    if (static_cast<unsigned long>(nBytesToRead) != nBytesToRead)
+        return ERROR_UNDEFINED;
 
     // loop and read until we read all the data or have a failure
     while ((nBytesLeft > 0) && bRetVal)
     {
         unsigned long nBytesRead = 0;
-        bRetVal = ::ReadFile(m_hFile, &pucBuffer[nBytesToRead - nBytesLeft], nBytesLeft, &nBytesRead, APE_NULL) ? true : false;
+        bRetVal = ::ReadFile(m_hFile, &pucBuffer[nBytesToRead - nBytesLeft], static_cast<DWORD>(nBytesLeft), &nBytesRead, APE_NULL) ? true : false;
         if (bRetVal && (nBytesRead <= 0))
             bRetVal = false;
 
@@ -133,10 +138,16 @@ int CWinFileIO::Read(void * pBuffer, unsigned int nBytesToRead, unsigned int * p
     return bRetVal ? ERROR_SUCCESS : ERROR_IO_READ;
 }
 
-int CWinFileIO::Write(const void * pBuffer, unsigned int nBytesToWrite, unsigned int * pBytesWritten)
+int CWinFileIO::Write(const void * pBuffer, int64 nBytesToWrite, int64 * pBytesWritten)
 {
+    // error out if we try to write more than the Windows API allows with one call
+    // we could loop and write over and over, but nothing uses this today so we'll just error
+    unsigned long nBytesToWriteCast = static_cast<unsigned long>(nBytesToWrite);
+    if (nBytesToWriteCast != nBytesToWrite)
+        return ERROR_UNDEFINED;
+
     unsigned long nBytesWritten = 0;
-    const bool bRetVal = WriteFile(m_hFile, pBuffer, nBytesToWrite, &nBytesWritten, APE_NULL) ? true : false;
+    const bool bRetVal = WriteFile(m_hFile, pBuffer, nBytesToWriteCast, &nBytesWritten, APE_NULL) ? true : false;
     if (pBytesWritten != APE_NULL)
         *pBytesWritten = static_cast<unsigned int>(nBytesWritten);
     if ((bRetVal == 0) || (nBytesWritten != nBytesToWrite))

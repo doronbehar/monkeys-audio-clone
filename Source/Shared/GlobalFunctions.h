@@ -17,7 +17,7 @@ void EnableHighDPISupport();
 Read / Write from an IO source and return failure if the number of bytes specified
 isn't read or written
 **************************************************************************************************/
-int ReadSafe(IAPEIO * pIO, void * pBuffer, int nBytes);
+int ReadSafe(IAPEIO * pIO, void * pBuffer, int64 nBytes);
 
 /**************************************************************************************************
 Checks for the existence of a file

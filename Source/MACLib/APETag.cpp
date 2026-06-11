@@ -247,7 +247,7 @@ int CAPETag::WriteBufferToEndOfIO(void * pBuffer, int nBytes)
 
     m_spIO->Seek(0, SeekFileEnd);
 
-    const int nResult = m_spIO->Write(pBuffer, static_cast<unsigned int>(nBytes));
+    const int nResult = m_spIO->Write(pBuffer, nBytes);
 
     m_spIO->Seek(nOriginalPosition, SeekFileBegin);
 
@@ -276,7 +276,7 @@ int CAPETag::Analyze()
     {
         if (m_spIO->Seek(-ID3_TAG_BYTES, SeekFileEnd) == ERROR_SUCCESS)
         {
-            unsigned int nBytesRead = 0;
+            int64 nBytesRead = 0;
             const int nReadRetVal = m_spIO->Read(&ID3Tag, ID3_TAG_BYTES, &nBytesRead);
             if ((nBytesRead == ID3_TAG_BYTES) && (nReadRetVal == 0))
             {
@@ -315,7 +315,7 @@ int CAPETag::Analyze()
         int nTagBytes = static_cast<int>(APE_TAG_FOOTER_BYTES + (m_bHasID3Tag ? ID3_TAG_BYTES : 0));
         if (m_spIO->Seek(-nTagBytes, SeekFileEnd) == ERROR_SUCCESS)
         {
-            unsigned int nBytesRead = 0;
+            int64 nBytesRead = 0;
             APETagFooter.Empty();
             int nReadRetVal = m_spIO->Read(&APETagFooter, APE_TAG_FOOTER_BYTES, &nBytesRead);
             if ((nBytesRead == APE_TAG_FOOTER_BYTES) && (nReadRetVal == 0))
@@ -331,7 +331,7 @@ int CAPETag::Analyze()
                     CSmartPtr<char> spRawTag(new char [static_cast<size_t>(nRawFieldBytes)], true);
                     if (m_spIO->Seek(static_cast<int64>(-(APETagFooter.GetTotalTagBytes() - APETagFooter.GetFieldsOffset() + (m_bHasID3Tag ? ID3_TAG_BYTES : 0))), SeekFileEnd) == ERROR_SUCCESS)
                     {
-                        nReadRetVal = m_spIO->Read(spRawTag.GetPtr(), static_cast<unsigned int>(nRawFieldBytes), &nBytesRead);
+                        nReadRetVal = m_spIO->Read(spRawTag.GetPtr(), nRawFieldBytes, &nBytesRead);
 
                         if ((nReadRetVal == 0) && (nRawFieldBytes == static_cast<int>(nBytesRead)))
                         {
@@ -922,7 +922,7 @@ int CAPETag::RemoveField(const str_utfn * pFieldName)
 int CAPETag::Remove(bool bUpdate)
 {
     // variables
-    unsigned int nBytesRead = 0;
+    int64 nBytesRead = 0;
     int nResult = 0;
     const int64 nOriginalPosition = m_spIO->GetPosition();
 

@@ -1,5 +1,6 @@
 #include "All.h"
 #ifdef APE_BACKWARDS_COMPATIBILITY
+
 #include "APEInfo.h"
 #include "UnBitArrayOld.h"
 
@@ -37,7 +38,7 @@ CUnBitArrayOld::CUnBitArrayOld(IAPEDecompress * pAPEDecompress, intn nVersion, i
             nBitArrayBytes <<= 1;
         }
 
-        nBitArrayBytes = APE_MAX(nBitArrayBytes, 262144);
+        nBitArrayBytes = APE_MAX<intn>(nBitArrayBytes, 262144);
     }
     else if (nVersion <= 3890)
     {
