@@ -18,8 +18,8 @@ public:
     CString m_strConfigureStatic3;
 
 protected:
-    virtual void DoDataExchange(CDataExchange * pDX);
-    virtual BOOL OnInitDialog();
+    virtual void DoDataExchange(CDataExchange * pDX) APE_OVERRIDE;
+    virtual BOOL OnInitDialog() APE_OVERRIDE;
 
     DECLARE_MESSAGE_MAP()
 

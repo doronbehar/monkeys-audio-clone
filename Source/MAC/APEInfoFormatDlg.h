@@ -11,7 +11,7 @@ class CAPEInfoFormatDlg : public CDialog
 
 public:
     CAPEInfoFormatDlg(CMACDlg * pMACDlg, CWnd * pParent = APE_NULL);
-    virtual ~CAPEInfoFormatDlg();
+    virtual ~CAPEInfoFormatDlg() APE_OVERRIDE;
 
     void Layout();
     bool SetFiles(CStringArray & aryFiles);
@@ -19,8 +19,8 @@ public:
     enum { IDD = IDD_APE_INFO_FORMAT };
 
 protected:
-    virtual void DoDataExchange(CDataExchange * pDX);
-    virtual BOOL OnInitDialog();
+    virtual void DoDataExchange(CDataExchange * pDX) APE_OVERRIDE;
+    virtual BOOL OnInitDialog() APE_OVERRIDE;
     DECLARE_MESSAGE_MAP()
 
     CMACDlg * m_pMACDlg;

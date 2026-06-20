@@ -20,7 +20,7 @@ class CAPECompressCore : public CThread
 {
 public:
     CAPECompressCore(const WAVEFORMATEX * pwfeInput, int nMaxFrameBlocks, int nCompressionLevel);
-    ~CAPECompressCore();
+    ~CAPECompressCore() APE_OVERRIDE;
 
     int EncodeFrame(const void * pInputData, int nInputBytes);
     void WaitUntilReady();
@@ -33,7 +33,7 @@ public:
 private:
     int Encode(const void * pInputData, int nInputBytes);
     int Prepare(const void * pInputData, int nInputBytes, int * pSpecialCodes);
-    void Run();
+    void Run() APE_OVERRIDE;
 
     CSemaphore m_semProcess;
     CSemaphore m_semReady;

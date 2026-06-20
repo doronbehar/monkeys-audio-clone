@@ -127,7 +127,7 @@ int __stdcall RemoveTagW(const str_utfn * pFilename)
     if (spAPEDecompress == APE_NULL) return ERROR_UNDEFINED;
 
     // remove the tag
-    IAPETag * pTag = APE_GET_TAG(spAPEDecompress);
+    IAPETag * pTag = spAPEDecompress->GetTag();
     if (pTag != APE_NULL)
         nErrorCode = pTag->Remove(false);
     else
@@ -168,7 +168,7 @@ int __stdcall c_APEDecompress_Seek(APE_DECOMPRESS_HANDLE hAPEDecompress, int64 n
     return (static_cast<IAPEDecompress *>(hAPEDecompress))->Seek(nBlockOffset);
 }
 
-int64 __stdcall c_APEDecompress_GetInfo(APE_DECOMPRESS_HANDLE hAPEDecompress, IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nParam1, int64 nParam2)
+int64 __stdcall c_APEDecompress_GetInfo(APE_DECOMPRESS_HANDLE hAPEDecompress, IAPEDecompress::APE_INFO_FIELDS Field, int64 nParam1, int64 nParam2)
 {
     return (static_cast<IAPEDecompress *>(hAPEDecompress))->GetInfo(Field, nParam1, nParam2);
 }

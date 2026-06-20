@@ -16,16 +16,6 @@
 #include <stdio.h>
 #include "DirectShowFilter.h"
 
-/*
-extern "C" BOOL WINAPI DllEntryPoint(HINSTANCE, ULONG, LPVOID);
-
-BOOL WINAPI DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpReserved)
-{
-    return DllEntryPoint(reinterpret_cast<HINSTANCE>(hDllHandle), dwReason, lpReserved);
-}
-*/
-
-
 // {D042079E-8E02-418b-AE2F-F12E26704FCA}
 DEFINE_GUID(CLSID_APEDecoder,
 0xd042079e, 0x8e02, 0x418b, 0xae, 0x2f, 0xf1, 0x2e, 0x26, 0x70, 0x4f, 0xca);
@@ -247,7 +237,7 @@ STDMETHODIMP CAPESource::NonDelegatingQueryInterface(REFIID riid,void **ppv)
 //-----------------------------------------------------------------------------
 // Name : CAPEStream::CAPEStream
 //-----------------------------------------------------------------------------
-CAPEStream::CAPEStream(HRESULT *phr, CAPESource *pParent, LPCWSTR pPinName)
+CAPEStream::CAPEStream(HRESULT * phr, CAPESource * pParent, LPCWSTR pPinName)
     :
     CSourceStream(NAME("PCM Out"),phr, pParent, pPinName),
     CSourceSeeking(NAME("APE Seeking"), NULL, phr, &m_csSeeking),
@@ -274,7 +264,7 @@ CAPEStream::~CAPEStream()
 //-----------------------------------------------------------------------------
 // Name : CAPEStream::NonDelegatingQueryInterface
 //-----------------------------------------------------------------------------
-STDMETHODIMP CAPEStream::NonDelegatingQueryInterface(REFIID riid, VOID **ppv)
+STDMETHODIMP CAPEStream::NonDelegatingQueryInterface(REFIID riid, VOID ** ppv)
 {
     if (riid == IID_IMediaSeeking) {
         return CSourceSeeking::NonDelegatingQueryInterface(riid, ppv);
@@ -286,7 +276,7 @@ STDMETHODIMP CAPEStream::NonDelegatingQueryInterface(REFIID riid, VOID **ppv)
 //-----------------------------------------------------------------------------
 // Name : CAPEStream::DecideBufferSize
 //-----------------------------------------------------------------------------
-HRESULT CAPEStream::DecideBufferSize(IMemAllocator *pAlloc, ALLOCATOR_PROPERTIES *pRequest)
+HRESULT CAPEStream::DecideBufferSize(IMemAllocator * pAlloc, ALLOCATOR_PROPERTIES * pRequest)
 {
     ASSERT(pAlloc);
     ASSERT(pRequest);
@@ -415,7 +405,7 @@ HRESULT CAPEStream::OpenAPEFile(LPWSTR pFileName)
 //-----------------------------------------------------------------------------
 // Name : CAPEStream::FillBuffer
 //-----------------------------------------------------------------------------
-HRESULT CAPEStream::FillBuffer(IMediaSample *pSample)
+HRESULT CAPEStream::FillBuffer(IMediaSample * pSample)
 {
     ASSERT(pSample);
     ASSERT(m_pDecoder);

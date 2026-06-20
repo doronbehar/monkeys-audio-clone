@@ -6,9 +6,9 @@ class CMACDllApp : public CWinApp
 {
 public:
     CMACDllApp();
-    virtual ~CMACDllApp();
+    virtual ~CMACDllApp() APE_OVERRIDE;
 
-    virtual BOOL InitInstance();
+    virtual BOOL InitInstance() APE_OVERRIDE;
 
 protected:
     DECLARE_MESSAGE_MAP();

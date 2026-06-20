@@ -61,7 +61,6 @@ public:
     int m_nProcessingPriorityMode;
     bool m_bProcessingStopOnErrors;
     bool m_bProcessingPlayCompletionSound;
-    bool m_bProcessingShowExternalWindows;
     int m_nProcessingVerifyMode;
     bool m_bProcessingAutoVerifyOnCreation;
 

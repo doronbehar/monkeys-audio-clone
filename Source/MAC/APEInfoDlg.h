@@ -11,8 +11,8 @@ public:
     enum { IDD = IDD_APE_INFO };
 
 protected:
-    virtual void DoDataExchange(CDataExchange * pDX);
-    virtual BOOL OnInitDialog();
+    virtual void DoDataExchange(CDataExchange * pDX) APE_OVERRIDE;
+    virtual BOOL OnInitDialog() APE_OVERRIDE;
 
     DECLARE_MESSAGE_MAP()
 

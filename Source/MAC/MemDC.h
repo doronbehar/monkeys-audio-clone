@@ -1,6 +1,8 @@
 #ifndef _MEMDC_H_
 #define _MEMDC_H_
 
+// NOLINTBEGIN
+
 //////////////////////////////////////////////////
 // CMemoryDC.h - memory DC
 //
@@ -129,4 +131,7 @@ public:
         return this;
     }
 };
-#endif#pragma once
+
+// NOLINTEND
+
+#endif

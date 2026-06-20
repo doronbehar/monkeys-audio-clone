@@ -9,11 +9,11 @@ class CWinampSettingsDlg : public CDialog
 
 public:
     CWinampSettingsDlg(CWnd * pParent = APE_NULL);
-    virtual ~CWinampSettingsDlg();
+    virtual ~CWinampSettingsDlg() APE_OVERRIDE;
 
     bool Show(HWND hwndParent);
 
-    virtual BOOL OnInitDialog();
+    virtual BOOL OnInitDialog() APE_OVERRIDE;
     enum { IDD = IDD_WINAMP_SETTINGS };
 
     BOOL m_bIgnoreBitstreamErrors;
@@ -23,8 +23,8 @@ public:
     int m_nThreadPriority;
 
 protected:
-    virtual void DoDataExchange(CDataExchange * pDX);
-    virtual void OnOK();
+    virtual void DoDataExchange(CDataExchange * pDX) APE_OVERRIDE;
+    virtual void OnOK() APE_OVERRIDE;
     DECLARE_MESSAGE_MAP()
 
     CSliderCtrl m_ctrlThreadPrioritySlider;

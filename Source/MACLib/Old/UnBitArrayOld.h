@@ -17,7 +17,7 @@ class CUnBitArrayOld : public CUnBitArrayBase
 public:
     // construction/destruction
     CUnBitArrayOld(IAPEDecompress * pAPEDecompress, intn nVersion, int64 nFurthestReadByte);
-    ~CUnBitArrayOld();
+    ~CUnBitArrayOld() APE_OVERRIDE;
 
     // functions
     void GenerateArray(int * pOutputArray, int nElements, intn nBytesRequired = -1) APE_OVERRIDE;
@@ -37,13 +37,13 @@ private:
     // functions
     inline int DecodeValueNew(bool bCapOverflow);
     uint32 GetBitsRemaining() const;
-    __forceinline uint32 Get_K(uint32 x)
+    APE_INLINE uint32 Get_K(uint32 x)
     {
         if (x == 0)
             return 0;
 
         uint32 k = 0;
-        while (x >= Powers_of_Two[++k]) {}
+        while (x >= Powers_of_Two[++k]) { }
         return k;
     }
 };
@@ -56,7 +56,7 @@ class CUnBitArray3891To3989 : public CUnBitArrayBase
 public:
     // construction/destruction
     CUnBitArray3891To3989(APE::IAPEIO * pIO, intn nVersion, int64 nFurthestReadByte);
-    ~CUnBitArray3891To3989();
+    ~CUnBitArray3891To3989() APE_OVERRIDE;
 
     void GenerateArray(int * pOutputArray, int nElements, intn nBytesRequired) APE_OVERRIDE;
     int64 DecodeValueRange(UNBIT_ARRAY_STATE & BitArrayState) APE_OVERRIDE;

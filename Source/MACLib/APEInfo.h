@@ -61,21 +61,6 @@ Helper macros (sort of hacky)
 #define APE_GET_USES_CRC(APE_INFO) (((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_CRC) ? true : false)
 #define APE_GET_FRAMES_START_ON_BYTES_BOUNDARIES(APE_INFO) (((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION) > 3800) ? true : false)
 #define APE_GET_USES_SPECIAL_FRAMES(APE_INFO) (((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION) > 3820) ? true : false)
-#define APE_GET_IO(APE_INFO) (reinterpret_cast<IAPEIO *> ((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_IO_SOURCE)))
-#define APE_GET_TAG(APE_INFO) (((APE_INFO) != APE_NULL) ? (reinterpret_cast<IAPETag *>((APE_INFO)->GetInfo(IAPEDecompress::APE_INFO_TAG))) : APE_NULL)
-#define APE_GET_INFO(APE_INFO) reinterpret_cast<const APE_FILE_INFO *>((APE_INFO)->GetInfo(IAPEDecompress::APE_INTERNAL_INFO))
-
-/**************************************************************************************************
-IAPEInfo interface - use this for all work with APE files
-**************************************************************************************************/
-class IAPEInfo
-{
-public:
-    virtual ~IAPEInfo() { }
-
-    // query for information
-    virtual int64 GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nParam1 = 0, int64 nParam2 = 0) = 0;
-};
 
 /**************************************************************************************************
 CAPEInfo
@@ -86,10 +71,10 @@ public:
     // construction and destruction
     CAPEInfo(int * pErrorCode, const str_utfn * pFilename, IAPETag * pTag = APE_NULL, bool bAPL = false, bool bReadOnly = false, bool bAnalyzeTagNow = true, bool bReadWholeFile = false);
     CAPEInfo(int * pErrorCode, APE::IAPEIO * pIO, IAPETag * pTag = APE_NULL);
-    virtual ~CAPEInfo();
+    virtual ~CAPEInfo() APE_OVERRIDE;
 
     // query for information
-    int64 GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nParam1 = 0, int64 nParam2 = 0);
+    int64 GetInfo(IAPEDecompress::APE_INFO_FIELDS Field, int64 nParam1 = 0, int64 nParam2 = 0) APE_OVERRIDE;
 
 private:
     // internal functions

@@ -20,7 +20,7 @@ CAPEDecompress::CAPEDecompress(int * pErrorCode, IAPEInfo * pAPEInfo, int64 nSta
     m_spAPEInfo.Assign(pAPEInfo);
 
     // store the IO object
-    m_spIO.Assign(APE_GET_IO(m_spAPEInfo), false, false);
+    m_spIO.Assign(m_spAPEInfo->GetIO(), false, false);
 
     // get format information
     m_nBlockAlign = static_cast<int>(m_spAPEInfo->GetInfo(APE_INFO_BLOCK_ALIGN));
@@ -272,15 +272,15 @@ int CAPEDecompress::ScheduleFrameDecode(CAPEDecompressCore * pWorker, int64 nFra
     unsigned char * pFrameBuffer = pWorker->GetInputBuffer(nFrameBytes);
 
     int64 nBytesRead = 0;
-    int result = m_spIO->Seek(GetInfo(APE_INFO_SEEK_BYTE, nFrameIndex) - nSeekRemainder, SeekFileBegin);
-    if (result != ERROR_SUCCESS)
-        return pWorker->SetErrorState(result);
+    int nResult = m_spIO->Seek(GetInfo(APE_INFO_SEEK_BYTE, nFrameIndex) - nSeekRemainder, SeekFileBegin);
+    if (nResult != ERROR_SUCCESS)
+        return pWorker->SetErrorState(nResult);
 
-    result = m_spIO->Read(pFrameBuffer, nFrameBytes, &nBytesRead);
-    if (result != ERROR_SUCCESS)
-        return pWorker->SetErrorState(result);
+    nResult = m_spIO->Read(pFrameBuffer, nFrameBytes, &nBytesRead);
+    if (nResult != ERROR_SUCCESS)
+        return pWorker->SetErrorState(nResult);
 
-    if (nBytesRead < nFrameBytes - 4)
+    if (nBytesRead < (static_cast<int64>(nFrameBytes) - 4))
         return pWorker->SetErrorState(ERROR_INPUT_FILE_TOO_SMALL);
 
     pWorker->DecodeFrame(static_cast<int>(nSeekRemainder), GetInfo(APE_INFO_FRAME_BLOCKS, nFrameIndex));
@@ -290,7 +290,7 @@ int CAPEDecompress::ScheduleFrameDecode(CAPEDecompressCore * pWorker, int64 nFra
 /**************************************************************************************************
 Get information from the decompressor
 **************************************************************************************************/
-int64 CAPEDecompress::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nParam1, int64 nParam2)
+int64 CAPEDecompress::GetInfo(IAPEDecompress::APE_INFO_FIELDS Field, int64 nParam1, int64 nParam2)
 {
     int64 nResult = 0;
     bool bHandled = false;
@@ -315,7 +315,7 @@ int64 CAPEDecompress::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64
     }
     case APE_DECOMPRESS_TOTAL_BLOCKS:
     {
-        nResult = static_cast<int64>(m_nFinishBlock - m_nStartBlock);
+        nResult = m_nFinishBlock - m_nStartBlock;
         bHandled = true;
         break;
     }
@@ -455,7 +455,7 @@ int64 CAPEDecompress::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64
     case APE_INFO_WAVEFORMATEX:
     case APE_INFO_WAV_DATA_BYTES:
     case APE_INFO_WAV_TOTAL_BYTES:
-    case APE_INTERNAL_INFO:
+    case APE_INFO_FILE_INFO:
     {
         // all other conditions to prevent compiler warnings (4061, 4062, and Clang)
         break;

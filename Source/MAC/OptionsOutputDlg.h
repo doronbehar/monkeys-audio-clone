@@ -21,8 +21,8 @@ public:
     BOOL m_bMirrorTimeStamp;
 
 protected:
-    virtual void DoDataExchange(CDataExchange * pDX);
-    virtual BOOL OnInitDialog();
+    virtual void DoDataExchange(CDataExchange * pDX) APE_OVERRIDE;
+    virtual BOOL OnInitDialog() APE_OVERRIDE;
 
     afx_msg void OnSize(UINT nType, int cx, int cy);
     afx_msg void OnDestroy();
@@ -31,8 +31,8 @@ protected:
     afx_msg void OnOutputLocationSpecifiedDirectory();
     afx_msg void OnOutputLocationSameDirectory();
     afx_msg void OnOutputLocationRecreateDirectoryStructureCheck();
-    afx_msg void OnOK();
-    afx_msg void OnCancel();
+    afx_msg void OnOK() APE_OVERRIDE;
+    afx_msg void OnCancel() APE_OVERRIDE;
     afx_msg LRESULT OnSaveOptions(WPARAM wParam, LPARAM lParam);
     DECLARE_MESSAGE_MAP()
 

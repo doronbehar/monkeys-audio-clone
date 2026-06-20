@@ -90,7 +90,7 @@ typedef APE_DECOMPRESS_HANDLE (__stdcall * proc_APEDecompress_CreateW)(const APE
 typedef void (__stdcall * proc_APEDecompress_Destroy)(APE_DECOMPRESS_HANDLE);
 typedef int (__stdcall * proc_APEDecompress_GetData)(APE_DECOMPRESS_HANDLE, unsigned char *, APE::int64, APE::int64 *);
 typedef int (__stdcall * proc_APEDecompress_Seek)(APE_DECOMPRESS_HANDLE, APE::int64);
-typedef APE::int64 (__stdcall * proc_APEDecompress_GetInfo)(APE_DECOMPRESS_HANDLE, APE::IAPEDecompress::APE_DECOMPRESS_FIELDS, APE::int64, APE::int64);
+typedef APE::int64 (__stdcall * proc_APEDecompress_GetInfo)(APE_DECOMPRESS_HANDLE, APE::IAPEDecompress::APE_INFO_FIELDS, APE::int64, APE::int64);
 
 extern "C"
 {
@@ -99,6 +99,6 @@ extern "C"
     DLLEXPORT void __stdcall c_APEDecompress_Destroy(APE_DECOMPRESS_HANDLE hAPEDecompress);
     DLLEXPORT int __stdcall c_APEDecompress_GetData(APE_DECOMPRESS_HANDLE hAPEDecompress, unsigned char * pBuffer, APE::int64 nBlocks, APE::int64 * pBlocksRetrieved);
     DLLEXPORT int __stdcall c_APEDecompress_Seek(APE_DECOMPRESS_HANDLE hAPEDecompress, APE::int64 nBlockOffset);
-    DLLEXPORT APE::int64 __stdcall c_APEDecompress_GetInfo(APE_DECOMPRESS_HANDLE hAPEDecompress, APE::IAPEDecompress::APE_DECOMPRESS_FIELDS Field, APE::int64 nParam1 = 0, APE::int64 nParam2 = 0);
+    DLLEXPORT APE::int64 __stdcall c_APEDecompress_GetInfo(APE_DECOMPRESS_HANDLE hAPEDecompress, APE::IAPEDecompress::APE_INFO_FIELDS Field, APE::int64 nParam1 = 0, APE::int64 nParam2 = 0);
     DLLEXPORT int __stdcall c_APEDecompress_SetNumberOfThreads(APE_DECOMPRESS_HANDLE hAPEDecompress, int nThreads);
 }

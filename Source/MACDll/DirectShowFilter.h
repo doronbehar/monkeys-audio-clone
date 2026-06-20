@@ -18,16 +18,16 @@ private:
     LPWSTR                m_pFileName;
 
 public:
-    CAPESource(LPUNKNOWN lpunk, HRESULT *phr);
-    ~CAPESource();
-    static CUnknown * WINAPI CreateInstance(LPUNKNOWN lpunk, HRESULT *phr);
+    CAPESource(LPUNKNOWN lpunk, HRESULT * phr);
+    ~CAPESource() APE_OVERRIDE;
+    static CUnknown * WINAPI CreateInstance(LPUNKNOWN lpunk, HRESULT * phr);
 
     DECLARE_IUNKNOWN;
     STDMETHODIMP NonDelegatingQueryInterface(REFIID, void **);
 
     // --- IFileSourceFilter methods
-    STDMETHODIMP Load(LPCOLESTR lpwszFileName, const AM_MEDIA_TYPE *pmt);
-    STDMETHODIMP GetCurFile(LPOLESTR * ppszFileName, AM_MEDIA_TYPE *pmt);
+    STDMETHODIMP Load(LPCOLESTR lpwszFileName, const AM_MEDIA_TYPE * pmt);
+    STDMETHODIMP GetCurFile(LPOLESTR * ppszFileName, AM_MEDIA_TYPE * pmt);
 };
 
 
@@ -61,10 +61,10 @@ private:
     CCritSec        m_csDecoding;
 
 public:
-    CAPEStream(HRESULT *phr, CAPESource *pParent, LPCWSTR pPinName);
+    CAPEStream(HRESULT * phr, CAPESource * pParent, LPCWSTR pPinName);
     ~CAPEStream();
 
-    STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, VOID **ppv);
+    STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, VOID ** ppv);
 
     // opening the file ...
     HRESULT OpenAPEFile(LPWSTR pFileName);
@@ -72,7 +72,7 @@ public:
 
     // deal with the stream
     HRESULT FillBuffer(IMediaSample *pSample);
-    HRESULT DecideBufferSize(IMemAllocator *pAlloc, ALLOCATOR_PROPERTIES *pRequest);
+    HRESULT DecideBufferSize(IMemAllocator *pAlloc, ALLOCATOR_PROPERTIES * pRequest);
     HRESULT CheckMediaType(const CMediaType *pmt);
     HRESULT GetMediaType(CMediaType *pmt);
 
@@ -87,4 +87,3 @@ public:
 
 extern int g_cTemplates;
 extern CFactoryTemplate g_Templates[];
-extern BOOL WINAPI DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpReserved);

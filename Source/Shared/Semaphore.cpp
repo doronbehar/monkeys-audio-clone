@@ -15,17 +15,17 @@ CSemaphore::CSemaphore(int count)
     m_nCount = count;
     m_nMax = count;
 
-    int result = pthread_mutex_init(m_pMutex, APE_NULL);
+    int nResult = pthread_mutex_init(m_pMutex, APE_NULL);
 
-    if (result == 0)
+    if (nResult == 0)
     {
-        result = pthread_cond_init(m_pCondition, APE_NULL);
+        nResult = pthread_cond_init(m_pCondition, APE_NULL);
 
-        if (result != 0)
+        if (nResult != 0)
             pthread_mutex_destroy(m_pMutex);
     }
 
-    if (result != 0)
+    if (nResult != 0)
     {
         delete m_pMutex;
         delete m_pCondition;

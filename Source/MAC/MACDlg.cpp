@@ -158,7 +158,7 @@ BOOL CMACDlg::OnInitDialog()
 
     // load the mouse hook
     s_pThis = this;
-    m_hMouseHook = ::SetWindowsHookEx(WH_MOUSE, s_MouseProc, NULL, ::GetCurrentThreadId());
+    m_hMouseHook = ::SetWindowsHookEx(WH_MOUSE, s_MouseProc, APE_NULL, ::GetCurrentThreadId());
 
     // layout the window (again)
     APE_CLEAR(WindowPlacement);
@@ -1026,7 +1026,7 @@ BOOL CMACDlg::PreTranslateMessage(MSG * pMsg)
     {
         SetMenuShortcutMode(FALSE);
     }
-    
+
     return CDialog::PreTranslateMessage(pMsg);
 }
 
@@ -1238,7 +1238,7 @@ void CMACDlg::LoadScale(bool bForce)
     HMODULE hUser32 = LoadLibrary(_T("user32.dll"));
     if (hUser32 != APE_NULL)
     {
-        *(reinterpret_cast<FARPROC *>(&pGetDpiForWindow)) = GetProcAddress(hUser32, "GetDpiForWindow");
+        *(reinterpret_cast<FARPROC *>(&pGetDpiForWindow)) = GetProcAddress(hUser32, "GetDpiForWindow"); // NOLINT
         if (pGetDpiForWindow != APE_NULL)
         {
             theApp.GetMonitorDPI() = pGetDpiForWindow(m_hWnd);
@@ -1647,7 +1647,7 @@ LRESULT CMACDlg::MouseProc(int nCode, WPARAM wParam, LPARAM lParam)
                 // get window rectangle
                 CRect rectMenu;
                 m_aryMenus[z]->GetWindowRect(&rectMenu);
-                
+
                 // if we're in the menu and it's different than what we're showing
                 if (rectMenu.PtInRect(pMouse->pt) && (z != m_nShowingMenu))
                 {
@@ -1656,7 +1656,7 @@ LRESULT CMACDlg::MouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 
                     // show the menu on a timer (doing it directly doesn't work)
                     m_nTimerMenuShow = z;
-                    SetTimer(IDT_SHOW_MENU, 10, NULL);
+                    SetTimer(IDT_SHOW_MENU, 10, APE_NULL);
 
                     // quit
                     break;

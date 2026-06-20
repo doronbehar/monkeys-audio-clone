@@ -10,7 +10,7 @@ class CMemoryIO : public IAPEIO
 public:
     // construction / destruction
     CMemoryIO(unsigned char * pBuffer, int nBufferBytes);
-    ~CMemoryIO();
+    ~CMemoryIO() APE_OVERRIDE;
 
     // open / close
     int Open(const str_utfn * pName, bool bOpenReadOnly = false) APE_OVERRIDE;

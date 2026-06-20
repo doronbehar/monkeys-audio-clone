@@ -12,9 +12,9 @@ public:
     void GenerateDecodedArrays(intn nBlocks, intn nSpecialCodes, intn nFrameIndex);
     void GenerateDecodedArray(int * pInputArray, int nNumberElements, intn nFrameIndex, CAntiPredictor * pAntiPredictor);
 
-    __forceinline int * GetDataX() const { return m_spDataX; }
-    __forceinline int * GetDataY() const { return m_spDataY; }
-    __forceinline CUnBitArrayBase * GetUnBitArrray() const { return m_spUnBitArray; }
+    APE_INLINE int * GetDataX() const { return m_spDataX; }
+    APE_INLINE int * GetDataY() const { return m_spDataY; }
+    APE_INLINE CUnBitArrayBase * GetUnBitArrray() const { return m_spUnBitArray; }
 
     CSmartPtr<int> m_spTempData;
     CSmartPtr<int> m_spDataX;

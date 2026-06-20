@@ -4,7 +4,7 @@ class CIntArray : public CArray<int, int &>
 {
 public:
     CIntArray();
-    virtual ~CIntArray();
+    virtual ~CIntArray() APE_OVERRIDE;
 
     void SortAscending();
     void SortDescending();

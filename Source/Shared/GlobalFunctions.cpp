@@ -29,7 +29,7 @@ void EnableHighDPISupport()
 
         // older operating systems like Vista
         BOOL(STDAPICALLTYPE * pSetProcessDPIAware) () = APE_NULL;
-        *(reinterpret_cast<FARPROC *>(&pSetProcessDPIAware)) = GetProcAddress(hUser32, "SetProcessDPIAware");
+        *(reinterpret_cast<FARPROC *>(&pSetProcessDPIAware)) = GetProcAddress(hUser32, "SetProcessDPIAware"); // NOLINT
         if (pSetProcessDPIAware != APE_NULL)
         {
             pSetProcessDPIAware();
@@ -38,7 +38,7 @@ void EnableHighDPISupport()
         // newer operating systems that support per monitor
         #if !defined(PLATFORM_WINDOWS_XP)
             BOOL(STDAPICALLTYPE * pSetProcessDpiAwarenessContext) (IN DPI_AWARENESS_CONTEXT value) = APE_NULL;
-            *(reinterpret_cast<FARPROC *>(&pSetProcessDpiAwarenessContext)) = GetProcAddress(hUser32, "SetProcessDpiAwarenessContext");
+            *(reinterpret_cast<FARPROC *>(&pSetProcessDpiAwarenessContext)) = GetProcAddress(hUser32, "SetProcessDpiAwarenessContext"); // NOLINT
             if (pSetProcessDpiAwarenessContext != APE_NULL)
             {
                 pSetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);

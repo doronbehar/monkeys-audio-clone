@@ -57,7 +57,7 @@ public:
         MD5Init(&m_MD5Context);
     }
 
-    __forceinline void AddData(const void * pData, APE::int64 nBytes)
+    APE_INLINE void AddData(const void * pData, APE::int64 nBytes)
     {
         MD5Update(&m_MD5Context, static_cast<const unsigned char *>(pData), static_cast<unsigned int>(nBytes));
     }

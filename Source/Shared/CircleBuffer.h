@@ -18,14 +18,14 @@ public:
     uint32 MaxGet() const;
 
     // direct writing
-    __forceinline unsigned char * GetDirectWritePointer()
+    APE_INLINE unsigned char * GetDirectWritePointer()
     {
         // return a pointer to the tail -- note that it will always be safe to write
         // at least m_nMaxDirectWriteBytes since we use an end cap region
         return &m_spBuffer[m_nTail];
     }
 
-    __forceinline void UpdateAfterDirectWrite(uint32 nBytes)
+    APE_INLINE void UpdateAfterDirectWrite(uint32 nBytes)
     {
         // update the tail
         m_nTail += nBytes;

@@ -14,7 +14,6 @@ COptionsProcessingDlg::COptionsProcessingDlg(CMACDlg * pMACDlg, OPTIONS_PAGE * p
     m_nPriorityMode = -1;
     m_nSimultaneousFiles = -1;
     m_bStopOnError = false;
-    m_bShowExternalWindows = false;
     m_bAutoVerify = false;
     m_nVerifyMode = -1;
 }
@@ -31,7 +30,6 @@ void COptionsProcessingDlg::DoDataExchange(CDataExchange * pDX)
     DDX_CBIndex(pDX, IDC_PRIORITY_COMBO, m_nPriorityMode);
     DDX_CBIndex(pDX, IDC_SIMULTANEOUS_FILES_COMBO, m_nSimultaneousFiles);
     DDX_Check(pDX, IDC_STOP_ON_ERROR_CHECK, m_bStopOnError);
-    DDX_Check(pDX, IDC_SHOW_EXTERNAL_WINDOWS, m_bShowExternalWindows);
     DDX_Check(pDX, IDC_AUTO_VERIFY_CHECK, m_bAutoVerify);
     DDX_CBIndex(pDX, IDC_VERIFY_MODE_COMBO, m_nVerifyMode);
     DDX_Control(pDX, IDC_PROGRAM_SIZE_COMBO, m_ctrlProgramSize);
@@ -96,7 +94,6 @@ BOOL COptionsProcessingDlg::OnInitDialog()
     m_nPriorityMode = theApp.GetSettings()->m_nProcessingPriorityMode;
     m_bStopOnError = theApp.GetSettings()->m_bProcessingStopOnErrors;
     m_bCompletionSound = theApp.GetSettings()->m_bProcessingPlayCompletionSound;
-    m_bShowExternalWindows = theApp.GetSettings()->m_bProcessingShowExternalWindows;
     m_bAutoVerify = theApp.GetSettings()->m_bProcessingAutoVerifyOnCreation;
     m_nVerifyMode = theApp.GetSettings()->m_nProcessingVerifyMode;
 
@@ -128,7 +125,6 @@ LRESULT COptionsProcessingDlg::OnSaveOptions(WPARAM, LPARAM)
     theApp.GetSettings()->m_nProcessingPriorityMode = m_nPriorityMode;
     theApp.GetSettings()->m_bProcessingStopOnErrors = m_bStopOnError;
     theApp.GetSettings()->m_bProcessingPlayCompletionSound = m_bCompletionSound;
-    theApp.GetSettings()->m_bProcessingShowExternalWindows = m_bShowExternalWindows;
     theApp.GetSettings()->m_bProcessingAutoVerifyOnCreation = m_bAutoVerify;
     theApp.GetSettings()->m_nProcessingVerifyMode = m_nVerifyMode;
 

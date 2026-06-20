@@ -26,7 +26,7 @@ public:
     bool GetInitialized() const { return m_bInitialized; }
     int GetFontHeight() { return m_nFontHeight; }
 
-    virtual BOOL PreTranslateMessage(MSG * pMsg);
+    virtual BOOL PreTranslateMessage(MSG * pMsg) APE_OVERRIDE;
     virtual void WinHelp(DWORD_PTR dwData, UINT nCmd = HELP_CONTEXT);
 
     int GetControlHeight(CWnd * pwndControl) const;
@@ -39,9 +39,9 @@ public:
     LRESULT MouseProc(int nCode, WPARAM wParam, LPARAM lParam);
 
 protected:
-    virtual void DoDataExchange(CDataExchange * pDX);
+    virtual void DoDataExchange(CDataExchange * pDX) APE_OVERRIDE;
 
-    virtual BOOL OnInitDialog();
+    virtual BOOL OnInitDialog() APE_OVERRIDE;
     afx_msg void OnPaint();
     afx_msg HCURSOR OnQueryDragIcon();
     afx_msg void OnMenuFile();

@@ -11,7 +11,7 @@ public:
     CID3v2Tag();
 
     // IID3v2Tag
-    virtual bool Analyze(unsigned char * pTagData, int nTagBytes);
+    virtual bool Analyze(unsigned char * pTagData, int nTagBytes) APE_OVERRIDE;
 
     typedef enum { ISO_8859_1, UTF_16, UTF_16BE, UTF_8 } ID3v2TextEncoding;
 

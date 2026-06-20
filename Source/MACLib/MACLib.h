@@ -222,6 +222,7 @@ class IAPEIO;
 class CInputSource;
 class IAPEInfo;
 class IAPETag;
+class APE_FILE_INFO;
 
 /**************************************************************************************************
 IID3v2Tag - interface for reading file tags
@@ -241,13 +242,16 @@ public:
 };
 
 /**************************************************************************************************
-IAPEDecompress - interface for working with existing APE files (decoding, seeking, analyzing, etc.)
+IAPEInfo - interface for getting information
 **************************************************************************************************/
-class IAPEDecompress
+class IAPEInfo
 {
 public:
+    // destructor (needed so implementation's destructor will be called)
+    virtual ~IAPEInfo() { }
+
     /**************************************************************************************************
-    APE_DECOMPRESS_FIELDS - used when querying for information
+    APE_INFO_FIELDS - used when querying for information
 
     Note(s):
     -the distinction between APE_INFO_XXXX and APE_DECOMPRESS_XXXX is that the first is querying the APE
@@ -256,7 +260,7 @@ public:
     fields when querying for info about the length, etc. so APL will work properly.
     (i.e. (APE_INFO_TOTAL_BLOCKS != APE_DECOMPRESS_TOTAL_BLOCKS) for APL files)
     **************************************************************************************************/
-    enum APE_DECOMPRESS_FIELDS
+    enum APE_INFO_FIELDS : uint16
     {
         APE_INFO_FILE_VERSION = 1000,               // version of the APE file * 1000 (3.93 = 3930) [ignored, ignored]
         APE_INFO_COMPRESSION_LEVEL = 1001,          // compression level of the APE file [ignored, ignored]
@@ -285,13 +289,14 @@ public:
         APE_INFO_WAV_HEADER_DATA = 1024,            // error code [buffer *, max bytes]
         APE_INFO_WAV_TERMINATING_DATA = 1025,       // error code [buffer *, max bytes]
         APE_INFO_WAVEFORMATEX = 1026,               // error code [waveformatex *, ignored]
-        APE_INFO_IO_SOURCE = 1027,                  // I/O source (IAPEIO *) [ignored, ignored]
+        APE_INFO_IO_SOURCE = 1027,                  // pointer to I/O source (IAPEIO *) [ignored, ignored]
         APE_INFO_FRAME_BYTES = 1028,                // bytes (compressed) of the frame [frame index, ignored]
         APE_INFO_FRAME_BLOCKS = 1029,               // blocks in a given frame [frame index, ignored]
         APE_INFO_TAG = 1030,                        // pointer to tag (IAPETag *) [ignored, ignored]
         APE_INFO_APL = 1031,                        // whether it's an APL file
         APE_INFO_MD5 = 1032,                        // the MD5 checksum [buffer *, ignored]
         APE_INFO_MD5_MATCHES = 1033,                // an MD5 checksum to test (returns ERROR_INVALID_CHECKSUM or ERROR_SUCCESS) [buffer *, ignored]
+        APE_INFO_FILE_INFO = 1034,                  // pointer to file information object (APE_FILE_INFO *) [ignored, ignored]
 
         APE_DECOMPRESS_CURRENT_BLOCK = 2000,        // current block location [ignored, ignored]
         APE_DECOMPRESS_CURRENT_MS = 2001,           // current millisecond location [ignored, ignored]
@@ -300,12 +305,43 @@ public:
         APE_DECOMPRESS_CURRENT_BITRATE = 2004,      // current bitrate [ignored, ignored]
         APE_DECOMPRESS_AVERAGE_BITRATE = 2005,      // average bitrate (works with ranges) [ignored, ignored]
         APE_DECOMPRESS_CURRENT_FRAME = 2006,        // current frame
-
-        APE_INTERNAL_INFO = 3000,                   // for internal use -- don't use (returns APE_FILE_INFO *) [ignored, ignored]
     };
 
+    // get information
+    virtual int64 GetInfo(APE_INFO_FIELDS Field, int64 nParam1 = 0, int64 nParam2 = 0) = 0;
+
+    /**************************************************************************************************
+    * Convert int64 values to pointers
+    **************************************************************************************************/
+    template<class T> T * Get(APE_INFO_FIELDS Field)
+    {
+        int64 nInfo = GetInfo(Field);
+        T * pInfo = reinterpret_cast<T *>(nInfo);
+        return pInfo;
+    }
+    IAPEIO * GetIO()
+    {
+        return Get<IAPEIO>(IAPEInfo::APE_INFO_IO_SOURCE);
+    }
+    IAPETag * GetTag()
+    {
+        return Get<IAPETag>(IAPEInfo::APE_INFO_TAG);
+    }
+    APE_FILE_INFO * GetFileInfo()
+    {
+        return Get<APE_FILE_INFO>(IAPEInfo::APE_INFO_FILE_INFO);
+    }
+};
+
+/**************************************************************************************************
+IAPEDecompress - interface for working with existing APE files (decoding, seeking, analyzing, etc.)
+This class also derives from IAPEInfo so it has the common information function just the same.
+**************************************************************************************************/
+class IAPEDecompress : public IAPEInfo
+{
+public:
     // destructor (needed so implementation's destructor will be called)
-    virtual ~IAPEDecompress() { }
+    virtual ~IAPEDecompress() APE_OVERRIDE { }
 
     /**************************************************************************************************
     * Decompress / Seek
@@ -341,23 +377,6 @@ public:
     //        the block to seek to (see note at intro about blocks vs. samples)
     //////////////////////////////////////////////////////////////////////////////////////////////
     virtual int Seek(int64 nBlockOffset) = 0;
-
-    /**************************************************************************************************
-    * Get Information
-    **************************************************************************************************/
-
-    //////////////////////////////////////////////////////////////////////////////////////////////
-    // GetInfo(...) - get information about the APE file or the state of the decompressor
-    //
-    // Parameters:
-    //    APE_DECOMPRESS_FIELDS Field
-    //        the field we're querying (see APE_DECOMPRESS_FIELDS above for more info)
-    //    int nParam1
-    //        generic parameter... usage is listed in APE_DECOMPRESS_FIELDS
-    //    int nParam2
-    //        generic parameter... usage is listed in APE_DECOMPRESS_FIELDS
-    //////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int64 GetInfo(APE_DECOMPRESS_FIELDS Field, int64 nParam1 = 0, int64 nParam2 = 0) = 0;
 
     /**************************************************************************************************
     * Configure
@@ -549,14 +568,14 @@ extern "C"
 {
     // process whole files
 #ifdef APE_SUPPORT_COMPRESS
-    DLLEXPORT int __stdcall CompressFile(const APE::str_ansi * pInputFilename, const APE::str_ansi * pOutputFilename, int nCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL, int * pPercentageDone = APE_NULL, APE::APE_PROGRESS_CALLBACK ProgressCallback = 0, int * pKillFlag = APE_NULL, int nThreads = 1, APE::IID3v2Tag * pTag = APE_NULL);
+    DLLEXPORT int __stdcall CompressFile(const APE::str_ansi * pInputFilename, const APE::str_ansi * pOutputFilename, int nCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL, int * pPercentageDone = APE_NULL, APE::APE_PROGRESS_CALLBACK ProgressCallback = APE_NULL, int * pKillFlag = APE_NULL, int nThreads = 1, APE::IID3v2Tag * pTag = APE_NULL);
 #endif
     DLLEXPORT int __stdcall DecompressFile(const APE::str_ansi * pInputFilename, const APE::str_ansi * pOutputFilename, int * pPercentageDone, APE::APE_PROGRESS_CALLBACK ProgressCallback, int * pKillFlag, int nThreads);
     DLLEXPORT int __stdcall ConvertFile(const APE::str_ansi * pInputFilename, const APE::str_ansi * pOutputFilename, int nCompressionLevel, int * pPercentageDone, APE::APE_PROGRESS_CALLBACK ProgressCallback, int * pKillFlag, int nThreads);
     DLLEXPORT int __stdcall VerifyFile(const APE::str_ansi * pInputFilename, int * pPercentageDone, APE::APE_PROGRESS_CALLBACK ProgressCallback, int * pKillFlag, bool bQuickVerifyIfPossible = false, int nThreads = 1);
 
 #ifdef APE_SUPPORT_COMPRESS
-    DLLEXPORT int __stdcall CompressFileW(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, int nCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL, int * pPercentageDone = APE_NULL, APE::APE_PROGRESS_CALLBACK ProgressCallback = 0, int * pKillFlag = APE_NULL, int nThreads = 1, APE::IID3v2Tag * pTag = APE_NULL, bool bReadFullInput = false);
+    DLLEXPORT int __stdcall CompressFileW(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, int nCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL, int * pPercentageDone = APE_NULL, APE::APE_PROGRESS_CALLBACK ProgressCallback = APE_NULL, int * pKillFlag = APE_NULL, int nThreads = 1, APE::IID3v2Tag * pTag = APE_NULL, bool bReadFullInput = false);
 #endif
     DLLEXPORT int __stdcall DecompressFileW(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, int * pPercentageDone, APE::APE_PROGRESS_CALLBACK ProgressCallback, int * pKillFlag, int nThreads);
     DLLEXPORT int __stdcall ConvertFileW(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, int nCompressionLevel, int * pPercentageDone, APE::APE_PROGRESS_CALLBACK ProgressCallback, int * pKillFlag, int nThreads);

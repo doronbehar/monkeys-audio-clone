@@ -20,23 +20,23 @@ public:
         Delete();
     }
 
-    __forceinline Gdiplus::Bitmap * operator ->() const
+    APE_INLINE Gdiplus::Bitmap * operator ->() const
     {
         return m_pBitmap;
     }
 
-    __forceinline operator Gdiplus::Bitmap * () const
+    APE_INLINE operator Gdiplus::Bitmap * () const
     {
         return m_pBitmap;
     }
 
-    __forceinline void Assign(Gdiplus::Bitmap * pObject)
+    APE_INLINE void Assign(Gdiplus::Bitmap * pObject)
     {
         Delete();
         m_pBitmap = pObject;
     }
 
-    __forceinline void Delete()
+    APE_INLINE void Delete()
     {
         if (m_pBitmap != APE_NULL)
         {

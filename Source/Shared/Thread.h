@@ -1,7 +1,7 @@
 #pragma once
 
 #ifdef PLATFORM_WINDOWS
-#include <windows.h>
+#include <Windows.h>
 #include <winnt.h>
 #else
 #include <pthread.h>

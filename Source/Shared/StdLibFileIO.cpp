@@ -97,8 +97,8 @@
 # define SETBINARY_IN(__fp)     (__fp)
 # define SETBINARY_OUT(__fp)    (__fp)
 #elif 0
-# define SETBINARY_IN(__fp)     (freopen   ( NULL, "rb", (__fp) ), (__fp))
-# define SETBINARY_OUT(__fp)    (freopen   ( NULL, "wb", (__fp) ), (__fp))
+# define SETBINARY_IN(__fp)     (freopen   ( APE_NULL, "rb", (__fp) ), (__fp))
+# define SETBINARY_OUT(__fp)    (freopen   ( APE_NULL, "wb", (__fp) ), (__fp))
 #else
 # define SETBINARY_IN(__fp)     (__fp)
 # define SETBINARY_OUT(__fp)    (__fp)
@@ -148,16 +148,17 @@ int CStdLibFileIO::Open(const str_utfn * pName, bool)
     else
     {
         #ifdef PLATFORM_WINDOWS
-            m_pFile = _wfopen(pName, L"r+bN");
+            int nResult = _wfopen_s(&m_pFile, pName, L"r+bN");
         #else
-            CSmartPtr<char> spFilenameUTF8((char *)CAPECharacterHelper::GetUTF8FromUTFN(pName), true);
+            CSmartPtr<char> spFilenameUTF8((char *) CAPECharacterHelper::GetUTF8FromUTFN(pName), true);
             m_pFile = fopen(spFilenameUTF8, "r+be");
+            int nResult = errno;
         #endif
-        if (m_pFile == APE_NULL && (errno == EACCES || errno == EPERM || errno == EROFS))
+        if ((m_pFile == APE_NULL) && (nResult == EACCES || nResult == EPERM || nResult == EROFS))
         {
             // failed asking for read/write mode on open, try read-only
             #ifdef PLATFORM_WINDOWS
-                m_pFile = _wfopen(pName, L"rbN");
+                _wfopen_s(&m_pFile, pName, L"rbN");
             #else
                 m_pFile = fopen(spFilenameUTF8, "rbe");
             #endif
@@ -169,7 +170,7 @@ int CStdLibFileIO::Open(const str_utfn * pName, bool)
     if (!m_pFile)
         return ERROR_UNDEFINED;
 
-    wcscpy(m_cFileName, pName);
+    wcscpy_s(m_cFileName, APE_MAX_PATH, pName);
 
     return ERROR_SUCCESS;
 }
@@ -262,7 +263,7 @@ int64 CStdLibFileIO::GetSize()
 
 int CStdLibFileIO::GetName(str_utfn(&rpBuffer)[APE_MAX_PATH])
 {
-    wcscpy(rpBuffer, m_cFileName);
+    wcscpy_s(rpBuffer, APE_MAX_PATH, m_cFileName);
     return ERROR_SUCCESS;
 }
 
@@ -282,14 +283,18 @@ int CStdLibFileIO::Create(const str_utfn * pName)
     {
         CSmartPtr<char> spFilenameUTF8((char *) CAPECharacterHelper::GetUTF8FromUTFN(pName), true);
         // NOTE: on Mac OSX (BSD Unix), we MUST have "w+b" if we want to read & write, with other systems "wb" seems to be fine
-        m_pFile = fopen(spFilenameUTF8, "w+be");                  // Read/Write
+        #ifdef PLATFORM_WINDOWS
+            fopen_s(&m_pFile, spFilenameUTF8, "w+be");                  // Read/Write
+        #else
+            m_pFile = fopen(spFilenameUTF8, "w+be");                  // Read/Write
+        #endif
         m_bReadOnly = false;
     }
 
     if (!m_pFile)
         return ERROR_UNDEFINED;
 
-    wcscpy(m_cFileName, pName);
+    wcscpy_s(m_cFileName, APE_MAX_PATH, pName);
 
     return ERROR_SUCCESS;
 }
@@ -298,7 +303,11 @@ int CStdLibFileIO::Delete()
 {
     Close();
     CSmartPtr<char> spFilenameUTF8((char *) CAPECharacterHelper::GetUTF8FromUTFN(m_cFileName), true);
-    return unlink(spFilenameUTF8);    // 0 success, -1 error
+    #ifdef PLATFORM_WINDOWS
+        return _unlink(spFilenameUTF8);    // 0 success, -1 error
+    #else
+        return unlink(spFilenameUTF8);    // 0 success, -1 error
+    #endif
 }
 
 }

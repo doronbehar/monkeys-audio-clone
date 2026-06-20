@@ -160,8 +160,6 @@ BEGIN
     ICON            "",IDC_OTHER_PICTURE,17,374,20,20
     CONTROL         "Play sound on completion",IDC_COMPLETION_SOUND_CHECK,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,66,375,308,18
-    CONTROL         "Show popup windows for external plugins",IDC_SHOW_EXTERNAL_WINDOWS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,66,396,307,18
 END
 
 IDD_FORMAT_PLUGIN_CONFIGURE DIALOGEX 0, 0, 489, 188

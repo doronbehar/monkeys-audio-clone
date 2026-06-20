@@ -12,7 +12,7 @@ class CWinFileIO : public IAPEIO
 public:
     // construction / destruction
     CWinFileIO();
-    ~CWinFileIO();
+    ~CWinFileIO() APE_OVERRIDE;
 
     // open / close
     int Open(const str_utfn * pName, bool bOpenReadOnly = false) APE_OVERRIDE;

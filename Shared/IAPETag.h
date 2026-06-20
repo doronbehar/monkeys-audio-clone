@@ -36,7 +36,7 @@ class IAPETagField
 {
 public:
     // destruction
-    virtual ~IAPETagField() {}
+    virtual ~IAPETagField() { }
 
     // gets the size of the entire field in bytes (name, value, and metadata)
     virtual int GetFieldSize() const = 0;
@@ -64,7 +64,7 @@ IAPETag interface
 class IAPETag
 {
 public:
-    virtual ~IAPETag() {}
+    virtual ~IAPETag() { }
 
     // save the tag to the I/O source (bUseOldID3 forces it to save as an ID3v1.1 tag instead of an APE tag)
     virtual int Save(bool bUseOldID3 = false) = 0;
@@ -132,7 +132,7 @@ The footer at the end of APE tagged files (can also optionally be at the front o
 /**************************************************************************************************
 Footer (and header) flags
 **************************************************************************************************/
-#define APE_TAG_FLAG_CONTAINS_HEADER            (static_cast<unsigned int>(1 << 31))
+#define APE_TAG_FLAG_CONTAINS_HEADER            (static_cast<unsigned int>(1) << 31)
 #define APE_TAG_FLAG_CONTAINS_FOOTER            (1 << 30)
 #define APE_TAG_FLAG_IS_HEADER                  (1 << 29)
 
@@ -173,15 +173,15 @@ public:
         m_nVersion = CURRENT_APE_TAG_VERSION;
     }
 
-    __forceinline int GetTotalTagBytes() const { return m_nSize + (GetHasHeader() ? APE_TAG_FOOTER_BYTES : 0); }
-    __forceinline int GetFieldBytes() const { return m_nSize - APE_TAG_FOOTER_BYTES; }
-    __forceinline int GetFieldsOffset() const { return GetHasHeader() ? APE_TAG_FOOTER_BYTES : 0; }
-    __forceinline int GetNumberFields() const { return m_nFields; }
-    __forceinline bool GetHasHeader() const { return (m_nFlags & APE_TAG_FLAG_CONTAINS_HEADER) ? true : false; }
-    __forceinline bool GetIsHeader() const { return (m_nFlags & APE_TAG_FLAG_IS_HEADER) ? true : false; }
-    __forceinline int GetVersion() const { return m_nVersion; }
-    __forceinline void Empty() { APE_CLEAR(m_cID); }
-    __forceinline bool GetIsValid(bool bAllowHeader) const
+    APE_INLINE int GetTotalTagBytes() const { return m_nSize + (GetHasHeader() ? APE_TAG_FOOTER_BYTES : 0); }
+    APE_INLINE int GetFieldBytes() const { return m_nSize - APE_TAG_FOOTER_BYTES; }
+    APE_INLINE int GetFieldsOffset() const { return GetHasHeader() ? APE_TAG_FOOTER_BYTES : 0; }
+    APE_INLINE int GetNumberFields() const { return m_nFields; }
+    APE_INLINE bool GetHasHeader() const { return (static_cast<unsigned int>(m_nFlags) & APE_TAG_FLAG_CONTAINS_HEADER) ? true : false; }
+    APE_INLINE bool GetIsHeader() const { return (static_cast<unsigned int>(m_nFlags) & APE_TAG_FLAG_IS_HEADER) ? true : false; }
+    APE_INLINE int GetVersion() const { return m_nVersion; }
+    APE_INLINE void Empty() { APE_CLEAR(m_cID); }
+    APE_INLINE bool GetIsValid(bool bAllowHeader) const
     {
         bool bValid = (strncmp(m_cID, "APETAGEX", 8) == 0) &&
             (m_nVersion <= CURRENT_APE_TAG_VERSION) &&

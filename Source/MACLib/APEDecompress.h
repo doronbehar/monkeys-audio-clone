@@ -14,7 +14,7 @@ class CAPEDecompress : public IAPEDecompress
 {
 public:
     CAPEDecompress(int * pErrorCode, IAPEInfo * pAPEInfo, int64 nStartBlock = -1, int64 nFinishBlock = -1);
-    ~CAPEDecompress();
+    ~CAPEDecompress() APE_OVERRIDE;
 
     // configuration
     int SetNumberOfThreads(int nThreads) APE_OVERRIDE;
@@ -24,7 +24,7 @@ public:
     int Seek(int64 nBlockOffset) APE_OVERRIDE;
 
     // file info
-    int64 GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nParam1 = 0, int64 nParam2 = 0) APE_OVERRIDE;
+    int64 GetInfo(IAPEDecompress::APE_INFO_FIELDS Field, int64 nParam1 = 0, int64 nParam2 = 0) APE_OVERRIDE;
 
 protected:
     // file info

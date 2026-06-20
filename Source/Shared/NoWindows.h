@@ -19,8 +19,8 @@
 
 namespace APE
 {
-#undef __forceinline
-#define __forceinline inline
+#undef APE_INLINE
+#define APE_INLINE inline
 
 #ifndef __stdcall
 #define __stdcall
@@ -41,7 +41,7 @@ typedef struct _GUID {
 #define CALLBACK
 
 #define _strnicmp strncasecmp
-#define _wtoi(x) wcstol(x, NULL, 10)
+#define _wtoi(x) wcstol(x, APE_NULL, 10)
 
 #ifdef PLATFORM_APPLE
     #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070

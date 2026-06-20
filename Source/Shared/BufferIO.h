@@ -13,7 +13,7 @@ class CBufferIO : public IAPEIO
 public:
     // construction / destruction
     CBufferIO(IAPEIO * pSource, int nBufferBytes);
-    ~CBufferIO();
+    ~CBufferIO() APE_OVERRIDE;
 
     // open / close
     int Open(const str_utfn * pName, bool bOpenReadOnly = false) APE_OVERRIDE;
@@ -54,7 +54,7 @@ class CHeaderIO : public IAPEIO
 public:
     // construction / destruction
     CHeaderIO(IAPEIO * pSource);
-    ~CHeaderIO();
+    ~CHeaderIO() APE_OVERRIDE;
 
     // read the header
     bool ReadHeader(BYTE (& aryHeader)[64]);

@@ -198,7 +198,7 @@ int CAPEDecompressCore::DecodeFrame()
 {
     // initialize
     int nResult = InitializeDecompressor();
-    
+
     // empty the buffer
     m_cbFrameBuffer.Empty();
 

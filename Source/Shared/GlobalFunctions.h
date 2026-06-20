@@ -42,7 +42,7 @@ void SwitchBufferBytes(void * pBuffer, int nBytesPerBlock, int nBlocks);
 
 inline uint16 Switch2Bytes(uint16 nValue)
 {
-    return ((nValue & 0x00FFU) << 8) | ((nValue & 0xFF00U) >> 8);
+    return static_cast<uint16>(((nValue & 0x00FFU) << 8) | ((nValue & 0xFF00U) >> 8));
 }
 
 inline uint32 Switch3Bytes(uint32 nValue)

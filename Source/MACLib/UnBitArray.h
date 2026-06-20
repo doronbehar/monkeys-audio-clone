@@ -15,7 +15,7 @@ class CUnBitArray : public CUnBitArrayBase
 public:
     // construction/destruction
     CUnBitArray(APE::IAPEIO * pIO, intn nVersion, int64 nFurthestReadByte);
-    ~CUnBitArray();
+    ~CUnBitArray() APE_OVERRIDE;
 
     void GenerateArray(int * pOutputArray, int nElements, intn nBytesRequired) APE_OVERRIDE;
     int64 DecodeValueRange(UNBIT_ARRAY_STATE & BitArrayState) APE_OVERRIDE;

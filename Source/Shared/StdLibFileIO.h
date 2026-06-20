@@ -12,7 +12,7 @@ class CStdLibFileIO : public IAPEIO
 public:
     // construction / destruction
     CStdLibFileIO();
-    ~CStdLibFileIO();
+    ~CStdLibFileIO() APE_OVERRIDE;
 
     // open / close
     int Open(const str_utfn * pName, bool bOpenReadOnly = false);

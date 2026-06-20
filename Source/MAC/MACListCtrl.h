@@ -17,7 +17,7 @@ class CMACListCtrl : public CListCtrl
 {
 public:
     CMACListCtrl();
-    virtual ~CMACListCtrl();
+    virtual ~CMACListCtrl() APE_OVERRIDE;
 
     bool Initialize(CMACDlg * pParent, MAC_FILE_ARRAY * paryFiles);
 
@@ -52,7 +52,7 @@ protected:
     afx_msg void OnBegindrag(NMHDR * pNMHDR, LRESULT * pResult);
     afx_msg void OnRclick(NMHDR * pNMHDR, LRESULT * pResult);
     afx_msg void OnLvnColumnclickList(NMHDR * pNMHDR, LRESULT * pResult);
-    afx_msg BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT * pResult);
+    afx_msg BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT * pResult) APE_OVERRIDE;
     afx_msg BOOL OnEraseBkgnd(CDC * pDC);
     DECLARE_MESSAGE_MAP()
 

@@ -8,8 +8,8 @@ public:
     enum { IDD = IDD_ABOUT };
 
 protected:
-    virtual void DoDataExchange(CDataExchange * pDX);
-    virtual BOOL OnInitDialog();
+    virtual void DoDataExchange(CDataExchange * pDX) APE_OVERRIDE;
+    virtual BOOL OnInitDialog() APE_OVERRIDE;
 
     afx_msg HBRUSH OnCtlColor(CDC * pDC, CWnd * pWnd, UINT nCtlColor);
     afx_msg void OnPaint();

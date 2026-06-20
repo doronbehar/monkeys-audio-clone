@@ -4,7 +4,7 @@ class CStringArrayEx : public CStringArray
 {
 public:
     CStringArrayEx();
-    virtual ~CStringArrayEx();
+    virtual ~CStringArrayEx() APE_OVERRIDE;
 
     const CStringArrayEx & operator=(const CStringArrayEx & arySource);
 

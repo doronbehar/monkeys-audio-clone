@@ -119,7 +119,7 @@ CString CAPEInfoFormatDlg::GetSummary(const CString & strFilename)
         strSummary += strLine + _T("\r\n\r\n");
 
         // get tag information
-        IAPETag * pTag = APE_GET_TAG(spAPEDecompress);
+        IAPETag * pTag = spAPEDecompress->GetTag();
         CSmartPtr<str_utfn> spTagString(new str_utfn [4096], true);
         spTagString[0] = 0;
         pTag->OutputTag(spTagString, 4096);

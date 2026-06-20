@@ -16,11 +16,11 @@ class CMACApp : public CWinApp
 public:
     // construction / destruction
     CMACApp();
-    ~CMACApp();
+    ~CMACApp() APE_OVERRIDE;
 
     // initialize
-    virtual BOOL InitInstance();
-    virtual int ExitInstance();
+    virtual BOOL InitInstance() APE_OVERRIDE;
+    virtual int ExitInstance() APE_OVERRIDE;
 
     // data access
     CFormatArray * GetFormatArray();

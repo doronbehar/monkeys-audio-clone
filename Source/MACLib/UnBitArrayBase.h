@@ -43,7 +43,7 @@ class CUnBitArrayBase
 {
 public:
     // enumeration
-    enum DECODE_VALUE_METHOD
+    enum DECODE_VALUE_METHOD : uint8
     {
         DECODE_VALUE_METHOD_UNSIGNED_INT,
         DECODE_VALUE_METHOD_UNSIGNED_RICE,
@@ -109,7 +109,7 @@ public:
     RangeOverflowTable(const uint32* RANGE_TOTAL);
     ~RangeOverflowTable();
 
-    __forceinline uint8 Get(uint32 nIndex) const { return m_aryTable[nIndex]; }
+    APE_INLINE uint8 Get(uint32 nIndex) const { return m_aryTable[nIndex]; }
 
 private:
     uint8 m_aryTable[65536];

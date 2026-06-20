@@ -10,7 +10,7 @@ class CWholeFileIO : public IAPEIO
 public:
     // construction / destruction
     CWholeFileIO(IAPEIO * pSource, unsigned char * pBuffer, int64 nFileBytes);
-    ~CWholeFileIO();
+    ~CWholeFileIO() APE_OVERRIDE;
 
     // open / close
     int Open(const str_utfn * pName, bool bOpenReadOnly = false) APE_OVERRIDE;

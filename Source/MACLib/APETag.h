@@ -52,7 +52,7 @@ public:
     CAPETagField(const str_utfn * pFieldName, const void * pFieldValue, int nFieldBytes = -1, int nFlags = 0);
 
     // destruction
-    virtual ~CAPETagField();
+    virtual ~CAPETagField() APE_OVERRIDE;
 
     // gets the size of the entire field in bytes (name, value, and metadata)
     int GetFieldSize() const APE_OVERRIDE;
@@ -100,7 +100,7 @@ public:
     CAPETag(const str_utfn * pFilename, bool bAnalyze = true);
 
     // destructor
-    virtual ~CAPETag();
+    virtual ~CAPETag() APE_OVERRIDE;
 
     // save the tag to the I/O source (bUseOldID3 forces it to save as an ID3v1.1 tag instead of an APE tag)
     int Save(bool bUseOldID3 = false) APE_OVERRIDE;

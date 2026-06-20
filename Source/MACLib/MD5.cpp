@@ -24,6 +24,8 @@
  * edited for clarity and style only.
  */
 
+// NOLINTBEGIN
+
 #include "MD5.h"
 
 static void MD5Transform(uint32_t [4], const unsigned char [64]);
@@ -310,3 +312,5 @@ static void MD5Transform(uint32_t state[4], const unsigned char block[64])
     /* Zeroize sensitive information. */
     memset (static_cast<void *>(x), 0, sizeof (x));
 }
+
+// NOLINTEND

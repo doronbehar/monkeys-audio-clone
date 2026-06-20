@@ -3,7 +3,7 @@
 namespace APE
 {
 
-enum SeekMethod
+enum SeekMethod : uint8
 {
     SeekFileBegin = 0,
     SeekFileCurrent = 1,
@@ -14,7 +14,7 @@ class IAPEIO
 {
 public:
     // destruction
-    virtual ~IAPEIO() { };
+    virtual ~IAPEIO() { }
 
     // open / close
     virtual int Open(const str_utfn * pName, bool bOpenReadOnly = false) = 0;

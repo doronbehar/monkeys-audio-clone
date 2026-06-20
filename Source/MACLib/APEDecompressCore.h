@@ -19,7 +19,7 @@ class CAPEDecompressCore : public CThread
 {
 public:
     CAPEDecompressCore(int * pErrorCode, CAPEDecompress * pDecompress, IAPEInfo * pAPEInfo);
-    ~CAPEDecompressCore();
+    ~CAPEDecompressCore() APE_OVERRIDE;
 
     int InitializeDecompressor();
     void WaitUntilReady();
@@ -35,7 +35,7 @@ public:
     uint32 GetFrameBytes() const;
 
 protected:
-    void Run();
+    void Run() APE_OVERRIDE;
 
     CSemaphore m_semProcess;
     CSemaphore m_semReady;

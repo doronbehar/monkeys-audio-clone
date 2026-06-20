@@ -39,5 +39,7 @@ Warnings
 #pragma clang diagnostic ignored "-Wglobal-constructors" // some variables like the application object need to be global
 #pragma clang diagnostic ignored "-Wpragma-once-outside-header" // this fires on a couple files for no reason that I can figure
 #pragma clang diagnostic ignored "-Wpragma-pack" // this shows when browsing files in the solution for some reason with VS2026
+#pragma clang diagnostic ignored "-Wpadded" // this shows about padding, but that's fine and shouldn't display
+#pragma clang diagnostic ignored "-Wreserved-macro-identifier" // Clang warns about defining the Windows defines, but we need to do that
 
 #endif // _MSC_VER

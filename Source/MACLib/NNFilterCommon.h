@@ -47,7 +47,7 @@ namespace APE
 Helper functions
 **************************************************************************************************/
 
-__forceinline short GetSaturatedShortFromInt(int32 nValue)
+APE_INLINE short GetSaturatedShortFromInt(int32 nValue)
 {
     short sValue = static_cast<short>(nValue);
     if (sValue != nValue)
@@ -55,7 +55,7 @@ __forceinline short GetSaturatedShortFromInt(int32 nValue)
     return sValue;
 }
 
-__forceinline short GetSaturatedShortFromInt(int64 nValue)
+APE_INLINE short GetSaturatedShortFromInt(int64 nValue)
 {
     short sValue = static_cast<short>(nValue);
     if (sValue != nValue)
@@ -65,15 +65,15 @@ __forceinline short GetSaturatedShortFromInt(int64 nValue)
 
 /*************************************************************************************************/
 
-__forceinline int Abs(int32 nValue)
+APE_INLINE int Abs(int32 nValue)
 { return abs(nValue); }
 
-__forceinline int64 Abs(int64 nValue)
+APE_INLINE int64 Abs(int64 nValue)
 { return llabs(nValue); }
 
 /*************************************************************************************************/
 
-__forceinline void Adapt(short * pM, const short * pAdapt, int32 nDirection, int nOrder)
+APE_INLINE void Adapt(short * pM, const short * pAdapt, int32 nDirection, int nOrder)
 {
     // we're working 16 elements at a time
     ASSERT((nOrder % 16) == 0);
@@ -96,7 +96,7 @@ __forceinline void Adapt(short * pM, const short * pAdapt, int32 nDirection, int
     }
 }
 
-__forceinline void Adapt(int * pM, const int * pAdapt, int64 nDirection, int nOrder)
+APE_INLINE void Adapt(int * pM, const int * pAdapt, int64 nDirection, int nOrder)
 {
     // we're working 16 elements at a time
     ASSERT((nOrder % 16) == 0);
@@ -121,7 +121,7 @@ __forceinline void Adapt(int * pM, const int * pAdapt, int64 nDirection, int nOr
 
 /*************************************************************************************************/
 
-__forceinline int32 CalculateDotProduct(const short * pA, const short * pB, int nOrder)
+APE_INLINE int32 CalculateDotProduct(const short * pA, const short * pB, int nOrder)
 {
     // we're working 16 elements at a time
     ASSERT((nOrder % 16) == 0);
@@ -137,7 +137,7 @@ __forceinline int32 CalculateDotProduct(const short * pA, const short * pB, int 
     return nDotProduct;
 }
 
-__forceinline int64 CalculateDotProduct(const int * pA, const int * pB, int nOrder)
+APE_INLINE int64 CalculateDotProduct(const int * pA, const int * pB, int nOrder)
 {
     // we're working 16 elements at a time
     ASSERT((nOrder % 16) == 0);

@@ -49,7 +49,7 @@ CUnBitArrayOld::CUnBitArrayOld(IAPEDecompress * pAPEDecompress, intn nVersion, i
         // error
     }
 
-    CreateHelper(APE_GET_IO(pAPEDecompress), nBitArrayBytes, nVersion);
+    CreateHelper(pAPEDecompress->GetIO(), nBitArrayBytes, nVersion);
 
     // set the refill threshold
     if (m_nVersion <= 3880)

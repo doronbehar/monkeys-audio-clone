@@ -167,7 +167,7 @@ int CHeaderIO::Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead)
         memcpy(pBuffer, &m_aryHeader[m_nPosition], static_cast<size_t>(nBytesFromBuffer));
         char * pBufferChar = reinterpret_cast<char *>(pBuffer);
         int64 nBytesFromReader = nBytesToRead - nBytesFromBuffer;
-        
+
         // reader
         if (nBytesFromReader > 0)
             nResult = m_spSource->Read(&pBufferChar[nBytesFromBuffer], nBytesFromReader, &nBytesRead);

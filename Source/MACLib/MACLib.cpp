@@ -603,7 +603,7 @@ int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, IAPEProgressCal
                 throw(static_cast<intn>(ERROR_UNSUPPORTED_FILE_TYPE));
 
             // get info object from the decompress core
-            const APE_FILE_INFO * pInfo = APE_GET_INFO(spAPEDecompress);
+            const APE_FILE_INFO * pInfo = spAPEDecompress->GetFileInfo();
 
             // check version
             if ((pInfo->nVersion < 3980) || (pInfo->spAPEDescriptor == APE_NULL))
@@ -630,8 +630,8 @@ int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, IAPEProgressCal
             CMD5Helper MD5Helper;
             int64 nBytesRead = 0;
 
-            IAPEIO * pIO = APE_GET_IO(spAPEDecompress);
-            const APE_FILE_INFO * pInfo = APE_GET_INFO(spAPEDecompress);
+            IAPEIO * pIO = spAPEDecompress->GetIO();
+            const APE_FILE_INFO * pInfo = spAPEDecompress->GetFileInfo();
 
             if ((pInfo->nVersion < 3980) || (pInfo->spAPEDescriptor == APE_NULL))
                 throw(static_cast<intn>(ERROR_UNSUPPORTED_FILE_VERSION));
@@ -888,7 +888,7 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
         else if (nOutputMode == UNMAC_DECODER_OUTPUT_APE)
         {
             // write the WAV data and any tag
-            IAPETag * pAPETag = APE_GET_TAG(spAPEDecompress);
+            IAPETag * pAPETag = spAPEDecompress->GetTag();
             const int64 nTagBytes = (pAPETag != APE_NULL) ? pAPETag->GetTagBytes() : 0;
             const bool bHasTag = (nTagBytes > 0);
             int64 nTerminatingBytes = nTagBytes;
@@ -903,9 +903,9 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
 
                 if (bHasTag)
                 {
-                    int64 nBytesRead = 0;
-                    THROW_ON_ERROR(APE_GET_IO(spAPEDecompress)->Seek(-(nTagBytes), SeekFileEnd))
-                    THROW_ON_ERROR(APE_GET_IO(spAPEDecompress)->Read(&spTempBuffer[spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES)], nTagBytes, &nBytesRead))
+                    IAPEIO * pIO = spAPEDecompress->GetIO();
+                    THROW_ON_ERROR(pIO->Seek(-nTagBytes, SeekFileEnd))
+                    THROW_ON_ERROR(pIO->Read(&spTempBuffer[spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES)], nTagBytes))
                 }
 
                 THROW_ON_ERROR(spAPECompress->Finish(spTempBuffer, nTerminatingBytes, static_cast<int>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES))))

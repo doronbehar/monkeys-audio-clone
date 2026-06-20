@@ -206,7 +206,7 @@ int CAPEInfo::GetFileInformation()
 /**************************************************************************************************
 Primary query function
 **************************************************************************************************/
-int64 CAPEInfo::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nParam1, int64 nParam2)
+int64 CAPEInfo::GetInfo(IAPEDecompress::APE_INFO_FIELDS Field, int64 nParam1, int64 nParam2)
 {
     int64 nResult = ERROR_UNDEFINED;
 
@@ -444,7 +444,7 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nPara
                 else
                 {
                     // APL files have a tag on the APL but not the original file
-                    nResult = static_cast<int64>(nFileSize - static_cast<int64>(m_APEFileInfo.nWAVTerminatingBytes) - static_cast<int64>(GetInfo(IAPEDecompress::APE_INFO_SEEK_BYTE, nFrame)));
+                    nResult = static_cast<int64>(nFileSize - static_cast<int64>(m_APEFileInfo.nWAVTerminatingBytes) - GetInfo(IAPEDecompress::APE_INFO_SEEK_BYTE, nFrame));
 
                     // remove the tag (but not for APL files because they have a tag on the APL but not the original data file)
                     if (m_spAPETag->GetIOMatches(m_spIO))
@@ -495,7 +495,7 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_DECOMPRESS_FIELDS Field, int64 nPara
                 nResult = ERROR_SUCCESS;
         }
         break;
-    case IAPEDecompress::APE_INTERNAL_INFO:
+    case IAPEDecompress::APE_INFO_FILE_INFO:
         nResult = APE_POINTER_TO_INT64(&m_APEFileInfo);
         break;
     case IAPEDecompress::APE_DECOMPRESS_CURRENT_BLOCK:

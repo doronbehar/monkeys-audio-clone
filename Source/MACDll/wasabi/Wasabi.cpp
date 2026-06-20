@@ -16,24 +16,23 @@ class AlbumArtFactory : public waServiceFactory
 {
 public:
     FOURCC GetServiceType();
-    const char *GetServiceName();
+    const char * GetServiceName();
     GUID GetGUID();
-    void *GetInterface(int global_lock);
+    void * GetInterface(int global_lock);
     int SupportNonLockingInterface();
-    int ReleaseInterface(void *ifc);
-    const char *GetTestString();
+    int ReleaseInterface(void * ifc);
+    const char * GetTestString();
     int ServiceNotify(int msg, int param1, int param2);
 
 protected:
     RECVS_DISPATCH;
 };
 
-//extern "C" extern In_Module mod; // TODO: change if you called yours something else
 #define WASABI_API_MEMMGR memmgr
 
-static api_config *AGAVE_API_CONFIG = APE_NULL;
-static api_service *WASABI_API_SVC = APE_NULL;
-static api_memmgr *WASABI_API_MEMMGR = APE_NULL;
+static api_config * AGAVE_API_CONFIG = APE_NULL;
+static api_service * WASABI_API_SVC = APE_NULL;
+static api_memmgr * WASABI_API_MEMMGR = APE_NULL;
 
 static AlbumArtFactory albumArtFactory;
 void Wasabi_Init()
@@ -60,7 +59,7 @@ void Wasabi_Quit()
 {
     if (WASABI_API_SVC)
     {
-        waServiceFactory *sf = reinterpret_cast<waServiceFactory *>(WASABI_API_SVC->service_getServiceByGuid(AgaveConfigGUID));
+        waServiceFactory * sf = reinterpret_cast<waServiceFactory *>(WASABI_API_SVC->service_getServiceByGuid(AgaveConfigGUID));
         if (sf)
             sf->releaseInterface(AGAVE_API_CONFIG);
         sf = reinterpret_cast<waServiceFactory *>(WASABI_API_SVC->service_getServiceByGuid(memMgrApiServiceGuid));
@@ -76,7 +75,7 @@ void * Wasabi_Malloc(size_t size_in_bytes)
     return WASABI_API_MEMMGR->sysMalloc(size_in_bytes);
 }
 
-void Wasabi_Free(void *memory_block)
+void Wasabi_Free(void * memory_block)
 {
     WASABI_API_MEMMGR->sysFree(memory_block);
 }
@@ -84,17 +83,17 @@ void Wasabi_Free(void *memory_block)
 class APE_AlbumArtProvider : public svc_albumArtProvider
 {
 public:
-    bool IsMine(const wchar_t *filename);
+    bool IsMine(const wchar_t * filename);
     int ProviderType();
     // implementation note: use WASABI_API_MEMMGR to alloc bits and mimetype, so that the recipient can free through that
-    int GetAlbumArtData(const wchar_t *filename, const wchar_t *type, void **bits, size_t *len, wchar_t **mimeType);
-    int SetAlbumArtData(const wchar_t *filename, const wchar_t *type, void *bits, size_t len, const wchar_t *mimeType);
-    int DeleteAlbumArt(const wchar_t *filename, const wchar_t *type);
+    int GetAlbumArtData(const wchar_t * filename, const wchar_t * type, void ** bits, size_t * len, wchar_t ** mimeType);
+    int SetAlbumArtData(const wchar_t * filename, const wchar_t * type, void * bits, size_t len, const wchar_t * mimeType);
+    int DeleteAlbumArt(const wchar_t * filename, const wchar_t * type);
 protected:
     RECVS_DISPATCH;
 };
 
-static const wchar_t *GetLastCharactercW(const wchar_t *string)
+static const wchar_t * GetLastCharactercW(const wchar_t * string)
 {
     if (!string || !*string)
         return string;
@@ -102,14 +101,14 @@ static const wchar_t *GetLastCharactercW(const wchar_t *string)
     return CharPrevW(string, string+lstrlenW(string));
 }
 
-static const wchar_t *scanstr_backW(const wchar_t *str, const wchar_t *toscan, const wchar_t *defval)
+static const wchar_t *scanstr_backW(const wchar_t * str, const wchar_t * toscan, const wchar_t * defval)
 {
-    const wchar_t *s = GetLastCharactercW(str);
+    const wchar_t * s = GetLastCharactercW(str);
     if (!str[0]) return defval;
     if (!toscan || !toscan[0]) return defval;
     while (1)
     {
-        const wchar_t *t = toscan;
+        const wchar_t * t = toscan;
         while (*t)
         {
             if (*t == *s) return s;
@@ -122,9 +121,9 @@ static const wchar_t *scanstr_backW(const wchar_t *str, const wchar_t *toscan, c
     }
 }
 
-static const wchar_t *extensionW(const wchar_t *fn)
+static const wchar_t *extensionW(const wchar_t * fn)
 {
-    const wchar_t *end = scanstr_backW(fn, L"./\\", APE_NULL);
+    const wchar_t * end = scanstr_backW(fn, L"./\\", APE_NULL);
     if (!end)
         return (fn+lstrlenW(fn));
 
@@ -134,7 +133,7 @@ static const wchar_t *extensionW(const wchar_t *fn)
     return (fn+lstrlenW(fn));
 }
 
-bool APE_AlbumArtProvider::IsMine(const wchar_t *filename)
+bool APE_AlbumArtProvider::IsMine(const wchar_t * filename)
 {
     const wchar_t * extension = extensionW(filename);
     if (extension && *extension)
@@ -160,7 +159,7 @@ int APE_AlbumArtProvider::GetAlbumArtData(const wchar_t * filename, const wchar_
     return APE_GetAlbumArt(filename, type, bits, len, mime_type);
 }
 
-extern "C" int APE_SetAlbumArt(const wchar_t * filename, const wchar_t *type, void * bits, size_t len, const wchar_t *mime_type);
+extern "C" int APE_SetAlbumArt(const wchar_t * filename, const wchar_t * type, void * bits, size_t len, const wchar_t * mime_type);
 int APE_AlbumArtProvider::SetAlbumArtData(const wchar_t * filename, const wchar_t * type, void * bits, size_t len, const wchar_t * mime_type)
 {
     return APE_SetAlbumArt(filename, type, bits, len, mime_type);
@@ -193,7 +192,7 @@ FOURCC AlbumArtFactory::GetServiceType()
     return svc_albumArtProvider::SERVICETYPE;
 }
 
-const char *AlbumArtFactory::GetServiceName()
+const char * AlbumArtFactory::GetServiceName()
 {
     return "APE Album Art Provider";
 }
@@ -203,7 +202,7 @@ GUID AlbumArtFactory::GetGUID()
     return ape_albumartproviderGUID;
 }
 
-void *AlbumArtFactory::GetInterface(int global_lock)
+void * AlbumArtFactory::GetInterface(int global_lock)
 {
     return &albumArtProvider;
 }

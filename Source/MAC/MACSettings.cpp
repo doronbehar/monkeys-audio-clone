@@ -48,7 +48,6 @@ bool CMACSettings::Save()
     SaveSetting(_T("Processing Priority Mode"), m_nProcessingPriorityMode);
     SaveSetting(_T("Processing Stop On Errors"), m_bProcessingStopOnErrors);
     SaveSetting(_T("Processing Play Completion Sound"), m_bProcessingPlayCompletionSound);
-    SaveSetting(_T("Processing Show External Windows"), m_bProcessingShowExternalWindows);
     SaveSetting(_T("Processing Verify Mode"), m_nProcessingVerifyMode);
     SaveSetting(_T("Processing Automatic Verify On Creation"), m_bProcessingAutoVerifyOnCreation);
 
@@ -82,7 +81,6 @@ bool CMACSettings::Load()
     m_nProcessingPriorityMode = LoadSetting(_T("Processing Priority Mode"), PROCESSING_PRIORITY_MODE_NORMAL);
     m_bProcessingStopOnErrors = LoadSettingBoolean(_T("Processing Stop On Errors"), true);
     m_bProcessingPlayCompletionSound = LoadSettingBoolean(_T("Processing Play Completion Sound"), false);
-    m_bProcessingShowExternalWindows = LoadSettingBoolean(_T("Processing Show External Windows"), true);
     m_nProcessingVerifyMode = LoadSetting(_T("Processing Verify Mode"), PROCESSING_VERIFY_MODE_QUICK);
     m_bProcessingAutoVerifyOnCreation = LoadSettingBoolean(_T("Processing Automatic Verify On Creation"), false);
 

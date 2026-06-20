@@ -9,7 +9,7 @@ public:
 
     // construction / destruction
     MAC_FILE_ARRAY();
-    virtual ~MAC_FILE_ARRAY();
+    virtual ~MAC_FILE_ARRAY() APE_OVERRIDE;
 
     // operations
     INT_PTR GetSize();

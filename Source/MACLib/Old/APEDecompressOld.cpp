@@ -173,7 +173,7 @@ int CAPEDecompressOld::Seek(int64 nBlockOffset)
     return ERROR_SUCCESS;
 }
 
-int64 CAPEDecompressOld::GetInfo(APE_DECOMPRESS_FIELDS Field, int64 nParam1, int64 nParam2)
+int64 CAPEDecompressOld::GetInfo(APE_INFO_FIELDS Field, int64 nParam1, int64 nParam2)
 {
     int64 nRetVal = 0;
     bool bHandled = true;

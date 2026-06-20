@@ -39,7 +39,7 @@ CUnBitArrayBase * CreateUnBitArray(IAPEDecompress *, IAPEIO * pIO, intn nVersion
             // also don't not read the tag if we're working on an APL file
             if (pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_APL) == 0)
             {
-                IAPETag * pAPETag = APE_GET_TAG(pAPEDecompress);
+                IAPETag * pAPETag = pAPEDecompress->GetTag();
                 if ((pAPETag != APE_NULL) && pAPETag->GetAnalyzed())
                     nFurthestReadByte -= pAPETag->GetTagBytes();
             }

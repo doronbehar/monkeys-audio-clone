@@ -10,14 +10,14 @@ class CAPEDecompressOld : public IAPEDecompress
 {
 public:
     CAPEDecompressOld(int * pErrorCode, IAPEInfo * pAPEInfo, int nStartBlock = -1, int nFinishBlock = -1);
-    ~CAPEDecompressOld();
+    ~CAPEDecompressOld() APE_OVERRIDE;
 
     int SetNumberOfThreads(int nThreads) APE_OVERRIDE;
 
     int GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlocksRetrieved, APE_GET_DATA_PROCESSING * pProcessing = APE_NULL) APE_OVERRIDE;
     int Seek(int64 nBlockOffset) APE_OVERRIDE;
 
-    int64 GetInfo(APE_DECOMPRESS_FIELDS Field, int64 nParam1 = 0, int64 nParam2 = 0) APE_OVERRIDE;
+    int64 GetInfo(APE_INFO_FIELDS Field, int64 nParam1 = 0, int64 nParam2 = 0) APE_OVERRIDE;
 
 protected:
     // buffer

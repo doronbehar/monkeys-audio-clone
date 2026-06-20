@@ -15,7 +15,7 @@ CAPEDecompressCoreOld::CAPEDecompressCoreOld(IAPEDecompress * pAPEDecompress)
     m_pAPEDecompress = pAPEDecompress;
 
     // initialize the bit array
-    m_spUnBitArray.Assign(CreateUnBitArray(pAPEDecompress, APE_GET_IO(pAPEDecompress), static_cast<intn>(pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION))));
+    m_spUnBitArray.Assign(CreateUnBitArray(pAPEDecompress, pAPEDecompress->GetIO(), static_cast<intn>(pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION))));
 
     if (m_pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION) >= 3930)
         throw(0);

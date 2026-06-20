@@ -325,7 +325,7 @@ static int Tag(const str_utfn * pFilename, const str_utfn * pTagString)
 
         // get the input format
         APE::IAPETag * pTag = APE_NULL;
-        pTag = APE_GET_TAG(spAPEDecompress);
+        pTag = spAPEDecompress->GetTag();
 
         if (pTag == APE_NULL)
             throw(ERROR_UNDEFINED);
@@ -418,7 +418,7 @@ static int RemoveTags(const str_utfn * pFilename)
         if (spAPEDecompress == APE_NULL || nFunctionRetVal != ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
 
         // get the input format
-        APE::IAPETag * pTag = APE_GET_TAG(spAPEDecompress);
+        APE::IAPETag * pTag = spAPEDecompress->GetTag();
         if (pTag == APE_NULL)
             throw(ERROR_UNDEFINED);
 
@@ -452,7 +452,7 @@ static int ConvertTagsToLegacy(const str_utfn * pFilename)
         if (spAPEDecompress == APE_NULL || nFunctionRetVal != ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
 
         // get the input format
-        APE::IAPETag * pTag = APE_GET_TAG(spAPEDecompress);
+        APE::IAPETag * pTag = spAPEDecompress->GetTag();
         if (pTag == APE_NULL)
             throw(ERROR_UNDEFINED);
 
@@ -491,7 +491,7 @@ static int TagDump(const str_utfn * pFilename)
         if (spAPEDecompress == APE_NULL || nFunctionRetVal != ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
 
         // get the input format
-        APE::IAPETag * pTag = APE_GET_TAG(spAPEDecompress);
+        APE::IAPETag * pTag = spAPEDecompress->GetTag();
         if (pTag == APE_NULL)
             throw(ERROR_UNDEFINED);
 

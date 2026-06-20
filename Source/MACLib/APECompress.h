@@ -16,10 +16,10 @@ class CAPECompress : public IAPECompress
 {
 public:
     CAPECompress();
-    virtual ~CAPECompress();
+    virtual ~CAPECompress() APE_OVERRIDE;
 
     // configuration
-    int SetNumberOfThreads(int nThreads);
+    int SetNumberOfThreads(int nThreads) APE_OVERRIDE;
 
     // start encoding
     int Start(const str_utfn * pOutputFilename, const WAVEFORMATEX * pwfeInput, bool bFloat, int64 nMaxAudioBytes, int nCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL, const void * pHeaderData = APE_NULL, int64 nHeaderBytes = CREATE_WAV_HEADER_ON_DECOMPRESSION, int nFlags = 0) APE_OVERRIDE;

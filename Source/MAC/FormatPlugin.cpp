@@ -264,12 +264,9 @@ int CFormatPlugin::Process(MAC_FILE * pInfo)
         CString strApplication = strPath + pLevelInfo->m_strApplication;
 
         int nExitCode = -1;
-        bool bShow = theApp.GetSettings()->m_bProcessingShowExternalWindows;
-        if (pInfo->m_Mode == MODE_CHECK)
-            bShow = false;
 
         // run program
-        bool bSuccess = ExecuteProgramBlocking(strApplication, strCommandLine, &nExitCode, bShow);
+        bool bSuccess = ExecuteProgramBlocking(strApplication, strCommandLine, &nExitCode, false);
 
         // process result
         if (pLevelInfo->m_strSuccessReturn.IsEmpty() == false)

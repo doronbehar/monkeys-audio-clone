@@ -291,7 +291,7 @@ CSize CMACApp::GetTextExtent(CWnd * pWnd, const CString & strText, CFont * pFont
     CSize sizeText(0, 0);
 
     CDC * pDC = pWnd->GetDC();
-    if (pDC != NULL)
+    if (pDC != APE_NULL)
     {
         if (pFont == APE_NULL)
             pFont = GetFont();
@@ -372,7 +372,7 @@ void CMACApp::LoadFont(CFont & Font, int nSizeScale, bool bBold)
     if (hUser32 != APE_NULL)
     {
         BOOL(STDAPICALLTYPE * pSystemParametersInfoForDpi) (IN UINT uiAction, IN UINT uiParam, PVOID pvParam, IN UINT fWinIni, IN UINT dpi) = APE_NULL;
-        *(reinterpret_cast<FARPROC *>(&pSystemParametersInfoForDpi)) = GetProcAddress(hUser32, "SystemParametersInfoForDpi");
+        *(reinterpret_cast<FARPROC *>(&pSystemParametersInfoForDpi)) = GetProcAddress(hUser32, "SystemParametersInfoForDpi"); // NOLINT
         if (pSystemParametersInfoForDpi != APE_NULL)
         {
             bResult = pSystemParametersInfoForDpi(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0, m_nMonitorDPI);
