@@ -352,6 +352,9 @@
     <ClInclude Include="..\..\..\MACLib\Old\NewPredictorOld.h">
       <Filter>Header Files\Old %28h%29</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\MACLib\Interim.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\..\History.txt" />

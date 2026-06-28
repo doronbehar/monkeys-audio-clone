@@ -400,6 +400,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\MACLib\APEDecompressCore.h" />
     <ClInclude Include="..\..\..\MACLib\FloatTransform.h" />
+    <ClInclude Include="..\..\..\MACLib\Interim.h" />
     <ClInclude Include="..\..\..\MACLib\NNFilterCommon.h" />
     <ClInclude Include="..\..\..\MACLib\Old\AntiPredictorOld.h" />
     <ClInclude Include="..\..\..\MACLib\Old\APEDecompressCoreOld.h" />

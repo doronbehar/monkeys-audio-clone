@@ -16,21 +16,19 @@ CNNFilter
 template <class INTTYPE, class DATATYPE> class CNNFilter
 {
 public:
-    CNNFilter(int nOrder, int nShift, int nVersion = -1);
+    CNNFilter(int nOrder, int nShift, int nVersion = -1, bool bInterimMode = false);
     virtual ~CNNFilter();
 
     INTTYPE Compress(INTTYPE nInput) { return (this->*CompressImpl)(nInput); }
     INTTYPE Decompress(INTTYPE nInput) { return (this->*DecompressImpl)(nInput); }
     void Flush();
 
-    void SetInterimMode(bool bInterimMode) { m_bInterimMode = bInterimMode; }
-
-private:
     INTTYPE (CNNFilter<INTTYPE, DATATYPE>::*CompressImpl)(INTTYPE nInput);
     INTTYPE (CNNFilter<INTTYPE, DATATYPE>::*DecompressImpl)(INTTYPE nInput);
 
     INTTYPE CompressGeneric(INTTYPE nInput);
     INTTYPE DecompressGeneric(INTTYPE nInput);
+    INTTYPE DecompressGenericInterim(INTTYPE nInput);
 
 #if defined(__i386__) || defined(__x86_64__) || defined(_M_IX86) || defined(_M_X64)
     INTTYPE CompressSSE2(INTTYPE nInput);
@@ -68,7 +66,6 @@ private:
     DATATYPE * m_paryM;
     APE::CRollBuffer<DATATYPE, NN_WINDOW_ELEMENTS> m_rbInput;
     APE::CRollBuffer<DATATYPE, NN_WINDOW_ELEMENTS> m_rbDeltaM;
-    bool m_bInterimMode;
     INTTYPE m_nRunningAverage;
 
 private:

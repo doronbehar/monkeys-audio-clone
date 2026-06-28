@@ -5,13 +5,14 @@
 namespace APE
 {
 
-CMACProgressHelper::CMACProgressHelper(int64 nTotalSteps, IAPEProgressCallback * pProgressCallback)
+CMACProgressHelper::CMACProgressHelper(int64 nTotalSteps, CAPEProgressCallbackInfo * pProgressCallback)
 {
     m_pProgressCallback = pProgressCallback;
 
     m_nTotalSteps = nTotalSteps;
     m_nCurrentStep = 0;
     m_nLastCallbackFiredPercentageDone = 0;
+    m_bKill = false;
 
     UpdateProgress(0);
 }
@@ -34,7 +35,10 @@ void CMACProgressHelper::UpdateProgress(int64 nCurrentStep, bool bForceUpdate)
     {
         if (bForceUpdate || (nPercentageDone - m_nLastCallbackFiredPercentageDone) >= 1000)
         {
-            m_pProgressCallback->Progress(nPercentageDone);
+            if (m_pProgressCallback->m_pCallback != APE_NULL)
+                m_pProgressCallback->m_pCallback->Progress(nPercentageDone);
+            if (m_pProgressCallback->m_Callback != APE_NULL)
+                m_pProgressCallback->m_Callback(m_pProgressCallback->m_CallbackData, nPercentageDone, &m_bKill);
             m_nLastCallbackFiredPercentageDone = nPercentageDone;
         }
     }
@@ -47,17 +51,22 @@ void CMACProgressHelper::UpdateProgressComplete()
 
 int CMACProgressHelper::ProcessKillFlag()
 {
-    if (m_pProgressCallback)
+    if (m_pProgressCallback && m_pProgressCallback->m_pCallback)
     {
-        while (m_pProgressCallback->GetKillFlag() == KILL_FLAG_PAUSE)
+        while (m_pProgressCallback->m_pCallback->GetKillFlag() == APE_KILL_FLAG_PAUSE)
         {
             SLEEP(50);
         }
 
-        if ((m_pProgressCallback->GetKillFlag() != KILL_FLAG_CONTINUE) && (m_pProgressCallback->GetKillFlag() != KILL_FLAG_PAUSE))
+        if ((m_pProgressCallback->m_pCallback->GetKillFlag() != APE_KILL_FLAG_CONTINUE) && (m_pProgressCallback->m_pCallback->GetKillFlag() != APE_KILL_FLAG_PAUSE))
         {
             return ERROR_UNDEFINED;
         }
+    }
+    else if (m_pProgressCallback && m_pProgressCallback->m_Callback)
+    {
+        if (m_bKill)
+            return ERROR_UNDEFINED;
     }
 
     return ERROR_SUCCESS;

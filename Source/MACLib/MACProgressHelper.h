@@ -1,18 +1,16 @@
 #pragma once
 
+#include "MACLib.h"
+
 namespace APE
 {
-
-#define KILL_FLAG_CONTINUE          0
-#define KILL_FLAG_PAUSE             -1
-#define KILL_FLAG_STOP              1
 
 class IAPEProgressCallback;
 
 class CMACProgressHelper
 {
 public:
-    CMACProgressHelper(int64 nTotalSteps, IAPEProgressCallback * pProgressCallback);
+    CMACProgressHelper(int64 nTotalSteps, APE::CAPEProgressCallbackInfo * pProgressCallback);
 
     void UpdateProgress(int64 nCurrentStep = -1, bool bForceUpdate = false);
     void UpdateProgressComplete();
@@ -23,7 +21,8 @@ private:
     int64 m_nTotalSteps;
     int64 m_nCurrentStep;
     int m_nLastCallbackFiredPercentageDone;
-    IAPEProgressCallback * m_pProgressCallback;
+    bool m_bKill;
+    APE::CAPEProgressCallbackInfo * m_pProgressCallback;
 };
 
 }

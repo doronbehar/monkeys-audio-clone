@@ -6,7 +6,7 @@
 namespace APE
 {
 
-template <class INTTYPE, class DATATYPE> CNNFilter<INTTYPE, DATATYPE>::CNNFilter(int nOrder, int nShift, int nVersion)
+template <class INTTYPE, class DATATYPE> CNNFilter<INTTYPE, DATATYPE>::CNNFilter(int nOrder, int nShift, int nVersion, bool bInterimMode)
 : m_nOrder(nOrder),
   m_nShift(nShift),
   m_nOneShiftedByShift(static_cast<int>(1 << (m_nShift - 1))),
@@ -19,7 +19,6 @@ template <class INTTYPE, class DATATYPE> CNNFilter<INTTYPE, DATATYPE>::CNNFilter
     else if ((nOrder != 16) && ((nOrder % 32) != 0))
         throw(1);
 
-    m_bInterimMode = false;
     m_nRunningAverage = 0;
 
     CompressImpl = &CNNFilter::CompressGeneric;
@@ -72,6 +71,10 @@ template <class INTTYPE, class DATATYPE> CNNFilter<INTTYPE, DATATYPE>::CNNFilter
     }
 #endif
 
+    // use iterim implementation for interim mode (because interim isn't in the other routines)
+    if (bInterimMode)
+        DecompressImpl = &CNNFilter::DecompressGenericInterim;
+
     m_paryM = static_cast<DATATYPE *>(AllocateAligned(static_cast<intn>(sizeof(DATATYPE)) * m_nOrder, 64)); // align for possible SSE/AVX usage
 }
 
@@ -92,11 +95,11 @@ template <class INTTYPE, class DATATYPE> void CNNFilter<INTTYPE, DATATYPE>::Flus
     m_nRunningAverage = 0;
 }
 
-template CNNFilter<int, short>::CNNFilter(int nOrder, int nShift, int nVersion);
+template CNNFilter<int, short>::CNNFilter(int nOrder, int nShift, int nVersion, bool bInterimMode);
 template CNNFilter<int, short>::~CNNFilter();
 template void CNNFilter<int, short>::Flush();
 
-template CNNFilter<int64, int>::CNNFilter(int nOrder, int nShift, int nVersion);
+template CNNFilter<int64, int>::CNNFilter(int nOrder, int nShift, int nVersion, bool bInterimMode);
 template CNNFilter<int64, int>::~CNNFilter();
 template void CNNFilter<int64, int>::Flush();
 

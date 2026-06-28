@@ -6,6 +6,27 @@
 
 using namespace APE;
 
+/**************************************************************************************************
+CFormatAPEProgressCallback
+**************************************************************************************************/
+CFormatAPEProgressCallback::CFormatAPEProgressCallback(MAC_FILE * pInfo)
+{
+    m_pInfo = pInfo;
+}
+
+void CFormatAPEProgressCallback::Progress(int nPercentageDone)
+{
+    m_pInfo->m_nStageProgress = nPercentageDone;
+}
+
+int CFormatAPEProgressCallback::GetKillFlag()
+{
+    return m_pInfo->m_nKillFlag;
+}
+
+/**************************************************************************************************
+CFormatAPE
+**************************************************************************************************/
 CFormatAPE::CFormatAPE(int nIndex)
 {
     m_nIndex = nIndex;
@@ -13,7 +34,6 @@ CFormatAPE::CFormatAPE(int nIndex)
 
 CFormatAPE::~CFormatAPE()
 {
-
 }
 
 CString CFormatAPE::GetName()
@@ -25,23 +45,25 @@ int CFormatAPE::Process(MAC_FILE * pInfo)
 {
     int nRetVal = ERROR_UNDEFINED;
 
+    CFormatAPEProgressCallback Callback(pInfo);
+    CAPEProgressCallbackInfo CallbackInfo = { &Callback, APE_NULL, APE_NULL };
+
     if (pInfo->m_Mode == MODE_COMPRESS)
     {
-        nRetVal = CompressFileW(pInfo->m_strInputFilename, pInfo->m_strWorkingFilename, pInfo->m_nLevel, &pInfo->m_nStageProgress, APE_NULL, &pInfo->m_nKillFlag, pInfo->m_nThreads, &pInfo->m_Tag);
+        nRetVal = CompressFileW(pInfo->m_strInputFilename, pInfo->m_strWorkingFilename, pInfo->m_nLevel, &CallbackInfo, pInfo->m_nThreads, &pInfo->m_Tag);
     }
     else if (pInfo->m_Mode == MODE_DECOMPRESS)
     {
-        nRetVal = DecompressFileW(pInfo->m_strInputFilename, pInfo->m_strWorkingFilename, &pInfo->m_nStageProgress, APE_NULL, &pInfo->m_nKillFlag, pInfo->m_nThreads);
+        nRetVal = DecompressFileW(pInfo->m_strInputFilename, pInfo->m_strWorkingFilename, &CallbackInfo, pInfo->m_nThreads);
     }
     else if (pInfo->m_Mode == MODE_VERIFY)
     {
-        nRetVal = VerifyFileW(pInfo->m_strInputFilename, &pInfo->m_nStageProgress, APE_NULL, &pInfo->m_nKillFlag,
+        nRetVal = VerifyFileW(pInfo->m_strInputFilename, &CallbackInfo,
             (theApp.GetSettings()->m_nProcessingVerifyMode == PROCESSING_VERIFY_MODE_QUICK) ? true : false, pInfo->m_nThreads);
     }
     else if (pInfo->m_Mode == MODE_CONVERT)
     {
-        nRetVal = ConvertFileW(pInfo->m_strInputFilename, pInfo->m_strWorkingFilename, pInfo->m_nLevel,
-            &pInfo->m_nStageProgress, APE_NULL, &pInfo->m_nKillFlag, pInfo->m_nThreads);
+        nRetVal = ConvertFileW(pInfo->m_strInputFilename, pInfo->m_strWorkingFilename, pInfo->m_nLevel, &CallbackInfo, pInfo->m_nThreads);
     }
 
     return nRetVal;

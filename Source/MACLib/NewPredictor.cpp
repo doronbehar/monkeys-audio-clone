@@ -146,11 +146,10 @@ template class CPredictorCompress<int64, int>;
 /**************************************************************************************************
 CPredictorDecompress3950toCurrent
 **************************************************************************************************/
-template <class INTTYPE, class DATATYPE> CPredictorDecompress3950toCurrent<INTTYPE, DATATYPE>::CPredictorDecompress3950toCurrent(int nCompressionLevel, int nVersion, int nBitsPerSample)
+template <class INTTYPE, class DATATYPE> CPredictorDecompress3950toCurrent<INTTYPE, DATATYPE>::CPredictorDecompress3950toCurrent(int nCompressionLevel, int nVersion, int nBitsPerSample, bool bInterimMode)
 {
     m_nVersion = nVersion;
     m_nBitsPerSample = nBitsPerSample;
-    m_bInterimMode = false;
     m_nCurrentIndex = 0;
     m_nPadding = 0;
     m_nLastValueA = 0;
@@ -164,22 +163,22 @@ template <class INTTYPE, class DATATYPE> CPredictorDecompress3950toCurrent<INTTY
     }
     else if (nCompressionLevel == APE_COMPRESSION_LEVEL_NORMAL)
     {
-        m_spNNFilter.Assign(new CNNFilterThis(16, 11, nVersion));
+        m_spNNFilter.Assign(new CNNFilterThis(16, 11, nVersion, bInterimMode));
     }
     else if (nCompressionLevel == APE_COMPRESSION_LEVEL_HIGH)
     {
-        m_spNNFilter.Assign(new CNNFilterThis(64, 11, nVersion));
+        m_spNNFilter.Assign(new CNNFilterThis(64, 11, nVersion, bInterimMode));
     }
     else if (nCompressionLevel == APE_COMPRESSION_LEVEL_EXTRA_HIGH)
     {
-        m_spNNFilter.Assign(new CNNFilterThis(256, 13, nVersion));
-        m_spNNFilter1.Assign(new CNNFilterThis(32, 10, nVersion));
+        m_spNNFilter.Assign(new CNNFilterThis(256, 13, nVersion, bInterimMode));
+        m_spNNFilter1.Assign(new CNNFilterThis(32, 10, nVersion, bInterimMode));
     }
     else if (nCompressionLevel == APE_COMPRESSION_LEVEL_INSANE)
     {
-        m_spNNFilter.Assign(new CNNFilterThis(1024 + 256, 15, nVersion));
-        m_spNNFilter1.Assign(new CNNFilterThis(256, 13, nVersion));
-        m_spNNFilter2.Assign(new CNNFilterThis(16, 11, nVersion));
+        m_spNNFilter.Assign(new CNNFilterThis(1024 + 256, 15, nVersion, bInterimMode));
+        m_spNNFilter1.Assign(new CNNFilterThis(256, 13, nVersion, bInterimMode));
+        m_spNNFilter2.Assign(new CNNFilterThis(16, 11, nVersion, bInterimMode));
     }
     else
     {
@@ -192,15 +191,6 @@ template <class INTTYPE, class DATATYPE> CPredictorDecompress3950toCurrent<INTTY
     m_spNNFilter.Delete();
     m_spNNFilter1.Delete();
     m_spNNFilter2.Delete();
-}
-
-template <class INTTYPE, class DATATYPE> void CPredictorDecompress3950toCurrent<INTTYPE, DATATYPE>::SetInterimMode(bool bSet)
-{
-    m_bInterimMode = bSet;
-
-    if (m_spNNFilter) m_spNNFilter->SetInterimMode(bSet);
-    if (m_spNNFilter1) m_spNNFilter1->SetInterimMode(bSet);
-    if (m_spNNFilter2) m_spNNFilter2->SetInterimMode(bSet);
 }
 
 template <class INTTYPE, class DATATYPE> int CPredictorDecompress3950toCurrent<INTTYPE, DATATYPE>::Flush()
@@ -274,10 +264,7 @@ template <class INTTYPE, class DATATYPE> int CPredictorDecompress3950toCurrent<I
         const int64 nPredictionA = (static_cast<int64>(m_rbPredictionA[0]) * m_aryMA[0]) + (static_cast<int64>(m_rbPredictionA[-1]) * m_aryMA[1]) + (static_cast<int64>(m_rbPredictionA[-2]) * m_aryMA[2]) + (static_cast<int64>(m_rbPredictionA[-3]) * m_aryMA[3]);
         const int64 nPredictionB = (static_cast<int64>(m_rbPredictionB[0]) * m_aryMB[0]) + (static_cast<int64>(m_rbPredictionB[-1]) * m_aryMB[1]) + (static_cast<int64>(m_rbPredictionB[-2]) * m_aryMB[2]) + (static_cast<int64>(m_rbPredictionB[-3]) * m_aryMB[3]) + (static_cast<int64>(m_rbPredictionB[-4]) * m_aryMB[4]);
 
-        if (m_bInterimMode)
-            nCurrentA = nA + static_cast<INTTYPE>((nPredictionA + (nPredictionB >> 1)) >> 10);
-        else
-            nCurrentA = nA + static_cast<INTTYPE>((static_cast<int>(nPredictionA) + (static_cast<int>(nPredictionB) >> 1)) >> 10);
+        nCurrentA = nA + static_cast<INTTYPE>((static_cast<int>(nPredictionA) + (static_cast<int>(nPredictionB) >> 1)) >> 10);
     }
 
     m_rbAdaptA[ 0] = (m_rbPredictionA[ 0]) ? ((m_rbPredictionA[ 0] >> 30) & 2) - 1 : 0;
@@ -286,16 +273,17 @@ template <class INTTYPE, class DATATYPE> int CPredictorDecompress3950toCurrent<I
     m_rbAdaptB[ 0] = (m_rbPredictionB[ 0]) ? ((m_rbPredictionB[ 0] >> 30) & 2) - 1 : 0;
     m_rbAdaptB[-1] = (m_rbPredictionB[-1]) ? ((m_rbPredictionB[-1] >> 30) & 2) - 1 : 0;
 
-    m_aryMA[0] += m_rbAdaptA[ 0] * ((nA < 0) - (nA > 0));
-    m_aryMA[1] += m_rbAdaptA[-1] * ((nA < 0) - (nA > 0));
-    m_aryMA[2] += m_rbAdaptA[-2] * ((nA < 0) - (nA > 0));
-    m_aryMA[3] += m_rbAdaptA[-3] * ((nA < 0) - (nA > 0));
+    const int nDirection = ((nA < 0) - (nA > 0));
+    m_aryMA[0] += m_rbAdaptA[ 0] * nDirection;
+    m_aryMA[1] += m_rbAdaptA[-1] * nDirection;
+    m_aryMA[2] += m_rbAdaptA[-2] * nDirection;
+    m_aryMA[3] += m_rbAdaptA[-3] * nDirection;
 
-    m_aryMB[0] += m_rbAdaptB[ 0] * ((nA < 0) - (nA > 0));
-    m_aryMB[1] += m_rbAdaptB[-1] * ((nA < 0) - (nA > 0));
-    m_aryMB[2] += m_rbAdaptB[-2] * ((nA < 0) - (nA > 0));
-    m_aryMB[3] += m_rbAdaptB[-3] * ((nA < 0) - (nA > 0));
-    m_aryMB[4] += m_rbAdaptB[-4] * ((nA < 0) - (nA > 0));
+    m_aryMB[0] += m_rbAdaptB[ 0] * nDirection;
+    m_aryMB[1] += m_rbAdaptB[-1] * nDirection;
+    m_aryMB[2] += m_rbAdaptB[-2] * nDirection;
+    m_aryMB[3] += m_rbAdaptB[-3] * nDirection;
+    m_aryMB[4] += m_rbAdaptB[-4] * nDirection;
 
     const int nResult = m_Stage1FilterA.Decompress(nCurrentA);
     m_nLastValueA = nCurrentA;

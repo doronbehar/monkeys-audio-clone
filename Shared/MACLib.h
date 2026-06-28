@@ -90,26 +90,36 @@ Defines
 #define APE_FORMAT_FLAG_SIGNED_8_BIT        (1 << 11)   // 8-bit values are signed
 #define APE_FORMAT_FLAG_FLOATING_POINT      (1 << 12)   // floating point
 
+#define APE_KILL_FLAG_CONTINUE              0
+#define APE_KILL_FLAG_PAUSE                 -1
+#define APE_KILL_FLAG_STOP                  1
+
 #define CREATE_WAV_HEADER_ON_DECOMPRESSION    -1
 #define MAX_AUDIO_BYTES_UNKNOWN -1
-
-/**************************************************************************************************
-Progress callbacks
-**************************************************************************************************/
-typedef void (__stdcall * APE_PROGRESS_CALLBACK) (int);
-
-class IAPEProgressCallback
-{
-public:
-    virtual ~IAPEProgressCallback() { }
-    virtual void Progress(int nPercentageDone) = 0;
-    virtual int GetKillFlag() = 0; // KILL_FLAG_CONTINUE to continue
-};
 
 /**************************************************************************************************
 All structures are designed for 4-byte alignment
 **************************************************************************************************/
 #pragma pack(push, 4)
+
+/**************************************************************************************************
+Progress callbacks
+**************************************************************************************************/
+typedef void(__stdcall * APE_PROGRESS_CALLBACK) (void *, int, bool *);
+class IAPEProgressCallback
+{
+public:
+    virtual ~IAPEProgressCallback() { }
+    virtual void Progress(int nPercentageDone) = 0;
+    virtual int GetKillFlag() = 0; // APE_KILL_FLAG_CONTINUE to continue
+};
+
+struct CAPEProgressCallbackInfo
+{
+    IAPEProgressCallback * m_pCallback; // interface
+    APE_PROGRESS_CALLBACK m_Callback; // function (callback data, progress percentage, pointer to a kill flag (set to true to kill))
+    void * m_CallbackData;
+};
 
 /**************************************************************************************************
 WAV header structure
@@ -568,25 +578,25 @@ extern "C"
 {
     // process whole files
 #ifdef APE_SUPPORT_COMPRESS
-    DLLEXPORT int __stdcall CompressFile(const APE::str_ansi * pInputFilename, const APE::str_ansi * pOutputFilename, int nCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL, int * pPercentageDone = APE_NULL, APE::APE_PROGRESS_CALLBACK ProgressCallback = APE_NULL, int * pKillFlag = APE_NULL, int nThreads = 1, APE::IID3v2Tag * pTag = APE_NULL);
+    DLLEXPORT int __stdcall CompressFile(const APE::str_ansi * pInputFilename, const APE::str_ansi * pOutputFilename, int nCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL, APE::CAPEProgressCallbackInfo * pProgressCallback = APE_NULL, int nThreads = 1, APE::IID3v2Tag * pTag = APE_NULL);
 #endif
-    DLLEXPORT int __stdcall DecompressFile(const APE::str_ansi * pInputFilename, const APE::str_ansi * pOutputFilename, int * pPercentageDone, APE::APE_PROGRESS_CALLBACK ProgressCallback, int * pKillFlag, int nThreads);
-    DLLEXPORT int __stdcall ConvertFile(const APE::str_ansi * pInputFilename, const APE::str_ansi * pOutputFilename, int nCompressionLevel, int * pPercentageDone, APE::APE_PROGRESS_CALLBACK ProgressCallback, int * pKillFlag, int nThreads);
-    DLLEXPORT int __stdcall VerifyFile(const APE::str_ansi * pInputFilename, int * pPercentageDone, APE::APE_PROGRESS_CALLBACK ProgressCallback, int * pKillFlag, bool bQuickVerifyIfPossible = false, int nThreads = 1);
+    DLLEXPORT int __stdcall DecompressFile(const APE::str_ansi * pInputFilename, const APE::str_ansi * pOutputFilename, APE::CAPEProgressCallbackInfo * pProgressCallback, int nThreads);
+    DLLEXPORT int __stdcall ConvertFile(const APE::str_ansi * pInputFilename, const APE::str_ansi * pOutputFilename, int nCompressionLevel, APE::CAPEProgressCallbackInfo * pProgressCallback, int nThreads);
+    DLLEXPORT int __stdcall VerifyFile(const APE::str_ansi * pInputFilename, APE::CAPEProgressCallbackInfo * pProgressCallback, bool bQuickVerifyIfPossible = false, int nThreads = 1);
 
 #ifdef APE_SUPPORT_COMPRESS
-    DLLEXPORT int __stdcall CompressFileW(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, int nCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL, int * pPercentageDone = APE_NULL, APE::APE_PROGRESS_CALLBACK ProgressCallback = APE_NULL, int * pKillFlag = APE_NULL, int nThreads = 1, APE::IID3v2Tag * pTag = APE_NULL, bool bReadFullInput = false);
+    DLLEXPORT int __stdcall CompressFileW(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, int nCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL, APE::CAPEProgressCallbackInfo * pProgressCallback = APE_NULL, int nThreads = 1, APE::IID3v2Tag * pTag = APE_NULL, bool bReadFullInput = false);
 #endif
-    DLLEXPORT int __stdcall DecompressFileW(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, int * pPercentageDone, APE::APE_PROGRESS_CALLBACK ProgressCallback, int * pKillFlag, int nThreads);
-    DLLEXPORT int __stdcall ConvertFileW(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, int nCompressionLevel, int * pPercentageDone, APE::APE_PROGRESS_CALLBACK ProgressCallback, int * pKillFlag, int nThreads);
-    DLLEXPORT int __stdcall VerifyFileW(const APE::str_utfn * pInputFilename, int * pPercentageDone, APE::APE_PROGRESS_CALLBACK ProgressCallback, int * pKillFlag, bool bQuickVerifyIfPossible = false, int nThreads = 1);
+    DLLEXPORT int __stdcall DecompressFileW(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, APE::CAPEProgressCallbackInfo * pProgressCallback, int nThreads);
+    DLLEXPORT int __stdcall ConvertFileW(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, int nCompressionLevel, APE::CAPEProgressCallbackInfo * pProgressCallback, int nThreads);
+    DLLEXPORT int __stdcall VerifyFileW(const APE::str_utfn * pInputFilename, APE::CAPEProgressCallbackInfo * pProgressCallback, bool bQuickVerifyIfPossible = false, int nThreads = 1);
 
 #ifdef APE_SUPPORT_COMPRESS
-    DLLEXPORT int __stdcall CompressFileW2(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, int nCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL, APE::IAPEProgressCallback * pProgressCallback = APE_NULL, int nThreads = 1, APE::IID3v2Tag * pTag = APE_NULL, bool bReadFullInputForUnknownLength = false);
+    DLLEXPORT int __stdcall CompressFileW2(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, int nCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL, APE::CAPEProgressCallbackInfo * pProgressCallback = APE_NULL, int nThreads = 1, APE::IID3v2Tag * pTag = APE_NULL, bool bReadFullInputForUnknownLength = false);
 #endif
-    DLLEXPORT int __stdcall DecompressFileW2(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, APE::IAPEProgressCallback * pProgressCallback = APE_NULL, int nThreads = 1);
-    DLLEXPORT int __stdcall ConvertFileW2(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, int nCompressionLevel, APE::IAPEProgressCallback * pProgressCallback = APE_NULL, int nThreads = 1);
-    DLLEXPORT int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, APE::IAPEProgressCallback * pProgressCallback = APE_NULL, bool bQuickVerifyIfPossible = false, int nThreads = 1);
+    DLLEXPORT int __stdcall DecompressFileW2(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, APE::CAPEProgressCallbackInfo * pProgressCallback = APE_NULL, int nThreads = 1);
+    DLLEXPORT int __stdcall ConvertFileW2(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, int nCompressionLevel, APE::CAPEProgressCallbackInfo * pProgressCallback = APE_NULL, int nThreads = 1);
+    DLLEXPORT int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, APE::CAPEProgressCallbackInfo * pProgressCallback = APE_NULL, bool bQuickVerifyIfPossible = false, int nThreads = 1);
 
     // helper functions
     DLLEXPORT APE::IAPEIO * __stdcall CreateIAPEIO();

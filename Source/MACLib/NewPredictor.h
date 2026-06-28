@@ -49,13 +49,11 @@ CPredictorDecompress3950toCurrent
 template <class INTTYPE, class DATATYPE> class CPredictorDecompress3950toCurrent : public IPredictorDecompress
 {
 public:
-    CPredictorDecompress3950toCurrent(int nCompressionLevel, int nVersion, int nBitsPerSample);
+    CPredictorDecompress3950toCurrent(int nCompressionLevel, int nVersion, int nBitsPerSample, bool bInterimMode = false);
     virtual ~CPredictorDecompress3950toCurrent() APE_OVERRIDE;
 
     int DecompressValue(int64 nA, int64 nB = 0) APE_OVERRIDE;
     int Flush() APE_OVERRIDE;
-
-    void SetInterimMode(bool bSet) APE_OVERRIDE;
 
 protected:
     // buffer pointers
@@ -83,11 +81,12 @@ protected:
     int m_nCurrentIndex;
     int m_nVersion;
     int m_nBitsPerSample;
-    int m_bInterimMode;
 
     // alignment
     INTTYPE m_nPadding;
 };
+
+#include "Interim.h"
 
 // forward declare the classes because it helps with a Clang warning
 #ifdef _MSC_VER

@@ -259,27 +259,39 @@ static void DisplayProperUsage(FILE * pFile)
 /**************************************************************************************************
 Progress callback
 **************************************************************************************************/
-static void CALLBACK ProgressCallback(int nPercentageDone)
+class CConsoleProgressCallback : public IAPEProgressCallback
 {
-    // calculate the progress
-    double dProgress = nPercentageDone / 1.e5;                                                    // [0...1]
-    double dElapsed = g_ProcessingDuration.GetElapsedSeconds();                                   // seconds
-    double dRemaining = (nPercentageDone > 0) ? dElapsed * ((1.0 / dProgress) - 1.0) : 0;         // seconds
+public:
+    virtual void Progress(int nPercentageDone) APE_OVERRIDE
+    {
+        // calculate the progress
+        double dProgress = nPercentageDone / 1.e5;                                                    // [0...1]
+        double dElapsed = g_ProcessingDuration.GetElapsedSeconds();                                   // seconds
+        double dRemaining = (nPercentageDone > 0) ? dElapsed * ((1.0 / dProgress) - 1.0) : 0;         // seconds
 
-    // output the progress
-    fwprintf(stderr, L"Progress: %.1f%% (%.1f seconds remaining, %.1f seconds total)          \r",
-        dProgress * 100, dRemaining, dElapsed);
+        // output the progress
+        fwprintf(stderr, L"Progress: %.1f%% (%.1f seconds remaining, %.1f seconds total)          \r",
+            dProgress * 100, dRemaining, dElapsed);
 
-    // don't forget to flush!
-    fflush(stderr);
+        // don't forget to flush!
+        fflush(stderr);
 
-    // update the title
-    #ifdef PLATFORM_WINDOWS
-        wchar_t cTitle[1024];
-        swprintf_s(cTitle, 1024, L"%.1f%% - Monkey's Audio", dProgress * 100);
-        SetConsoleTitleW(cTitle);
-    #endif
-}
+        // update the title
+        #ifdef PLATFORM_WINDOWS
+            wchar_t cTitle[1024];
+            swprintf_s(cTitle, 1024, L"%.1f%% - Monkey's Audio", dProgress * 100);
+            SetConsoleTitleW(cTitle);
+        #endif
+    }
+
+    virtual int GetKillFlag() APE_OVERRIDE
+    {
+        return APE_KILL_FLAG_CONTINUE;
+    }
+};
+
+static CConsoleProgressCallback s_Callback;
+CAPEProgressCallbackInfo s_CallbackInfo = { &s_Callback, APE_NULL, APE_NULL };
 
 /**************************************************************************************************
 CtrlHandler callback
@@ -562,7 +574,6 @@ int _tmain(int argc, TCHAR * argv[])
 {
     // variable declares
     int nRetVal = ERROR_UNDEFINED;
-    int nPercentageDone = 0;
 
     // initialize
     #ifdef PLATFORM_WINDOWS
@@ -626,7 +637,6 @@ int _tmain(int argc, TCHAR * argv[])
     g_ProcessingDuration.Reset();
 
     // process
-    int nKillFlag = 0;
 #ifdef APE_SUPPORT_COMPRESS
     if (nMode == COMPRESS_MODE)
     {
@@ -639,7 +649,7 @@ int _tmain(int argc, TCHAR * argv[])
         HandleAuto(spInputFilename, spOutputFilename, true);
 
         // compress
-        nRetVal = CompressFileW(spInputFilename, spOutputFilename, nCompressionLevel, &nPercentageDone, ProgressCallback, &nKillFlag, nThreads, APE_NULL, bReadFullInput);
+        nRetVal = CompressFileW(spInputFilename, spOutputFilename, nCompressionLevel, &s_CallbackInfo, nThreads, APE_NULL, bReadFullInput);
 
         // tag
         if ((nRetVal == ERROR_SUCCESS) && (spTagSwitch != APE_NULL))
@@ -659,22 +669,22 @@ int _tmain(int argc, TCHAR * argv[])
         HandleAuto(spInputFilename, spOutputFilename, false);
 
         // decompress
-        nRetVal = DecompressFileW(spInputFilename, spOutputFilename, &nPercentageDone, ProgressCallback, &nKillFlag, nThreads);
+        nRetVal = DecompressFileW(spInputFilename, spOutputFilename, &s_CallbackInfo, nThreads);
     }
     else if (nMode == VERIFY_MODE)
     {
         fwprintf(stderr, L"Verifying...\n");
-        nRetVal = VerifyFileW(spInputFilename, &nPercentageDone, ProgressCallback, &nKillFlag, true, nThreads);
+        nRetVal = VerifyFileW(spInputFilename, &s_CallbackInfo, true, nThreads);
     }
     else if (nMode == VERIFY_FULL_MODE)
     {
         fwprintf(stderr, L"Full verifying...\n");
-        nRetVal = VerifyFileW(spInputFilename, &nPercentageDone, ProgressCallback, &nKillFlag, false, nThreads);
+        nRetVal = VerifyFileW(spInputFilename, &s_CallbackInfo, false, nThreads);
     }
     else if (nMode == CONVERT_MODE)
     {
         fwprintf(stderr, L"Converting...\n");
-        nRetVal = ConvertFileW(spInputFilename, spOutputFilename, nCompressionLevel, &nPercentageDone, ProgressCallback, &nKillFlag, nThreads);
+        nRetVal = ConvertFileW(spInputFilename, spOutputFilename, nCompressionLevel, &s_CallbackInfo, nThreads);
     }
     else if (nMode == TAG_MODE)
     {

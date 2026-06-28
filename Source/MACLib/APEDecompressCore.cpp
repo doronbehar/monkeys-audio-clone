@@ -5,6 +5,7 @@
 #include "NewPredictor.h"
 #include "Old/NewPredictorOld.h"
 #include "MemoryIO.h"
+#include "Interim.h"
 
 namespace APE
 {
@@ -240,7 +241,10 @@ int CAPEDecompressCore::DecodeFrame()
                 for (int z = 0; z < APE_MAXIMUM_CHANNELS; z++)
                 {
                     if (m_aryPredictor[z] != APE_NULL)
-                        m_aryPredictor[z]->SetInterimMode(true);
+                    {
+                        delete m_aryPredictor[z];
+                        m_aryPredictor[z] = new APE::CPredictorDecompressInterim(static_cast<int>(m_pAPEInfo->GetInfo(IAPEInfo::APE_INFO_COMPRESSION_LEVEL)), static_cast<int>(m_pAPEInfo->GetInfo(IAPEInfo::APE_INFO_FILE_VERSION)), static_cast<int>(m_pAPEInfo->GetInfo(IAPEInfo::APE_INFO_BITS_PER_SAMPLE)));
+                    }
                 }
                 m_spUnBitArray->FillAndResetBitArray(0, static_cast<int64>(m_nSkipBytes) * 8);
                 continue;

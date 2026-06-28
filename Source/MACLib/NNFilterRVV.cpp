@@ -146,10 +146,7 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::D
 
     // calculate the output
     INTTYPE nOutput;
-    if (m_bInterimMode)
-        nOutput = static_cast<INTTYPE>(nInput + ((static_cast<int64>(nDotProduct) + m_nOneShiftedByShift) >> m_nShift));
-    else
-        nOutput = static_cast<INTTYPE>(nInput + ((nDotProduct + m_nOneShiftedByShift) >> m_nShift));
+    nOutput = static_cast<INTTYPE>(nInput + ((nDotProduct + m_nOneShiftedByShift) >> m_nShift));
 
     // adapt
     AdaptRVV(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nInput, m_nOrder);

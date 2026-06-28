@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "MAC.h"
 #include "MACFile.h"
-#include "MACProgressHelper.h"
 #include "FormatArray.h"
 #include "MACProcessFiles.h"
 
@@ -45,7 +44,7 @@ bool MAC_FILE::PrepareForProcessing(CMACProcessFiles * pProcessFiles)
     m_nProcessingElapsedMS = 0;
     m_strFormat = theApp.GetSettings()->GetFormat();
     m_nLevel = theApp.GetSettings()->GetLevel();
-    m_nKillFlag = KILL_FLAG_CONTINUE;
+    m_nKillFlag = APE_KILL_FLAG_CONTINUE;
     m_strOutputFilename.Empty();
     m_strWorkingFilename.Empty();
     m_nCurrentStage = 1;

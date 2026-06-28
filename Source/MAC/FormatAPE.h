@@ -2,6 +2,26 @@
 
 #include "Format.h"
 
+/**************************************************************************************************
+CFormatAPEProgressCallback
+**************************************************************************************************/
+class CFormatAPEProgressCallback : public APE::IAPEProgressCallback
+{
+public:
+    CFormatAPEProgressCallback(MAC_FILE * pInfo);
+
+    // IAPEProgressCallback
+    virtual void Progress(int nPercentageDone) APE_OVERRIDE;
+    virtual int GetKillFlag() APE_OVERRIDE;
+
+protected:
+    // data
+    MAC_FILE * m_pInfo;
+};
+
+/**************************************************************************************************
+CFormatAPE
+**************************************************************************************************/
 class CFormatAPE : public IFormat
 {
 public:

@@ -4,6 +4,13 @@
 namespace APE
 {
 
+template int CNNFilter<int, short>::CompressGeneric(int nInput);
+template int64 CNNFilter<int64, int>::CompressGeneric(int64 nInput);
+template int CNNFilter<int, short>::DecompressGeneric(int nInput);
+template int64 CNNFilter<int64, int>::DecompressGeneric(int64 nInput);
+template int CNNFilter<int, short>::DecompressGenericInterim(int nInput);
+template int64 CNNFilter<int64, int>::DecompressGenericInterim(int64 nInput);
+
 static void AdaptGeneric(short * pM, const short * pAdapt, int32 nDirection, int nOrder)
 {
     return Adapt(pM, pAdapt, nDirection, nOrder);
@@ -48,9 +55,6 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::C
     return nOutput;
 }
 
-template int CNNFilter<int, short>::CompressGeneric(int nInput);
-template int64 CNNFilter<int64, int>::CompressGeneric(int64 nInput);
-
 template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::DecompressGeneric(INTTYPE nInput)
 {
     // figure a dot product
@@ -58,10 +62,7 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::D
 
     // calculate the output
     INTTYPE nOutput;
-    if (m_bInterimMode)
-        nOutput = static_cast<INTTYPE>(nInput + ((static_cast<int64>(nDotProduct) + m_nOneShiftedByShift) >> m_nShift));
-    else
-        nOutput = static_cast<INTTYPE>(nInput + ((nDotProduct + m_nOneShiftedByShift) >> m_nShift));
+    nOutput = static_cast<INTTYPE>(nInput + ((nDotProduct + m_nOneShiftedByShift) >> m_nShift));
 
     // adapt
     AdaptGeneric(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nInput, m_nOrder);
@@ -82,7 +83,6 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::D
     return nOutput;
 }
 
-template int CNNFilter<int, short>::DecompressGeneric(int nInput);
-template int64 CNNFilter<int64, int>::DecompressGeneric(int64 nInput);
+#include "Interim.h"
 
 }

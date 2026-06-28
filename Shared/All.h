@@ -224,7 +224,8 @@ Global macros
 #define APE_FILE_SIZE_UNDEFINED -1
 
 // make a pointer into an int64
-#define APE_POINTER_TO_INT64(POINTER) static_cast<APE::int64>(reinterpret_cast<uintptr_t>(POINTER))
+#define APE_POINTER_TO_INT64(POINTER) static_cast<int64>(reinterpret_cast<uintptr_t>(POINTER))
+#define APE_POINTER_TO_INT64_WITH_NAMESPACE(POINTER) static_cast<APE::int64>(reinterpret_cast<uintptr_t>(POINTER))
 
 // platform defines
 #if defined(PLATFORM_WINDOWS)

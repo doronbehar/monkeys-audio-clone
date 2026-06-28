@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "MAC.h"
 #include "MACProcessFiles.h"
-#include "MACProgressHelper.h"
 #include "APLHelper.h"
 #include "FormatArray.h"
 #include "APETag.h"
@@ -25,7 +24,7 @@ CMACProcessFiles::~CMACProcessFiles()
 {
     // stop
     for (int z = 0; z < m_paryFiles->GetSize(); z++)
-        m_paryFiles->ElementAt(z)->m_nKillFlag = KILL_FLAG_STOP;
+        m_paryFiles->ElementAt(z)->m_nKillFlag = APE_KILL_FLAG_STOP;
 
     // wait until we're done processing
     bool bProcessing = true;
@@ -66,7 +65,7 @@ bool CMACProcessFiles::Pause(bool bPause)
     // update file status
     for (int z = 0; z < m_paryFiles->GetSize(); z++)
     {
-        m_paryFiles->ElementAt(z)->m_nKillFlag = bPause ? KILL_FLAG_PAUSE : KILL_FLAG_CONTINUE;
+        m_paryFiles->ElementAt(z)->m_nKillFlag = bPause ? APE_KILL_FLAG_PAUSE : APE_KILL_FLAG_CONTINUE;
     }
 
     // update the pause timer
@@ -98,7 +97,7 @@ bool CMACProcessFiles::Stop(bool bImmediately)
     if (bImmediately)
     {
         for (int z = 0; z < m_paryFiles->GetSize(); z++)
-            m_paryFiles->ElementAt(z)->m_nKillFlag = KILL_FLAG_STOP;
+            m_paryFiles->ElementAt(z)->m_nKillFlag = APE_KILL_FLAG_STOP;
     }
 
     // flag the stop (it will happen eventually if we didn't do an immediate stop)
@@ -489,7 +488,7 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
     pInfo->m_bNeedsUpdate = true;
 
     // update the status to be user cancelled if we stopped
-    if ((pInfo->m_nRetVal == ERROR_UNDEFINED) && (pInfo->m_nKillFlag == KILL_FLAG_STOP))
+    if ((pInfo->m_nRetVal == ERROR_UNDEFINED) && (pInfo->m_nKillFlag == APE_KILL_FLAG_STOP))
         pInfo->m_nRetVal = ERROR_USER_STOPPED_PROCESSING;
 
     // reset thread state
