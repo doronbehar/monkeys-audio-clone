@@ -17,7 +17,7 @@ Functions to create the interfaces
 class CPredictorDecompress3930to3950 : public IPredictorDecompress
 {
 public:
-    CPredictorDecompress3930to3950(int nCompressionLevel, int nVersion);
+    CPredictorDecompress3930to3950(int nCompressionLevel, APE_VERSION Version);
     virtual ~CPredictorDecompress3930to3950() APE_OVERRIDE;
 
     int DecompressValue(int64 nInput, int64) APE_OVERRIDE;

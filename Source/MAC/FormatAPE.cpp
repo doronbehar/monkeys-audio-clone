@@ -46,7 +46,7 @@ int CFormatAPE::Process(MAC_FILE * pInfo)
     int nRetVal = ERROR_UNDEFINED;
 
     CFormatAPEProgressCallback Callback(pInfo);
-    CAPEProgressCallbackInfo CallbackInfo = { &Callback, APE_NULL, APE_NULL };
+    CAPEProgressCallbackInfo CallbackInfo = { &Callback, APE_NULL, APE_NULL, APE_NULL };
 
     if (pInfo->m_Mode == MODE_COMPRESS)
     {

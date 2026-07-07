@@ -12,7 +12,7 @@ namespace APE
 /**************************************************************************************************
 CPredictorDecompressNormal3930to3950
 **************************************************************************************************/
-CPredictorDecompress3930to3950::CPredictorDecompress3930to3950(int nCompressionLevel, int nVersion)
+CPredictorDecompress3930to3950::CPredictorDecompress3930to3950(int nCompressionLevel, APE_VERSION Version)
 {
     // initialize (to avoid warnings)
     APE_CLEAR(m_aryM);
@@ -28,16 +28,16 @@ CPredictorDecompress3930to3950::CPredictorDecompress3930to3950(int nCompressionL
     }
     else if (nCompressionLevel == APE_COMPRESSION_LEVEL_NORMAL)
     {
-        m_spNNFilter.Assign(new CNNFilterThis(16, 11, nVersion));
+        m_spNNFilter.Assign(new CNNFilterThis(16, 11, Version));
     }
     else if (nCompressionLevel == APE_COMPRESSION_LEVEL_HIGH)
     {
-        m_spNNFilter.Assign(new CNNFilterThis(64, 11, nVersion));
+        m_spNNFilter.Assign(new CNNFilterThis(64, 11, Version));
     }
     else if (nCompressionLevel == APE_COMPRESSION_LEVEL_EXTRA_HIGH)
     {
-        m_spNNFilter.Assign(new CNNFilterThis(256, 13, nVersion));
-        m_spNNFilter1.Assign(new CNNFilterThis(32, 10, nVersion));
+        m_spNNFilter.Assign(new CNNFilterThis(256, 13, Version));
+        m_spNNFilter1.Assign(new CNNFilterThis(32, 10, Version));
     }
     else
     {

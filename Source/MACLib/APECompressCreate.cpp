@@ -252,8 +252,8 @@ int CAPECompressCreate::InitializeFile(IAPEIO * pIO, const WAVEFORMATEX * pwfeIn
     APEDescriptor.cID[2] = 'C';
     APEDescriptor.cID[3] = (nFlags & APE_FORMAT_FLAG_FLOATING_POINT) ? 'F' : ' ';
 
-    APEDescriptor.nVersion = ConvertU16LE(APE_FILE_VERSION_NUMBER);
-    APEDescriptor.nPadding = 0; // set to zero even though we memset above to be clean
+    APEDescriptor.nVersionEncoder = ConvertU16LE(APE_FILE_VERSION_NUMBER);
+    APEDescriptor.nVersionProgram = ConvertU16LE(APE_PROGRAM_VERSION_NUMBER);
 
     APEDescriptor.nDescriptorBytes = ConvertU32LE(sizeof(APEDescriptor));
     APEDescriptor.nHeaderBytes = ConvertU32LE(sizeof(APEHeader));

@@ -105,7 +105,8 @@ All structures are designed for 4-byte alignment
 /**************************************************************************************************
 Progress callbacks
 **************************************************************************************************/
-typedef void(__stdcall * APE_PROGRESS_CALLBACK) (void *, int, bool *);
+typedef void(__stdcall * APE_PROGRESS_CALLBACK) (void *, int);
+typedef int(__stdcall * APE_KILL_CALLBACK) (void *);
 class IAPEProgressCallback
 {
 public:
@@ -117,8 +118,9 @@ public:
 struct CAPEProgressCallbackInfo
 {
     IAPEProgressCallback * m_pCallback; // interface
-    APE_PROGRESS_CALLBACK m_Callback; // function (callback data, progress percentage, pointer to a kill flag (set to true to kill))
-    void * m_CallbackData;
+    APE_PROGRESS_CALLBACK m_ProgressCallback; // progress function (callback data, progress percentage)
+    APE_KILL_CALLBACK m_KillCallback; // kill function (return APE_KILL_FLAG_CONTINUE to continue)
+    void * m_pCallbackData;
 };
 
 /**************************************************************************************************
@@ -189,8 +191,8 @@ APE_DESCRIPTOR structure (file header that describes lengths, offsets, etc.)
 struct APE_DESCRIPTOR
 {
     char   cID[4];                             // should equal 'MAC ' or 'MACF'
-    uint16 nVersion;                           // version number * 1000 (3.81 = 3810)
-    uint16 nPadding;                           // because 4-byte alignment requires this (or else nVersion would take 4-bytes)
+    uint16 nVersionEncoder;                    // version number of the encode * 1000 (3.81 = 3810) (it's been 3990 for a long time)
+    uint16 nVersionProgram;                    // version number of the program (starting with 13.17 which is 13170)
 
     uint32 nDescriptorBytes;                   // the number of descriptor bytes (allows later expansion of this header)
     uint32 nHeaderBytes;                       // the number of header APE_HEADER bytes
@@ -307,6 +309,7 @@ public:
         APE_INFO_MD5 = 1032,                        // the MD5 checksum [buffer *, ignored]
         APE_INFO_MD5_MATCHES = 1033,                // an MD5 checksum to test (returns ERROR_INVALID_CHECKSUM or ERROR_SUCCESS) [buffer *, ignored]
         APE_INFO_FILE_INFO = 1034,                  // pointer to file information object (APE_FILE_INFO *) [ignored, ignored]
+        APE_INFO_PROGRAM_VERSION = 1035,            // the program version that encoded the file * 1000 [igored, ignored]
 
         APE_DECOMPRESS_CURRENT_BLOCK = 2000,        // current block location [ignored, ignored]
         APE_DECOMPRESS_CURRENT_MS = 2001,           // current millisecond location [ignored, ignored]

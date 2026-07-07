@@ -291,7 +291,7 @@ public:
 };
 
 static CConsoleProgressCallback s_Callback;
-CAPEProgressCallbackInfo s_CallbackInfo = { &s_Callback, APE_NULL, APE_NULL };
+static CAPEProgressCallbackInfo s_CallbackInfo = { &s_Callback, APE_NULL, APE_NULL, APE_NULL };
 
 /**************************************************************************************************
 CtrlHandler callback

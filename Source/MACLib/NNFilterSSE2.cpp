@@ -186,10 +186,7 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::D
     AdaptSSE2(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nInput, m_nOrder);
 
     // update delta
-    if ((m_nVersion == -1) || (m_nVersion >= 3980))
-        UPDATE_DELTA_NEW(nOutput)
-    else
-        UPDATE_DELTA_OLD(nOutput)
+    UPDATE_DELTA_NEW(nOutput)
 
     // update the input buffer
     m_rbInput[0] = GetSaturatedShortFromInt(nOutput);

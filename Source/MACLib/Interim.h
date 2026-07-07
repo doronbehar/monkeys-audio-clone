@@ -1,8 +1,17 @@
 #pragma once
 
+/**************************************************************************************************
+Interim mode is needed to decode 24-bit files encoded durning the short spell after adding
+32-bit when encoding was unintentionally changed. The date range was November 5, 2019
+(Monkey's Audio 5.01) to August 14, 2022 (Monkey's Audio 8.51).
+**************************************************************************************************/
+
 #include "NewPredictor.h"
 #include "NNFilter.h"
 #include "NNFilterCommon.h"
+
+template int APE::CNNFilter<int, short>::DecompressGenericInterim(int nInput);
+template APE::int64 APE::CNNFilter<APE::int64, int>::DecompressGenericInterim(APE::int64 nInput);
 
 namespace APE
 {
@@ -13,8 +22,8 @@ CPredictorDecompressInterim
 class CPredictorDecompressInterim : public CPredictorDecompress3950toCurrent<int, short>
 {
 public:
-    CPredictorDecompressInterim(int nCompressionLevel, int nVersion, int nBitsPerSample) :
-        CPredictorDecompress3950toCurrent<int, short>(nCompressionLevel, nVersion, nBitsPerSample, true)
+    CPredictorDecompressInterim(int nCompressionLevel, APE_VERSION Version, int nBitsPerSample) :
+        CPredictorDecompress3950toCurrent<int, short>(nCompressionLevel, Version, nBitsPerSample)
     {
     }
     virtual ~CPredictorDecompressInterim() APE_OVERRIDE
@@ -101,23 +110,20 @@ public:
 /**************************************************************************************************
 DecompressGenericInterim
 **************************************************************************************************/
-template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::DecompressGenericInterim(INTTYPE nInput)
+template <class INTTYPE, class DATATYPE> INTTYPE APE::CNNFilter<INTTYPE, DATATYPE>::DecompressGenericInterim(INTTYPE nInput)
 {
     // figure a dot product
-    INTTYPE nDotProduct = CalculateDotProductGeneric(&m_rbInput[-m_nOrder], &m_paryM[0], m_nOrder);
+    INTTYPE nDotProduct = APE::CalculateDotProductGeneric(&m_rbInput[-m_nOrder], &m_paryM[0], m_nOrder);
 
     // calculate the output
     INTTYPE nOutput;
     nOutput = static_cast<INTTYPE>(nInput + ((static_cast<int64>(nDotProduct) + m_nOneShiftedByShift) >> m_nShift));
 
     // adapt
-    AdaptGeneric(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nInput, m_nOrder);
+    APE::AdaptGeneric(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nInput, m_nOrder);
 
     // update delta
-    if ((m_nVersion == -1) || (m_nVersion >= 3980))
-        UPDATE_DELTA_NEW(nOutput)
-    else
-        UPDATE_DELTA_OLD(nOutput)
+    UPDATE_DELTA_NEW(nOutput)
 
     // update the input buffer
     m_rbInput[0] = GetSaturatedShortFromInt(nOutput);

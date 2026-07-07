@@ -569,7 +569,7 @@ int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, CAPEProgressCal
             const APE_FILE_INFO * pInfo = spAPEDecompress->GetFileInfo();
 
             // check version
-            if ((pInfo->nVersion < 3980) || (pInfo->spAPEDescriptor == APE_NULL))
+            if ((pInfo->nVersionEncoder < 3980) || (pInfo->spAPEDescriptor == APE_NULL))
                 throw(static_cast<intn>(ERROR_UNSUPPORTED_FILE_VERSION));
 
             // set the threads
@@ -596,7 +596,7 @@ int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, CAPEProgressCal
             IAPEIO * pIO = spAPEDecompress->GetIO();
             const APE_FILE_INFO * pInfo = spAPEDecompress->GetFileInfo();
 
-            if ((pInfo->nVersion < 3980) || (pInfo->spAPEDescriptor == APE_NULL))
+            if ((pInfo->nVersionEncoder < 3980) || (pInfo->spAPEDescriptor == APE_NULL))
                 throw(static_cast<intn>(ERROR_UNSUPPORTED_FILE_VERSION));
 
             // read APE header

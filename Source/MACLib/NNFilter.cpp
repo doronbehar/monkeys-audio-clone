@@ -6,11 +6,11 @@
 namespace APE
 {
 
-template <class INTTYPE, class DATATYPE> CNNFilter<INTTYPE, DATATYPE>::CNNFilter(int nOrder, int nShift, int nVersion, bool bInterimMode)
+template <class INTTYPE, class DATATYPE> CNNFilter<INTTYPE, DATATYPE>::CNNFilter(int nOrder, int nShift, APE_VERSION Version)
 : m_nOrder(nOrder),
   m_nShift(nShift),
   m_nOneShiftedByShift(static_cast<int>(1 << (m_nShift - 1))),
-  m_nVersion(nVersion),
+  m_Version(Version),
   m_rbInput(m_nOrder),
   m_rbDeltaM(m_nOrder)
 {
@@ -71,10 +71,19 @@ template <class INTTYPE, class DATATYPE> CNNFilter<INTTYPE, DATATYPE>::CNNFilter
     }
 #endif
 
-    // use iterim implementation for interim mode (because interim isn't in the other routines)
-    if (bInterimMode)
-        DecompressImpl = &CNNFilter::DecompressGenericInterim;
+    // for legacy files always use generic (this way we don't need the condition when we update the delta to check the version)
+    if ((Version.m_nVersion != -1) && (Version.m_nVersion < 3980))
+    {
+        DecompressImpl = &CNNFilter::DecompressGeneric;
+    }
 
+    // for interim mode, use the interim decoder
+    if (Version.m_nFlags & APE_VERSION_FLAG_INTERIM)
+    {
+        DecompressImpl = &CNNFilter::DecompressGenericInterim;
+    }
+
+    // allocate array
     m_paryM = static_cast<DATATYPE *>(AllocateAligned(static_cast<intn>(sizeof(DATATYPE)) * m_nOrder, 64)); // align for possible SSE/AVX usage
 }
 
@@ -95,11 +104,11 @@ template <class INTTYPE, class DATATYPE> void CNNFilter<INTTYPE, DATATYPE>::Flus
     m_nRunningAverage = 0;
 }
 
-template CNNFilter<int, short>::CNNFilter(int nOrder, int nShift, int nVersion, bool bInterimMode);
+template CNNFilter<int, short>::CNNFilter(int nOrder, int nShift, APE_VERSION Version);
 template CNNFilter<int, short>::~CNNFilter();
 template void CNNFilter<int, short>::Flush();
 
-template CNNFilter<int64, int>::CNNFilter(int nOrder, int nShift, int nVersion, bool bInterimMode);
+template CNNFilter<int64, int>::CNNFilter(int nOrder, int nShift, APE_VERSION Version);
 template CNNFilter<int64, int>::~CNNFilter();
 template void CNNFilter<int64, int>::Flush();
 

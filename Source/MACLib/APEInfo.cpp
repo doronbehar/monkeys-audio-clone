@@ -18,7 +18,8 @@ APE_FILE_INFO
 **************************************************************************************************/
 APE_FILE_INFO::APE_FILE_INFO()
 {
-    nVersion = 0;
+    nVersionEncoder = 0;
+    nVersionProgram = 0;
     nCompressionLevel = 0;
     nFormatFlags = 0;
     nTotalFrames = 0;
@@ -213,7 +214,10 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_INFO_FIELDS Field, int64 nParam1, in
     switch (Field)
     {
     case IAPEDecompress::APE_INFO_FILE_VERSION:
-        nResult = m_APEFileInfo.nVersion;
+        nResult = m_APEFileInfo.nVersionEncoder;
+        break;
+    case IAPEDecompress::APE_INFO_PROGRAM_VERSION:
+        nResult = m_APEFileInfo.nVersionProgram;
         break;
     case IAPEDecompress::APE_INFO_COMPRESSION_LEVEL:
         nResult = m_APEFileInfo.nCompressionLevel;

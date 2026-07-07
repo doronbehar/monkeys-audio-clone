@@ -49,7 +49,7 @@ CPredictorDecompress3950toCurrent
 template <class INTTYPE, class DATATYPE> class CPredictorDecompress3950toCurrent : public IPredictorDecompress
 {
 public:
-    CPredictorDecompress3950toCurrent(int nCompressionLevel, int nVersion, int nBitsPerSample, bool bInterimMode = false);
+    CPredictorDecompress3950toCurrent(int nCompressionLevel, APE_VERSION Version, int nBitsPerSample);
     virtual ~CPredictorDecompress3950toCurrent() APE_OVERRIDE;
 
     int DecompressValue(int64 nA, int64 nB = 0) APE_OVERRIDE;
@@ -79,14 +79,12 @@ protected:
     // other
     INTTYPE m_nLastValueA;
     int m_nCurrentIndex;
-    int m_nVersion;
+    APE_VERSION m_Version;
     int m_nBitsPerSample;
 
     // alignment
     INTTYPE m_nPadding;
 };
-
-#include "Interim.h"
 
 // forward declare the classes because it helps with a Clang warning
 #ifdef _MSC_VER
@@ -97,3 +95,5 @@ extern template class CPredictorDecompress3950toCurrent<int64, int>;
 #endif
 
 }
+
+#include "Interim.h"

@@ -12,7 +12,6 @@ CMACProgressHelper::CMACProgressHelper(int64 nTotalSteps, CAPEProgressCallbackIn
     m_nTotalSteps = nTotalSteps;
     m_nCurrentStep = 0;
     m_nLastCallbackFiredPercentageDone = 0;
-    m_bKill = false;
 
     UpdateProgress(0);
 }
@@ -37,8 +36,8 @@ void CMACProgressHelper::UpdateProgress(int64 nCurrentStep, bool bForceUpdate)
         {
             if (m_pProgressCallback->m_pCallback != APE_NULL)
                 m_pProgressCallback->m_pCallback->Progress(nPercentageDone);
-            if (m_pProgressCallback->m_Callback != APE_NULL)
-                m_pProgressCallback->m_Callback(m_pProgressCallback->m_CallbackData, nPercentageDone, &m_bKill);
+            if (m_pProgressCallback->m_ProgressCallback != APE_NULL)
+                m_pProgressCallback->m_ProgressCallback(m_pProgressCallback->m_pCallbackData, nPercentageDone);
             m_nLastCallbackFiredPercentageDone = nPercentageDone;
         }
     }
@@ -53,20 +52,31 @@ int CMACProgressHelper::ProcessKillFlag()
 {
     if (m_pProgressCallback && m_pProgressCallback->m_pCallback)
     {
-        while (m_pProgressCallback->m_pCallback->GetKillFlag() == APE_KILL_FLAG_PAUSE)
+        int nKill = m_pProgressCallback->m_pCallback->GetKillFlag();
+        while (nKill == APE_KILL_FLAG_PAUSE)
         {
             SLEEP(50);
+            nKill = m_pProgressCallback->m_pCallback->GetKillFlag();
         }
 
-        if ((m_pProgressCallback->m_pCallback->GetKillFlag() != APE_KILL_FLAG_CONTINUE) && (m_pProgressCallback->m_pCallback->GetKillFlag() != APE_KILL_FLAG_PAUSE))
+        if ((nKill != APE_KILL_FLAG_CONTINUE) && (nKill != APE_KILL_FLAG_PAUSE))
         {
             return ERROR_UNDEFINED;
         }
     }
-    else if (m_pProgressCallback && m_pProgressCallback->m_Callback)
+    else if (m_pProgressCallback && m_pProgressCallback->m_KillCallback)
     {
-        if (m_bKill)
+        int nKill = m_pProgressCallback->m_KillCallback(m_pProgressCallback->m_pCallbackData);
+        while (nKill == APE_KILL_FLAG_PAUSE)
+        {
+            SLEEP(50);
+            nKill = m_pProgressCallback->m_KillCallback(m_pProgressCallback->m_pCallbackData);
+        }
+
+        if ((nKill != APE_KILL_FLAG_CONTINUE) && (nKill != APE_KILL_FLAG_PAUSE))
+        {
             return ERROR_UNDEFINED;
+        }
     }
 
     return ERROR_SUCCESS;

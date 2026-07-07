@@ -16,7 +16,7 @@ CNNFilter
 template <class INTTYPE, class DATATYPE> class CNNFilter
 {
 public:
-    CNNFilter(int nOrder, int nShift, int nVersion = -1, bool bInterimMode = false);
+    CNNFilter(int nOrder, int nShift, APE_VERSION Version);
     virtual ~CNNFilter();
 
     INTTYPE Compress(INTTYPE nInput) { return (this->*CompressImpl)(nInput); }
@@ -62,10 +62,10 @@ public:
     const int m_nOrder;
     const int m_nShift;
     const int m_nOneShiftedByShift;
-    const int m_nVersion;
+    const APE_VERSION m_Version;
     DATATYPE * m_paryM;
-    APE::CRollBuffer<DATATYPE, NN_WINDOW_ELEMENTS> m_rbInput;
-    APE::CRollBuffer<DATATYPE, NN_WINDOW_ELEMENTS> m_rbDeltaM;
+    CRollBuffer<DATATYPE, NN_WINDOW_ELEMENTS> m_rbInput;
+    CRollBuffer<DATATYPE, NN_WINDOW_ELEMENTS> m_rbDeltaM;
     INTTYPE m_nRunningAverage;
 
 private:
@@ -78,5 +78,11 @@ private:
 extern template class CNNFilter<int, short>;
 extern template class CNNFilter<int64, int>;
 #endif
+
+// forward declare functions
+int32 CalculateDotProductGeneric(const short * pA, const short * pB, int nOrder);
+int64 CalculateDotProductGeneric(const int * pA, const int * pB, int nOrder);
+void AdaptGeneric(short * pM, const short * pAdapt, int32 nDirection, int nOrder);
+void AdaptGeneric(int * pM, const int * pAdapt, int64 nDirection, int nOrder);
 
 }

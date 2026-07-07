@@ -21,7 +21,6 @@ private:
     int64 m_nTotalSteps;
     int64 m_nCurrentStep;
     int m_nLastCallbackFiredPercentageDone;
-    bool m_bKill;
     APE::CAPEProgressCallbackInfo * m_pProgressCallback;
 };
 

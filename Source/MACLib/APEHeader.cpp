@@ -195,8 +195,8 @@ int CAPEHeader::AnalyzeCurrent(APE_FILE_INFO * pInfo)
     if ((m_pIO->Read(pInfo->spAPEDescriptor.GetPtr(), sizeof(APE_DESCRIPTOR), &nBytesRead) != ERROR_SUCCESS) || (nBytesRead != sizeof(APE_DESCRIPTOR)))
         return ERROR_IO_READ;
 
-    pInfo->spAPEDescriptor->nVersion               = ConvertU16LE(pInfo->spAPEDescriptor->nVersion);
-    pInfo->spAPEDescriptor->nPadding               = ConvertU16LE(pInfo->spAPEDescriptor->nPadding);
+    pInfo->spAPEDescriptor->nVersionEncoder        = ConvertU16LE(pInfo->spAPEDescriptor->nVersionEncoder);
+    pInfo->spAPEDescriptor->nVersionProgram        = ConvertU16LE(pInfo->spAPEDescriptor->nVersionProgram);
 
     pInfo->spAPEDescriptor->nDescriptorBytes       = ConvertU32LE(pInfo->spAPEDescriptor->nDescriptorBytes);
     pInfo->spAPEDescriptor->nHeaderBytes           = ConvertU32LE(pInfo->spAPEDescriptor->nHeaderBytes);
@@ -232,7 +232,8 @@ int CAPEHeader::AnalyzeCurrent(APE_FILE_INFO * pInfo)
     }
 
     // fill the APE info structure
-    pInfo->nVersion               = static_cast<int>(pInfo->spAPEDescriptor->nVersion);
+    pInfo->nVersionEncoder        = static_cast<int>(pInfo->spAPEDescriptor->nVersionEncoder);
+    pInfo->nVersionProgram        = static_cast<int>(pInfo->spAPEDescriptor->nVersionProgram);
     pInfo->nCompressionLevel      = static_cast<int>(APEHeader.nCompressionLevel);
     pInfo->nFormatFlags           = static_cast<int>(APEHeader.nFormatFlags);
     pInfo->nTotalFrames           = static_cast<uint32>(APEHeader.nTotalFrames);
@@ -371,7 +372,8 @@ int CAPEHeader::AnalyzeOld(APE_FILE_INFO * pInfo)
         pInfo->nSeekTableElements = static_cast<int>(APEHeader.nTotalFrames);
 
     // fill the APE info structure
-    pInfo->nVersion               = static_cast<int>(APEHeader.nVersion);
+    pInfo->nVersionEncoder        = static_cast<int>(APEHeader.nVersion);
+    pInfo->nVersionProgram        = 0; // unknown
     pInfo->nCompressionLevel      = static_cast<int>(APEHeader.nCompressionLevel);
     pInfo->nFormatFlags           = static_cast<int>(APEHeader.nFormatFlags);
     pInfo->nTotalFrames           = static_cast<uint32>(APEHeader.nTotalFrames);

@@ -87,10 +87,18 @@ CString CAPEInfoFormatDlg::GetSummary(const CString & strFilename)
         str_utfn cCompressionName[16]; APE_CLEAR(cCompressionName);
         GetAPECompressionLevelName(static_cast<int>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_COMPRESSION_LEVEL)), cCompressionName, 16, false);
 
-        strLine.Format(_T("Monkey's Audio %.2f (%s)"),
+        strLine.Format(_T("File Version: Monkey's Audio %.2f (%s)"),
             static_cast<double>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION)) / static_cast<double>(1000),
             static_cast<LPCTSTR>(cCompressionName));
         strSummary += strLine + _T("\r\n");
+
+        // encoded with
+        if (spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_PROGRAM_VERSION) != 0)
+        {
+            strLine.Format(_T("Encoded With: Monkey's Audio %.2f"),
+                static_cast<double>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_PROGRAM_VERSION)) / static_cast<double>(1000));
+            strSummary += strLine + _T("\r\n");
+        }
 
         // format
         strLine.Format(_T("Format: %.1f khz, %d bit, %d ch"),

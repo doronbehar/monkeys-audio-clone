@@ -24,7 +24,8 @@ public:
     APE_FILE_INFO();
     ~APE_FILE_INFO();
 
-    int nVersion;                                   // file version number * 1000 (3.93 = 3930)
+    int nVersionEncoder;                            // encoder version number * 1000 (3.99 = 3990)
+    int nVersionProgram;                            // program version number * 1000 (13.17 = 13170)
     int nCompressionLevel;                          // the compression level
     int nFormatFlags;                               // format flags
     uint32 nTotalFrames;                            // the total number frames (frames are used internally)

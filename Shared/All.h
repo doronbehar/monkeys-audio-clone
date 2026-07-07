@@ -144,6 +144,8 @@ Version
 #define APE_VER_FILE_VERSION_STR                        APE_STRINGIZE(APE_VERSION_MAJOR) "." APE_STRINGIZE(APE_VERSION_REVISION)
 #define APE_VER_FILE_VERSION_STR_WIDE                   APE_STRINGIZE_WIDE(APE_VERSION_MAJOR) L"." APE_STRINGIZE_WIDE(APE_VERSION_REVISION)
 #define APE_FILE_VERSION_NUMBER                         3990
+#define APE_PROGRAM_VERSION_NUMBER                      ((APE_VERSION_MAJOR * 1000) + (APE_VERSION_REVISION * 10))
+#define APE_VERSION_INTERIM                             (1 << 0)
 
 // names and copyrights
 #define APE_NAME                                        L"Monkey's Audio " APE_VER_FILE_VERSION_STR_WIDE
@@ -199,6 +201,17 @@ namespace APE
 Smart pointer
 **************************************************************************************************/
 #include "SmartPtr.h"
+
+
+/**************************************************************************************************
+Version object (used to pass file version and flags)
+**************************************************************************************************/
+#define APE_VERSION_FLAG_INTERIM (1 << 0)
+struct APE_VERSION
+{
+    int m_nVersion;
+    int m_nFlags;
+};
 
 /**************************************************************************************************
 Global macros

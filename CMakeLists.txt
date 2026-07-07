@@ -145,6 +145,7 @@ set(MAC_LIBRARY_HEADERS
         Source/MACLib/UnBitArray.h
         Source/MACLib/UnBitArrayBase.h
         Source/MACLib/WAVInputSource.h
+        Source/MACLib/Interim.h
         Source/MACLib/Old/NewPredictorOld.h
         Source/MACLib/Old/AntiPredictorOld.h
         Source/MACLib/Old/APEDecompressCoreOld.h

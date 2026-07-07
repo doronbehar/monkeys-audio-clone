@@ -456,6 +456,7 @@ int64 CAPEDecompress::GetInfo(IAPEDecompress::APE_INFO_FIELDS Field, int64 nPara
     case APE_INFO_WAV_DATA_BYTES:
     case APE_INFO_WAV_TOTAL_BYTES:
     case APE_INFO_FILE_INFO:
+    case APE_INFO_PROGRAM_VERSION:
     {
         // all other conditions to prevent compiler warnings (4061, 4062, and Clang)
         break;
