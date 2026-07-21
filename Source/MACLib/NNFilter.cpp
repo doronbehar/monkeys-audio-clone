@@ -72,7 +72,7 @@ template <class INTTYPE, class DATATYPE> CNNFilter<INTTYPE, DATATYPE>::CNNFilter
 #endif
 
     // for legacy files always use generic (this way we don't need the condition when we update the delta to check the version)
-    if ((Version.m_nVersion != -1) && (Version.m_nVersion < 3980))
+    if (Version.m_nFileVersion < 3980)
     {
         DecompressImpl = &CNNFilter::DecompressGeneric;
     }

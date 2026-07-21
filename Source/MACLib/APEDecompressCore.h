@@ -47,8 +47,8 @@ protected:
     int m_nErrorState;
     bool m_bCancelFrame;
     CSmartPtr<IAPEIO> m_spIO;
-
     CAPEDecompress * m_pDecompress;
+    APE_VERSION m_Version;
 
     // start / finish information
     bool m_bDecompressorInitialized;

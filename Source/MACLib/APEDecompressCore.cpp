@@ -162,27 +162,25 @@ int CAPEDecompressCore::InitializeDecompressor()
     const int nBitsPerSample = static_cast<int>(m_pDecompress->GetInfo(IAPEDecompress::APE_INFO_BITS_PER_SAMPLE));
 
     // get version
-    APE_VERSION Version;
-    Version.m_nVersion = static_cast<int>(m_pDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION));
-    Version.m_nFlags = 0;
-    
+    m_Version = APE_VERSION(static_cast<int>(m_pDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION)), static_cast<int>(m_pDecompress->GetInfo(IAPEDecompress::APE_INFO_PROGRAM_VERSION)), 0);
+
     // loop channels
     int nResult = ERROR_UNDEFINED;
     for (int nChannel = 0; nChannel < nChannels; nChannel++)
     {
-        if (Version.m_nVersion >= 3950)
+        if (m_Version.m_nFileVersion >= 3950)
         {
             if (nBitsPerSample < 32)
-                m_aryPredictor[nChannel] = new CPredictorDecompress3950toCurrent<int, short>(nCompressionLevel, Version, nBitsPerSample);
+                m_aryPredictor[nChannel] = new CPredictorDecompress3950toCurrent<int, short>(nCompressionLevel, m_Version, nBitsPerSample);
             else
-                m_aryPredictor[nChannel] = new CPredictorDecompress3950toCurrent<int64, int>(nCompressionLevel, Version, nBitsPerSample);
+                m_aryPredictor[nChannel] = new CPredictorDecompress3950toCurrent<int64, int>(nCompressionLevel, m_Version, nBitsPerSample);
 
             nResult = ERROR_SUCCESS;
         }
 #ifdef APE_BACKWARDS_COMPATIBILITY
         else
         {
-            m_aryPredictor[nChannel] = new CPredictorDecompress3930to3950(nCompressionLevel, Version);
+            m_aryPredictor[nChannel] = new CPredictorDecompress3930to3950(nCompressionLevel, m_Version);
 
             nResult = ERROR_SUCCESS;
         }
@@ -247,10 +245,8 @@ int CAPEDecompressCore::DecodeFrame()
                     if (m_aryPredictor[z] != APE_NULL)
                     {
                         delete m_aryPredictor[z];
-                        APE_VERSION Version;
-                        Version.m_nVersion = static_cast<int>(m_pAPEInfo->GetInfo(IAPEInfo::APE_INFO_FILE_VERSION));
-                        Version.m_nFlags = APE_VERSION_FLAG_INTERIM;
-                        m_aryPredictor[z] = new APE::CPredictorDecompressInterim(static_cast<int>(m_pAPEInfo->GetInfo(IAPEInfo::APE_INFO_COMPRESSION_LEVEL)), Version, static_cast<int>(m_pAPEInfo->GetInfo(IAPEInfo::APE_INFO_BITS_PER_SAMPLE)));
+                        m_Version.m_nFlags |= APE_VERSION_FLAG_INTERIM;
+                        m_aryPredictor[z] = new APE::CPredictorDecompressInterim(static_cast<int>(m_pAPEInfo->GetInfo(IAPEInfo::APE_INFO_COMPRESSION_LEVEL)), m_Version, static_cast<int>(m_pAPEInfo->GetInfo(IAPEInfo::APE_INFO_BITS_PER_SAMPLE)));
                     }
                 }
                 m_spUnBitArray->FillAndResetBitArray(0, static_cast<int64>(m_nSkipBytes) * 8);

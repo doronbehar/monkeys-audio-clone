@@ -134,5 +134,3 @@ template <class INTTYPE, class DATATYPE> INTTYPE APE::CNNFilter<INTTYPE, DATATYP
 
     return nOutput;
 }
-
-

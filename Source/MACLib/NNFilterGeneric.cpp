@@ -66,7 +66,7 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::D
     AdaptGeneric(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nInput, m_nOrder);
 
     // update delta
-    if ((m_Version.m_nVersion == -1) || (m_Version.m_nVersion >= 3980))
+    if (m_Version.m_nFileVersion >= 3980)
         UPDATE_DELTA_NEW(nOutput)
     else
         UPDATE_DELTA_OLD(nOutput)
@@ -85,4 +85,3 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::D
 
 // interim
 #include "Interim.h"
-

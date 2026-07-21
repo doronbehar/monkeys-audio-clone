@@ -353,7 +353,7 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::D
 
     // update delta
     UPDATE_DELTA_NEW(nOutput)
-    
+
     // update the input buffer
     m_rbInput[0] = GetSaturatedShortFromInt(nOutput);
 

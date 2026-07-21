@@ -202,14 +202,22 @@ Smart pointer
 **************************************************************************************************/
 #include "SmartPtr.h"
 
-
 /**************************************************************************************************
 Version object (used to pass file version and flags)
 **************************************************************************************************/
 #define APE_VERSION_FLAG_INTERIM (1 << 0)
-struct APE_VERSION
+class APE_VERSION
 {
-    int m_nVersion;
+public:
+    APE_VERSION(int nFileVersion = 0, int nProgramVersion = 0, int nFlags = 0) :
+        m_nFileVersion(nFileVersion),
+        m_nProgramVersion(nProgramVersion),
+        m_nFlags(nFlags)
+    {
+    }
+
+    int m_nFileVersion;
+    int m_nProgramVersion;
     int m_nFlags;
 };
 
