@@ -4,6 +4,9 @@
 #include <atomic>
 using namespace APE;
 
+// define globally because defining it just in the function leads to this warning: construction of local static object is not thread safe (after setting the /Zc:threadSafeInit- which was needed for XP)
+static std::atomic<uint32> s_nWindowNumber(100000);
+
 void FixDirectory(CString & strDirectory)
 {
     if (strDirectory.Right(1) != _T("\\"))
@@ -366,12 +369,6 @@ bool ExecuteProgramBlocking(CString strApplication, CString strParameters, int *
         StartupInfo.dwFlags |= STARTF_USESTDHANDLES;
     }
 
-    // use a window name that is unique that we can find after running to make sure everything is gone
-    CString strWindowName;
-    static std::atomic<uint32> s_nWindowNumber(100000);
-    strWindowName.Format(_T("MAC Window 0x%08X 0x%08X 0x%08X"), GetCurrentProcessId(), GetCurrentThreadId(), s_nWindowNumber++);
-    StartupInfo.lpTitle = strWindowName.GetBuffer();
-
     // create the process
     // use NULL for the path or else running WavPack (and other tools) was failing
     if (CreateProcess(APE_NULL, strCommand.LockBuffer(), APE_NULL, APE_NULL,
@@ -418,31 +415,7 @@ bool ExecuteProgramBlocking(CString strApplication, CString strParameters, int *
         CloseHandle(ProcessInfo.hProcess);
         CloseHandle(ProcessInfo.hThread);
 
-        // this used to find the window and destroy it if it was still around because FLAC left dangling windows when converting files with ID3v2 tags and failing
-        // but that no longer happens, so we just removed the code (1/16/2026)
-        // it could search for the window by using the unique name given it and destroy it that way, but the process has finished so this should be unnecessary
-        // windows were showing again on 6/11/2026 so we changed to never showing popups instead (created with SW_HIDE)
-
         bRetVal = true;
-    }
-
-    // close any left-over windows
-    // happens when FLAC fails and says there's an ID3v2 tag for example
-    // also happens when batch converting FLAC files to APE on 6/11/2026
-    HWND hwndLeftover = FindWindow(APE_NULL, strWindowName);
-    if (hwndLeftover != APE_NULL)
-    {
-        // let the windows expire (otherwise we commonly find a window and close it even though there was no reason)
-        Sleep(250);
-
-        // search again
-        hwndLeftover = FindWindow(APE_NULL, strWindowName);
-    }
-
-    // destroy the window
-    if (hwndLeftover != APE_NULL)
-    {
-        DestroyWindow(hwndLeftover);
     }
 
     // close handles
