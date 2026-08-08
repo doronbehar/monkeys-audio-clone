@@ -279,7 +279,7 @@ int CAPEHeader::AnalyzeCurrent(APE_FILE_INFO * pInfo)
     CSmartPtr<uint32> spSeekByteTable32(pInfo->nSeekTableElements);
     if (spSeekByteTable32 == APE_NULL) { return ERROR_UNDEFINED; }
 
-    if ((m_pIO->Read(spSeekByteTable32.GetPtr(), static_cast<unsigned int>(4 * pInfo->nSeekTableElements), &nBytesRead) != ERROR_SUCCESS) || (nBytesRead != 4 * static_cast<unsigned int>(pInfo->nSeekTableElements)))
+    if ((m_pIO->Read(spSeekByteTable32.GetPtr(), static_cast<int64>(pInfo->nSeekTableElements) * 4, &nBytesRead) != ERROR_SUCCESS) || (nBytesRead != static_cast<int64>(pInfo->nSeekTableElements) * 4))
         return ERROR_IO_READ;
 
     // convert to int64
@@ -296,7 +296,7 @@ int CAPEHeader::AnalyzeCurrent(APE_FILE_INFO * pInfo)
         {
             pInfo->spWaveHeaderData.AllocateArray(pInfo->nWAVHeaderBytes);
             if (pInfo->spWaveHeaderData == APE_NULL) { return ERROR_UNDEFINED; }
-            if ((m_pIO->Read(pInfo->spWaveHeaderData.GetPtr(), static_cast<unsigned int>(pInfo->nWAVHeaderBytes), &nBytesRead) != ERROR_SUCCESS) || (nBytesRead != pInfo->nWAVHeaderBytes))
+            if ((m_pIO->Read(pInfo->spWaveHeaderData.GetPtr(), static_cast<int64>(pInfo->nWAVHeaderBytes), &nBytesRead) != ERROR_SUCCESS) || (nBytesRead != pInfo->nWAVHeaderBytes))
                 return ERROR_IO_READ;
         }
     }
@@ -425,7 +425,7 @@ int CAPEHeader::AnalyzeOld(APE_FILE_INFO * pInfo)
     CSmartPtr<uint32> spSeekByteTable32(pInfo->nSeekTableElements);
     if (spSeekByteTable32 == APE_NULL) { return ERROR_UNDEFINED; }
 
-    if ((m_pIO->Read(spSeekByteTable32.GetPtr(), static_cast<unsigned int>(4 * pInfo->nSeekTableElements), &nBytesRead) != ERROR_SUCCESS) || (nBytesRead != 4 * static_cast<unsigned int>(pInfo->nSeekTableElements)))
+    if ((m_pIO->Read(spSeekByteTable32.GetPtr(), static_cast<int64>(pInfo->nSeekTableElements) * 4, &nBytesRead) != ERROR_SUCCESS) || (nBytesRead != static_cast<int64>(pInfo->nSeekTableElements) * 4))
         return ERROR_IO_READ;
 
     // convert to int64
@@ -438,7 +438,7 @@ int CAPEHeader::AnalyzeOld(APE_FILE_INFO * pInfo)
         pInfo->spSeekBitTable.AllocateArray(pInfo->nSeekTableElements);
         if (pInfo->spSeekBitTable == APE_NULL) { return ERROR_UNDEFINED; }
 
-        if ((m_pIO->Read(pInfo->spSeekBitTable.GetPtr(), static_cast<unsigned int>(pInfo->nSeekTableElements), &nBytesRead) != ERROR_SUCCESS) || (nBytesRead != static_cast<unsigned int>(pInfo->nSeekTableElements)))
+        if ((m_pIO->Read(pInfo->spSeekBitTable.GetPtr(), static_cast<int64>(pInfo->nSeekTableElements), &nBytesRead) != ERROR_SUCCESS) || (nBytesRead != static_cast<unsigned int>(pInfo->nSeekTableElements)))
             return ERROR_IO_READ;
     }
 #endif

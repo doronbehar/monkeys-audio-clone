@@ -15,7 +15,7 @@ class CMACApp : public CWinApp
 {
 public:
     // construction / destruction
-    CMACApp();
+    CMACApp() noexcept;
     ~CMACApp() APE_OVERRIDE;
 
     // initialize

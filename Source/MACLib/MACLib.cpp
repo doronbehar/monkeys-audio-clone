@@ -360,8 +360,9 @@ void __stdcall GetAPEModeName(APE::APE_MODES Mode, APE::str_utfn * pModeName, si
         case MODE_CONVERT: wcscpy_s(pModeName, nBufferCharacters, bActive ? L"Converting" : L"Convert"); break;
         case MODE_MAKE_APL: wcscpy_s(pModeName, nBufferCharacters, bActive ? L"Making APL's" : L"Make APL's"); break;
         // all other conditions to prevent compiler warnings (4061, 4062, and Clang)
-        case MODE_CHECK: break; // not used
-        case MODE_COUNT: break; // not used
+        case MODE_CHECK:
+        case MODE_COUNT: 
+            break; // not used
     }
 }
 

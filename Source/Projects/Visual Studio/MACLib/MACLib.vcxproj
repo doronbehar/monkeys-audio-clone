@@ -145,70 +145,70 @@
     <IntDir>$(Configuration)\</IntDir>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <ClangTidyChecks>clang-analyzer-*</ClangTidyChecks>
+    <ClangTidyChecks>clang-analyzer-*,bugprone-*,-bugprone-easily-swappable-parameters,-bugprone-macro-repeated-side-effects,-bugprone-branch-clone,-bugprone-reserved-identifier,-bugprone-unhandled-self-assignment,-bugprone-unchecked-string-to-number-conversion</ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <OutDir>$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <ClangTidyChecks>clang-analyzer-*</ClangTidyChecks>
+    <ClangTidyChecks>clang-analyzer-*,bugprone-*,-bugprone-easily-swappable-parameters,-bugprone-macro-repeated-side-effects,-bugprone-branch-clone,-bugprone-reserved-identifier,-bugprone-unhandled-self-assignment,-bugprone-unchecked-string-to-number-conversion</ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <ClangTidyChecks>clang-analyzer-*</ClangTidyChecks>
+    <ClangTidyChecks>clang-analyzer-*,bugprone-*,-bugprone-easily-swappable-parameters,-bugprone-macro-repeated-side-effects,-bugprone-branch-clone,-bugprone-reserved-identifier,-bugprone-unhandled-self-assignment,-bugprone-unchecked-string-to-number-conversion</ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64EC'">
     <OutDir>$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <ClangTidyChecks>clang-analyzer-*</ClangTidyChecks>
+    <ClangTidyChecks>clang-analyzer-*,bugprone-*,-bugprone-easily-swappable-parameters,-bugprone-macro-repeated-side-effects,-bugprone-branch-clone,-bugprone-reserved-identifier,-bugprone-unhandled-self-assignment,-bugprone-unchecked-string-to-number-conversion</ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <OutDir>$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <ClangTidyChecks>clang-analyzer-*</ClangTidyChecks>
+    <ClangTidyChecks>clang-analyzer-*,bugprone-*,-bugprone-easily-swappable-parameters,-bugprone-macro-repeated-side-effects,-bugprone-branch-clone,-bugprone-reserved-identifier,-bugprone-unhandled-self-assignment,-bugprone-unchecked-string-to-number-conversion</ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <ClangTidyChecks>clang-analyzer-*</ClangTidyChecks>
+    <ClangTidyChecks>clang-analyzer-*,bugprone-*,-bugprone-easily-swappable-parameters,-bugprone-macro-repeated-side-effects,-bugprone-branch-clone,-bugprone-reserved-identifier,-bugprone-unhandled-self-assignment,-bugprone-unchecked-string-to-number-conversion</ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <OutDir>$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <ClangTidyChecks>clang-analyzer-*</ClangTidyChecks>
+    <ClangTidyChecks>clang-analyzer-*,bugprone-*,-bugprone-easily-swappable-parameters,-bugprone-macro-repeated-side-effects,-bugprone-branch-clone,-bugprone-reserved-identifier,-bugprone-unhandled-self-assignment,-bugprone-unchecked-string-to-number-conversion</ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <ClangTidyChecks>clang-analyzer-*</ClangTidyChecks>
+    <ClangTidyChecks>clang-analyzer-*,bugprone-*,-bugprone-easily-swappable-parameters,-bugprone-macro-repeated-side-effects,-bugprone-branch-clone,-bugprone-reserved-identifier,-bugprone-unhandled-self-assignment,-bugprone-unchecked-string-to-number-conversion</ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64EC'">
     <OutDir>$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <ClangTidyChecks>clang-analyzer-*</ClangTidyChecks>
+    <ClangTidyChecks>clang-analyzer-*,bugprone-*,-bugprone-easily-swappable-parameters,-bugprone-macro-repeated-side-effects,-bugprone-branch-clone,-bugprone-reserved-identifier,-bugprone-unhandled-self-assignment,-bugprone-unchecked-string-to-number-conversion</ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <OutDir>$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <ClangTidyChecks>clang-analyzer-*</ClangTidyChecks>
+    <ClangTidyChecks>clang-analyzer-*,bugprone-*,-bugprone-easily-swappable-parameters,-bugprone-macro-repeated-side-effects,-bugprone-branch-clone,-bugprone-reserved-identifier,-bugprone-unhandled-self-assignment,-bugprone-unchecked-string-to-number-conversion</ClangTidyChecks>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

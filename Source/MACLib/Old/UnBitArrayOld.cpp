@@ -233,9 +233,21 @@ void CUnBitArrayOld::GenerateArrayOld(int * pOutputArray, uint32 nNumberOfElemen
         if ((K_Sum < kmin) || (K_Sum >= kmax))
         {
             if (K_Sum < kmin)
-                while (K_Sum < K_SUM_MIN_BOUNDARY_OLD[--k]) { }
+            {
+                do 
+                {
+                    k--;
+                } while (K_Sum < K_SUM_MIN_BOUNDARY_OLD[k]);
+            }
             else
-                while (K_SUM_MAX_BOUNDARY_OLD[k + 1] && K_Sum >= K_SUM_MAX_BOUNDARY_OLD[++k]) { }
+            {
+                while (K_SUM_MAX_BOUNDARY_OLD[k + 1])
+                {
+                    k++;
+                    if (K_Sum < K_SUM_MAX_BOUNDARY_OLD[k]) 
+                        break;
+                }
+            }                
 
             kmax = K_SUM_MAX_BOUNDARY_OLD[k];
             kmin = K_SUM_MIN_BOUNDARY_OLD[k];

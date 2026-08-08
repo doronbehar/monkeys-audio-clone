@@ -5,7 +5,7 @@ class CWinampSettingsDlg;
 class CMACDllApp : public CWinApp
 {
 public:
-    CMACDllApp();
+    CMACDllApp() noexcept;
     virtual ~CMACDllApp() APE_OVERRIDE;
 
     virtual BOOL InitInstance() APE_OVERRIDE;

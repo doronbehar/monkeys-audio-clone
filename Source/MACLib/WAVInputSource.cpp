@@ -248,7 +248,7 @@ CWAVInputSource::CWAVInputSource(IAPEIO * pIO, WAVEFORMATEX * pwfeSource, int64 
     // if we're an undefined size, try reading the whole file
     if (bReadFullInputForUnknownLength && (pIO->GetSize() == APE_FILE_SIZE_UNDEFINED))
     {
-        CWholeFileIO * pWholeFile = CreateWholeFileIO(m_spIO, APE_FILE_SIZE_UNDEFINED);
+        CWholeFileIO * pWholeFile = CWholeFileIO::CreateWholeFileIO(m_spIO, APE_FILE_SIZE_UNDEFINED);
         if (pWholeFile != APE_NULL)
         {
             m_spIO.SetDelete(false);
@@ -535,7 +535,7 @@ int CWAVInputSource::AnalyzeSource()
         else
         {
             // read to the next chunk since read works and seek doesn't for the header reader
-            CSmartPtr<unsigned char> spRIFFChunk(new unsigned char[RIFFChunkHeader.nChunkBytes], true);
+            CSmartPtr<unsigned char> spRIFFChunk(new unsigned char [RIFFChunkHeader.nChunkBytes], true);
             RETURN_ON_ERROR(ReadSafe(m_spIO, spRIFFChunk, static_cast<int>(RIFFChunkHeader.nChunkBytes)))
         }
 
@@ -1216,7 +1216,7 @@ int CW64InputSource::GetData(unsigned char * pBuffer, int nBlocks, int * pBlocks
 {
     if (!m_bIsValid) return ERROR_UNDEFINED;
 
-    const int64 nBytes = static_cast<int64>(m_wfeSource.nBlockAlign * nBlocks);
+    const int64 nBytes = static_cast<int64>(m_wfeSource.nBlockAlign) * static_cast<int64>(nBlocks);
     int64 nBytesRead = 0;
 
     if (m_spIO->Read(pBuffer, nBytes, &nBytesRead) != ERROR_SUCCESS)
@@ -1437,7 +1437,7 @@ int CSNDInputSource::GetData(unsigned char * pBuffer, int nBlocks, int * pBlocks
 {
     if (!m_bIsValid) return ERROR_UNDEFINED;
 
-    const int64 nBytes = static_cast<int64>(m_wfeSource.nBlockAlign * nBlocks);
+    const int64 nBytes = static_cast<int64>(m_wfeSource.nBlockAlign) * static_cast<int64>(nBlocks);
     int64 nBytesRead = 0;
 
     if (m_spIO->Read(pBuffer, nBytes, &nBytesRead) != ERROR_SUCCESS)
@@ -1690,7 +1690,7 @@ int CCAFInputSource::GetData(unsigned char * pBuffer, int nBlocks, int * pBlocks
 {
     if (!m_bIsValid) return ERROR_UNDEFINED;
 
-    const int64 nBytes = static_cast<int64>(m_wfeSource.nBlockAlign * nBlocks);
+    const int64 nBytes = static_cast<int64>(m_wfeSource.nBlockAlign) * static_cast<int64>(nBlocks);
     int64 nBytesRead = 0;
 
     if (m_spIO->Read(pBuffer, nBytes, &nBytesRead) != ERROR_SUCCESS)

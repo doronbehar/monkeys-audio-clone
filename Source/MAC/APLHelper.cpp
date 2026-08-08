@@ -130,7 +130,7 @@ bool CAPLHelper::GenerateLinkFiles(const CString & strImage, const CString & str
         double dStartSecond = (static_cast<double>(nMinutes) * static_cast<double>(60)) + static_cast<double>(nSeconds) + (static_cast<double>(nDecimal) / static_cast<double>(75));
         double dStartBlock = static_cast<double>(nSampleRate) * dStartSecond;
 
-        CString strStartBlock; strStartBlock.Format(_T("%d"), static_cast<int>(dStartBlock + 0.5));
+        CString strStartBlock; strStartBlock.Format(_T("%d"), std::lround(dStartBlock));
 
         CString strFinishBlock;
         if (strFinishTime.IsEmpty())
@@ -148,7 +148,7 @@ bool CAPLHelper::GenerateLinkFiles(const CString & strImage, const CString & str
             double dFinishSecond = (static_cast<double>(nMinutes) * static_cast<double>(60)) + static_cast<double>(nSeconds) + (static_cast<double>(nDecimal) / static_cast<double>(75));
             double dFinishBlock = static_cast<double>(nSampleRate) * dFinishSecond;
 
-            strFinishBlock.Format(_T("%d"), static_cast<int>(dFinishBlock + 0.5));
+            strFinishBlock.Format(_T("%d"), std::lround(dFinishBlock));
         }
 
         CString strTrack; strTrack.Format(_T("%d"), nTrack);

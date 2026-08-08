@@ -337,6 +337,11 @@ void CMACDlg::OnToolbarDropDown(NMHDR * pnmtb, LRESULT *)
             menu.AppendMenu(MF_STRING, 2100, _T("Clear MRU List"));
             break;
         }
+        default:
+        {
+            ASSERT(false);
+            break;
+        }
     }
 
     // load and display popup menu
@@ -453,7 +458,7 @@ void CMACDlg::OnFileAddFiles()
         OFN_ALLOWMULTISELECT | OFN_HIDEREADONLY, theApp.GetFormatArray()->GetOpenFilesFilter());
 
     // extra initialization (hacky, but safe)
-    CSmartPtr<TCHAR> spFilename(new TCHAR [(APE_MAX_PATH + 1) * 512], true); spFilename[0] = 0;
+    CSmartPtr<TCHAR> spFilename(new TCHAR [static_cast<size_t>(APE_MAX_PATH + 1) * 512], true); spFilename[0] = 0;
     FileDialog.m_ofn.lpstrInitialDir = m_strAddFilesBasePath;
     FileDialog.m_ofn.nMaxFile = APE_MAX_PATH * 512;
     FileDialog.m_ofn.lpstrFile = spFilename.GetPtr();
@@ -624,14 +629,16 @@ void CMACDlg::UpdateWindow()
         int nCompressionBitmap = TBB_COMPRESSION_EXTERNAL;
         if (theApp.GetSettings()->GetFormat() == COMPRESSION_APE)
         {
-            switch (theApp.GetSettings()->GetLevel())
-            {
-                case APE_COMPRESSION_LEVEL_FAST: nCompressionBitmap = TBB_COMPRESSION_APE_FAST; break;
-                case APE_COMPRESSION_LEVEL_NORMAL: nCompressionBitmap = TBB_COMPRESSION_APE_NORMAL; break;
-                case APE_COMPRESSION_LEVEL_HIGH: nCompressionBitmap = TBB_COMPRESSION_APE_HIGH; break;
-                case APE_COMPRESSION_LEVEL_EXTRA_HIGH: nCompressionBitmap = TBB_COMPRESSION_APE_EXTRA_HIGH; break;
-                case APE_COMPRESSION_LEVEL_INSANE: nCompressionBitmap = TBB_COMPRESSION_APE_INSANE; break;
-            }
+            if (theApp.GetSettings()->GetLevel() == APE_COMPRESSION_LEVEL_FAST)
+                nCompressionBitmap = TBB_COMPRESSION_APE_FAST;
+            else if (theApp.GetSettings()->GetLevel() == APE_COMPRESSION_LEVEL_NORMAL)
+                nCompressionBitmap = TBB_COMPRESSION_APE_NORMAL;
+            else if (theApp.GetSettings()->GetLevel() == APE_COMPRESSION_LEVEL_HIGH)
+                nCompressionBitmap = TBB_COMPRESSION_APE_HIGH;
+            else if (theApp.GetSettings()->GetLevel() == APE_COMPRESSION_LEVEL_EXTRA_HIGH)
+                nCompressionBitmap = TBB_COMPRESSION_APE_EXTRA_HIGH;
+            else if (theApp.GetSettings()->GetLevel() == APE_COMPRESSION_LEVEL_INSANE)
+                nCompressionBitmap = TBB_COMPRESSION_APE_INSANE;
         }
         SetToolbarButtonBitmap(ID_COMPRESSION, nCompressionBitmap);
     }

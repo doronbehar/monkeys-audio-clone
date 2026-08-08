@@ -262,7 +262,7 @@ void CAntiPredictorHigh3600To3700::AntiPredict(int * pInputArray, int * pOutputA
 void CAntiPredictorHigh3700To3800::AntiPredict(int * pInputArray, int * pOutputArray, int NumberOfElements)
 {
     // the frame to start prediction on
-    #define FIRST_ELEMENT    16
+    #define FIRST_ELEMENT    (16)
 
     // short frame handling
     if (NumberOfElements < 20)
@@ -272,7 +272,7 @@ void CAntiPredictorHigh3700To3800::AntiPredict(int * pInputArray, int * pOutputA
     }
 
     // make the first five samples identical in both arrays
-    memcpy(pOutputArray, pInputArray, FIRST_ELEMENT * 4);
+    memcpy(pOutputArray, pInputArray, static_cast<size_t>(FIRST_ELEMENT * 4));
 
     // variable declares and initializations
     int bm[FIRST_ELEMENT]; APE_CLEAR(bm);
@@ -303,40 +303,40 @@ void CAntiPredictorHigh3700To3800::AntiPredict(int * pInputArray, int * pOutputA
         if (Original > 0)
         {
             bm[0] -= ip[-1] > 0 ? 1 : -1;
-            bm[1] += ((static_cast<uint32>(ip[-2]) >> 30) & 2) - 1;
+            bm[1] += static_cast<int>(((static_cast<uint32>(ip[-2]) >> 30) & 2) - 1);
             bm[2] -= ip[-3] > 0 ? 1 : -1;
-            bm[3] += ((static_cast<uint32>(ip[-4]) >> 30) & 2) - 1;
+            bm[3] += static_cast<int>(((static_cast<uint32>(ip[-4]) >> 30) & 2) - 1);
             bm[4] -= ip[-5] > 0 ? 1 : -1;
-            bm[5] += ((static_cast<uint32>(ip[-6]) >> 30) & 2) - 1;
+            bm[5] += static_cast<int>(((static_cast<uint32>(ip[-6]) >> 30) & 2) - 1);
             bm[6] -= ip[-7] > 0 ? 1 : -1;
-            bm[7] += ((static_cast<uint32>(ip[-8]) >> 30) & 2) - 1;
+            bm[7] += static_cast<int>(((static_cast<uint32>(ip[-8]) >> 30) & 2) - 1);
             bm[8] -= ip[-9] > 0 ? 1 : -1;
-            bm[9] += ((static_cast<uint32>(ip[-10]) >> 30) & 2) - 1;
+            bm[9] += static_cast<int>(((static_cast<uint32>(ip[-10]) >> 30) & 2) - 1);
             bm[10] -= ip[-11] > 0 ? 1 : -1;
-            bm[11] += ((static_cast<uint32>(ip[-12]) >> 30) & 2) - 1;
+            bm[11] += static_cast<int>(((static_cast<uint32>(ip[-12]) >> 30) & 2) - 1);
             bm[12] -= ip[-13] > 0 ? 1 : -1;
-            bm[13] += ((static_cast<uint32>(ip[-14]) >> 30) & 2) - 1;
+            bm[13] += static_cast<int>(((static_cast<uint32>(ip[-14]) >> 30) & 2) - 1);
             bm[14] -= ip[-15] > 0 ? 1 : -1;
-            bm[15] += ((static_cast<uint32>(ip[-16]) >> 30) & 2) - 1;
+            bm[15] += static_cast<int>(((static_cast<uint32>(ip[-16]) >> 30) & 2) - 1);
         }
         else if (Original < 0)
         {
             bm[0] -= ip[-1] <= 0 ? 1 : -1;
-            bm[1] -= ((static_cast<uint32>(ip[-2]) >> 30) & 2) - 1;
+            bm[1] -= static_cast<int>(((static_cast<uint32>(ip[-2]) >> 30) & 2) - 1);
             bm[2] -= ip[-3] <= 0 ? 1 : -1;
-            bm[3] -= ((static_cast<uint32>(ip[-4]) >> 30) & 2) - 1;
+            bm[3] -= static_cast<int>(((static_cast<uint32>(ip[-4]) >> 30) & 2) - 1);
             bm[4] -= ip[-5] <= 0 ? 1 : -1;
-            bm[5] -= ((static_cast<uint32>(ip[-6]) >> 30) & 2) - 1;
+            bm[5] -= static_cast<int>(((static_cast<uint32>(ip[-6]) >> 30) & 2) - 1);
             bm[6] -= ip[-7] <= 0 ? 1 : -1;
-            bm[7] -= ((static_cast<uint32>(ip[-8]) >> 30) & 2) - 1;
+            bm[7] -= static_cast<int>(((static_cast<uint32>(ip[-8]) >> 30) & 2) - 1);
             bm[8] -= ip[-9] <= 0 ? 1 : -1;
-            bm[9] -= ((static_cast<uint32>(ip[-10]) >> 30) & 2) - 1;
+            bm[9] -= static_cast<int>(((static_cast<uint32>(ip[-10]) >> 30) & 2) - 1);
             bm[10] -= ip[-11] <= 0 ? 1 : -1;
-            bm[11] -= ((static_cast<uint32>(ip[-12]) >> 30) & 2) - 1;
+            bm[11] -= static_cast<int>(((static_cast<uint32>(ip[-12]) >> 30) & 2) - 1);
             bm[12] -= ip[-13] <= 0 ? 1 : -1;
-            bm[13] -= ((static_cast<uint32>(ip[-14]) >> 30) & 2) - 1;
+            bm[13] -= static_cast<int>(((static_cast<uint32>(ip[-14]) >> 30) & 2) - 1);
             bm[14] -= ip[-15] <= 0 ? 1 : -1;
-            bm[15] -= ((static_cast<uint32>(ip[-16]) >> 30) & 2) - 1;
+            bm[15] -= static_cast<int>(((static_cast<uint32>(ip[-16]) >> 30) & 2) - 1);
         }
 
         /////////////////////////////////////////////
@@ -379,7 +379,7 @@ void CAntiPredictorHigh3700To3800::AntiPredict(int * pInputArray, int * pOutputA
 void CAntiPredictorHigh3800To3929::AntiPredict(int * pInputArray, int * pOutputArray, int NumberOfElements)
 {
     // the frame to start prediction on
-    #define FIRST_ELEMENT    16
+    #define FIRST_ELEMENT    (16)
 
     // short frame handling
     if (NumberOfElements < 20)
@@ -389,7 +389,7 @@ void CAntiPredictorHigh3800To3929::AntiPredict(int * pInputArray, int * pOutputA
     }
 
     // make the first five samples identical in both arrays
-    memcpy(pOutputArray, pInputArray, FIRST_ELEMENT * 4);
+    memcpy(pOutputArray, pInputArray, static_cast<size_t>(FIRST_ELEMENT * 4));
 
     // variable declares and initializations
     int bm[FIRST_ELEMENT]; APE_CLEAR(bm);

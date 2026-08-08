@@ -4,7 +4,7 @@
 namespace APE
 {
 
-CWholeFileIO * CreateWholeFileIO(IAPEIO * pSource, int64 nSize)
+CWholeFileIO * CWholeFileIO::CreateWholeFileIO(IAPEIO * pSource, int64 nSize)
 {
     // the size should be correct
     ASSERT(nSize == pSource->GetSize());
@@ -80,10 +80,13 @@ CWholeFileIO * CreateWholeFileIO(IAPEIO * pSource, int64 nSize)
         try
         {
             spWholeFile.AllocateArray(n32BitSize);
-            //spWholeFile.Assign(new unsigned char[0x7FFFFFFF], true); // test for allocating a huge size
+            //spWholeFile.Assign(new unsigned char [0x7FFFFFFF], true); // test for allocating a huge size
         }
         catch (...)
         {
+            // if we catch the whole file should not have been created
+            // we'll delete it just to be safe
+            spWholeFile.Delete();
         }
 
         if (spWholeFile != APE_NULL)

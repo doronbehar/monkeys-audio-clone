@@ -8,6 +8,9 @@ namespace APE
 class CWholeFileIO : public IAPEIO
 {
 public:
+    // construction
+    static CWholeFileIO * CreateWholeFileIO(IAPEIO * pSource, int64 nSize);
+
     // construction / destruction
     CWholeFileIO(IAPEIO * pSource, unsigned char * pBuffer, int64 nFileBytes);
     ~CWholeFileIO() APE_OVERRIDE;
@@ -42,7 +45,5 @@ private:
     int64 m_nWholeFilePointer;
     int64 m_nWholeFileSize;
 };
-
-CWholeFileIO * CreateWholeFileIO(IAPEIO * pSource, int64 nSize);
 
 }

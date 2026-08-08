@@ -39,7 +39,7 @@ BEGIN_MESSAGE_MAP(COptionsOutputDlg, CDialog)
     ON_BN_CLICKED(IDC_OUTPUT_LOCATION_RECREATE_DIRECTORY_STRUCTURE_CHECK, &COptionsOutputDlg::OnOutputLocationRecreateDirectoryStructureCheck)
     ON_BN_CLICKED(IDOK, &COptionsOutputDlg::OnOK)
     ON_BN_CLICKED(IDCANCEL, &COptionsOutputDlg::OnCancel)
-    ON_REGISTERED_MESSAGE(UM_SAVE_PAGE_OPTIONS, &COptionsOutputDlg::OnSaveOptions)
+    ON_MESSAGE(UM_SAVE_PAGE_OPTIONS, &COptionsOutputDlg::OnSaveOptions)
 END_MESSAGE_MAP()
 
 BOOL COptionsOutputDlg::OnInitDialog()

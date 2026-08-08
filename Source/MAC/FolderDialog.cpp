@@ -61,16 +61,13 @@ void CFolderDialog::CallbackFunction(HWND hWnd, UINT uMsg, LPARAM lParam)
     m_hDialogBox = hWnd;
 
     // Dispatch the two message types to the virtual functions
-    switch (uMsg)
+    if (uMsg == BFFM_INITIALIZED)
     {
-    case BFFM_INITIALIZED:
-        {
-            OnInitDialog();
-        }
-        break;
-    case BFFM_SELCHANGED:
+        OnInitDialog();
+    }
+    else if (uMsg == BFFM_SELCHANGED)
+    {
         OnSelChanged(reinterpret_cast<ITEMIDLIST *>(lParam));
-        break;
     }
 }
 

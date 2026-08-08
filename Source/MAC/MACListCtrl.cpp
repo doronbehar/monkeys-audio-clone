@@ -529,6 +529,9 @@ void CMACListCtrl::OnGetdispinfo(NMHDR * pNMHDR, LRESULT * pResult)
                     strValue = GetStatus(File);
                     break;
                 }
+                default:
+                    ASSERT(false);
+                    break;
             }
 
             _tcsncpy_s(pDispInfo->item.pszText, pDispInfo->item.cchTextMax, strValue, APE_MAX(0, int(pDispInfo->item.cchTextMax - 1)));
@@ -788,7 +791,7 @@ void CMACListCtrl::OnLvnColumnclickList(NMHDR *pNMHDR, LRESULT *pResult)
 
         // sort
         s_pThis = this;
-        qsort(m_paryFiles->GetData(), static_cast<size_t>(m_paryFiles->GetSize()), sizeof(MAC_FILE **), CMACListCtrl::CompareStatic);
+        qsort(static_cast<void *>(m_paryFiles->GetData()), static_cast<size_t>(m_paryFiles->GetSize()), sizeof(MAC_FILE **), CMACListCtrl::CompareStatic);
 
         // update
         DeleteAllItems();

@@ -45,7 +45,7 @@ void AdaptSSE2(short * pM, const short * pAdapt, int32 nDirection, int nOrder)
     ASSERT(nOrder == 16 || (nOrder % 32) == 0);
 
     // figure out direction
-    const __m128i sseDir = _mm_set1_epi16((nDirection < 0) - (nDirection > 0));
+    const __m128i sseDir = _mm_set1_epi16(static_cast<short>((nDirection < 0) - (nDirection > 0)));
 
     int z = 0, n = 0;
     switch (nOrder)

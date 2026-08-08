@@ -79,6 +79,7 @@ __declspec(dllexport) HANDLE FAR PASCAL OpenFilterOutput(LPSTR lpstrFilename,lon
         case 3: nCompressLevel = APE_COMPRESSION_LEVEL_HIGH; break;
         case 4: nCompressLevel = APE_COMPRESSION_LEVEL_EXTRA_HIGH; break;
         case 5: nCompressLevel = APE_COMPRESSION_LEVEL_INSANE; break;
+        default: nCompressLevel = APE_COMPRESSION_LEVEL_NORMAL; break;
     }
 
     // we should try to optimize this for speed, because MACLib.lib doesn't care
@@ -129,7 +130,7 @@ __declspec(dllexport) DWORD FAR PASCAL WriteFilterOutput(HANDLE hOutput, unsigne
             if (n<-c2_23) n=-c2_23+1;
 
             if (n<0) n+=c2_24;
-            m=static_cast<long>(n+.5);
+            m=static_cast<long>(std::lround(n));
 
             pbuf[c++]=m&0xff;
             pbuf[c++]=(m>>8)&0xff;

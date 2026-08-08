@@ -9,6 +9,7 @@ class CID3v2Tag : public APE::IID3v2Tag
 {
 public:
     CID3v2Tag();
+    virtual ~CID3v2Tag() APE_OVERRIDE;
 
     // IID3v2Tag
     virtual bool Analyze(unsigned char * pTagData, int nTagBytes) APE_OVERRIDE;
@@ -34,7 +35,7 @@ public:
 private:
 
     void ConvertID3v2String(CSmartPtr<str_utfn> * pTag, ID3v2TextEncoding Encoding, unsigned char * pStart, int * pnLengthBytes = APE_NULL, int nBytes = -1);
-    void ReadTag(int z, uint32 nFrameBytes, CSmartPtr<str_utfn> * pTag);
+    void ReadTag(int64 z, uint32 nFrameBytes, CSmartPtr<str_utfn> * pTag);
 
     #pragma pack(push, 1)
     class CID3v2Header

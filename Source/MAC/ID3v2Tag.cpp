@@ -13,6 +13,11 @@ CID3v2Tag::CID3v2Tag()
     m_nImageBytes = 0;
 }
 
+CID3v2Tag::~CID3v2Tag()
+{
+    // added to make Clang happy
+}
+
 bool CID3v2Tag::Analyze(unsigned char * pTagData, int nTagBytes)
 {
     // create the buffer and copy the tag
@@ -97,7 +102,7 @@ bool CID3v2Tag::Analyze(unsigned char * pTagData, int nTagBytes)
         m_nTagBytes = APE_MIN(nTagBytesWithoutTailNull, nHeaderTagBytes);
 
         // loop the tag searching for frame markers
-        int z = nTagStartByte;
+        int64 z = nTagStartByte;
         while (z < (m_nTagBytes - 8))
         {
             // get frame size
@@ -211,7 +216,7 @@ bool CID3v2Tag::Analyze(unsigned char * pTagData, int nTagBytes)
             }
 
             // skip to the next tag (back off one since the loop increments)
-            z += nFrameBytes + 10; // skip this frame
+            z += static_cast<int64>(nFrameBytes) + 10; // skip this frame
         }
 
         // we found a tag
@@ -221,7 +226,7 @@ bool CID3v2Tag::Analyze(unsigned char * pTagData, int nTagBytes)
     return m_bFoundTag;
 }
 
-void CID3v2Tag::ReadTag(int z, uint32 nFrameBytes, CSmartPtr<str_utfn> * pTag)
+void CID3v2Tag::ReadTag(int64 z, uint32 nFrameBytes, CSmartPtr<str_utfn> * pTag)
 {
     // found a tag
     int nEncoding = m_spTag[z + 10];

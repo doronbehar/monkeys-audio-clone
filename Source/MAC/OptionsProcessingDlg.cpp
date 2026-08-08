@@ -41,7 +41,7 @@ BEGIN_MESSAGE_MAP(COptionsProcessingDlg, CDialog)
     ON_BN_CLICKED(IDOK, &COptionsProcessingDlg::OnOK)
     ON_BN_CLICKED(IDCANCEL, &COptionsProcessingDlg::OnCancel)
     ON_WM_DESTROY()
-    ON_REGISTERED_MESSAGE(UM_SAVE_PAGE_OPTIONS, &COptionsProcessingDlg::OnSaveOptions)
+    ON_MESSAGE(UM_SAVE_PAGE_OPTIONS, &COptionsProcessingDlg::OnSaveOptions)
 END_MESSAGE_MAP()
 
 BOOL COptionsProcessingDlg::OnInitDialog()

@@ -101,9 +101,7 @@ __declspec(dllexport) INT_PTR FAR PASCAL DIALOGMsgProc(HWND hWndDlg, UINT Messag
         //////////////////////////////////////////////////////////////////////////////////////////////
     case WM_COMMAND:
     {
-        switch (LOWORD(wParam))
-        {
-        case IDOK:
+        if (LOWORD(wParam) == IDOK)
         {
             long nDialogReturn = 0;
 
@@ -115,11 +113,9 @@ __declspec(dllexport) INT_PTR FAR PASCAL DIALOGMsgProc(HWND hWndDlg, UINT Messag
 
             EndDialog(hWndDlg, static_cast<short>(nDialogReturn));
         }
-        break;
-
-        case IDCANCEL:
+        else if (LOWORD(wParam) == IDCANCEL)
+        {
             EndDialog(hWndDlg, false);
-            break;
         }
         break;
     }

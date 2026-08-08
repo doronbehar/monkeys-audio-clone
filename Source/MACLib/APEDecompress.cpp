@@ -163,7 +163,7 @@ int CAPEDecompress::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlo
         if (nBlocksThisPass > 0)
         {
             m_cbFrameBuffer.Get(pBufferGet, static_cast<uint32>(nBlocksThisPass * m_nBlockAlign));
-            pBufferGet = &pBufferGet[nBlocksThisPass * m_nBlockAlign];
+            pBufferGet = &pBufferGet[nBlocksThisPass * static_cast<int64>(m_nBlockAlign)];
             nBlocksLeft -= nBlocksThisPass;
         }
     }

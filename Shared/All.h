@@ -97,8 +97,8 @@ Global includes
     #include <wchar.h>
     #include "NoWindows.h"
 #endif
-#define APE_CLEAR(destination) memset(&destination, 0, sizeof(destination))
-#define APE_CLEAR_ARRAY(destination, elements) memset(&destination[0], 0, sizeof(destination[0]) * static_cast<size_t>(elements))
+#define APE_CLEAR(destination) memset(&(destination), 0, sizeof(destination))
+#define APE_CLEAR_ARRAY(destination, elements) memset(&(destination)[0], 0, sizeof((destination)[0]) * static_cast<size_t>(elements))
 
 /**************************************************************************************************
 Min, max, and cap (as functions so we don't need to evaluate the number two times)
@@ -226,7 +226,7 @@ Global macros
 **************************************************************************************************/
 
 // use to set the thread count automatically using the system hardware
-#define APE_THREADS_AUTOMATIC -1
+#define APE_THREADS_AUTOMATIC (-1)
 
 // formats
 #define WAVE_FORMAT_PCM 1
@@ -242,7 +242,7 @@ Global macros
 #define APE_MAX_PATH 8192
 
 // undefined file size (pipe, etc.)
-#define APE_FILE_SIZE_UNDEFINED -1
+#define APE_FILE_SIZE_UNDEFINED (-1)
 
 // make a pointer into an int64
 #define APE_POINTER_TO_INT64(POINTER) static_cast<int64>(reinterpret_cast<uintptr_t>(POINTER))
@@ -372,12 +372,12 @@ Global defines
 #else
     #define APE_FILENAME_SLASH '/'
 #endif
-#define APE_ONE_MILLION                  1000000
-#define APE_BYTES_IN_KILOBYTE            1024
-#define APE_BYTES_IN_MEGABYTE            1048576
+#define APE_ONE_MILLION                  (1000000)
+#define APE_BYTES_IN_KILOBYTE            (1024)
+#define APE_BYTES_IN_MEGABYTE            APE::int64(1048576)
 #define APE_BYTES_IN_GIGABYTE            APE::int64(1073741824)
 
-#define APE_WAV_HEADER_OR_FOOTER_MAXIMUM_BYTES (APE_BYTES_IN_MEGABYTE * 8)
+#define APE_WAV_HEADER_OR_FOOTER_MAXIMUM_BYTES APE::int64(APE_BYTES_IN_MEGABYTE * 8)
 
 /**************************************************************************************************
 Byte order
@@ -400,9 +400,9 @@ Channels
 /**************************************************************************************************
 Macros
 **************************************************************************************************/
-#define APE_SAFE_DELETE(POINTER) if (POINTER) { delete POINTER; POINTER = APE_NULL; }
-#define APE_SAFE_ARRAY_DELETE(POINTER) if (POINTER) { delete [] POINTER; POINTER = APE_NULL; }
-#define APE_SAFE_FILE_CLOSE(HANDLE) if (HANDLE != INVALID_HANDLE_VALUE) { CloseHandle(HANDLE); HANDLE = INVALID_HANDLE_VALUE; }
+#define APE_SAFE_DELETE(POINTER) if (POINTER) { delete (POINTER); (POINTER) = APE_NULL; }
+#define APE_SAFE_ARRAY_DELETE(POINTER) if (POINTER) { delete [] (POINTER); (POINTER) = APE_NULL; }
+#define APE_SAFE_FILE_CLOSE(HANDLE) if ((HANDLE) != INVALID_HANDLE_VALUE) { CloseHandle(HANDLE); (HANDLE) = INVALID_HANDLE_VALUE; }
 
 #define APE_ODN(NUMBER) { TCHAR cNumber[16]; _stprintf(cNumber, _T("%d\n"), static_cast<int>(NUMBER)); APE_ODS(cNumber); }
 
@@ -428,44 +428,44 @@ Error Codes
 
 // success
 #undef ERROR_SUCCESS
-#define ERROR_SUCCESS                                   0
+#define ERROR_SUCCESS                                   (0)
 
 // file and i/o errors (1000's)
-#define ERROR_IO_READ                                   1000
-#define ERROR_IO_WRITE                                  1001
-#define ERROR_INVALID_INPUT_FILE                        1002
-#define ERROR_INVALID_OUTPUT_FILE                       1003
-#define ERROR_INPUT_FILE_TOO_LARGE                      1004
-#define ERROR_INPUT_FILE_UNSUPPORTED_BIT_DEPTH          1005
-#define ERROR_INPUT_FILE_UNSUPPORTED_SAMPLE_RATE        1006
-#define ERROR_INPUT_FILE_UNSUPPORTED_CHANNEL_COUNT      1007
-#define ERROR_INPUT_FILE_TOO_SMALL                      1008
-#define ERROR_INVALID_CHECKSUM                          1009
-#define ERROR_DECOMPRESSING_FRAME                       1010
-#define ERROR_INITIALIZING_UNMAC                        1011
-#define ERROR_INVALID_FUNCTION_PARAMETER                1012
-#define ERROR_UNSUPPORTED_FILE_TYPE                     1013
-#define ERROR_UNSUPPORTED_FILE_VERSION                  1014
-#define ERROR_OPENING_FILE_IN_USE                       1015
-#define ERROR_UAC_PERMISSION                            1016
+#define ERROR_IO_READ                                   (1000)
+#define ERROR_IO_WRITE                                  (1001)
+#define ERROR_INVALID_INPUT_FILE                        (1002)
+#define ERROR_INVALID_OUTPUT_FILE                       (1003)
+#define ERROR_INPUT_FILE_TOO_LARGE                      (1004)
+#define ERROR_INPUT_FILE_UNSUPPORTED_BIT_DEPTH          (1005)
+#define ERROR_INPUT_FILE_UNSUPPORTED_SAMPLE_RATE        (1006)
+#define ERROR_INPUT_FILE_UNSUPPORTED_CHANNEL_COUNT      (1007)
+#define ERROR_INPUT_FILE_TOO_SMALL                      (1008)
+#define ERROR_INVALID_CHECKSUM                          (1009)
+#define ERROR_DECOMPRESSING_FRAME                       (1010)
+#define ERROR_INITIALIZING_UNMAC                        (1011)
+#define ERROR_INVALID_FUNCTION_PARAMETER                (1012)
+#define ERROR_UNSUPPORTED_FILE_TYPE                     (1013)
+#define ERROR_UNSUPPORTED_FILE_VERSION                  (1014)
+#define ERROR_OPENING_FILE_IN_USE                       (1015)
+#define ERROR_UAC_PERMISSION                            (1016)
 
 // memory errors (2000's)
-#define ERROR_INSUFFICIENT_MEMORY                       2000
+#define ERROR_INSUFFICIENT_MEMORY                       (2000)
 
 // dll errors (3000's)
-#define ERROR_LOADING_APE_DLL                           3000
-#define ERROR_LOADING_APE_INFO_DLL                      3001
-#define ERROR_LOADING_UNMAC_DLL                         3002
+#define ERROR_LOADING_APE_DLL                           (3000)
+#define ERROR_LOADING_APE_INFO_DLL                      (3001)
+#define ERROR_LOADING_UNMAC_DLL                         (3002)
 
 // general and misc errors
-#define ERROR_USER_STOPPED_PROCESSING                   4000
-#define ERROR_SKIPPED                                   4001
+#define ERROR_USER_STOPPED_PROCESSING                   (4000)
+#define ERROR_SKIPPED                                   (4001)
 
 // programmer errors
-#define ERROR_BAD_PARAMETER                             5000
+#define ERROR_BAD_PARAMETER                             (5000)
 
 // IAPECompress errors
-#define ERROR_APE_COMPRESS_TOO_MUCH_DATA                6000
+#define ERROR_APE_COMPRESS_TOO_MUCH_DATA                (6000)
 
 // unknown error
-#define ERROR_UNDEFINED                                -1
+#define ERROR_UNDEFINED                                 (-1)

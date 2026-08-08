@@ -740,7 +740,7 @@ int CAPETag::LoadField(const char * pBuffer, int nMaximumBytes, int * pBytes)
     {
         for (int z = 0; z < nMaximumRead; z++)
         {
-            const int nCharacter = pBuffer[nLocation + z];
+            const int nCharacter = static_cast<int>(static_cast<unsigned char>(pBuffer[nLocation + z])); // treat the buffer as 0-255 instead of of possibly negative
             if (nCharacter == 0)
             {
                 bSafe = true;
@@ -856,7 +856,7 @@ int CAPETag::SetFieldBinary(const str_utfn * pFieldName, const void * pFieldValu
         m_nAllocatedFields = APE_MAX(m_nAllocatedFields, 256);
         CAPETagField ** paryFields = new CAPETagField * [static_cast<size_t>(m_nAllocatedFields)];
         if (nOriginalAllocatedFields > 0)
-            memcpy(paryFields, m_aryFields, sizeof(paryFields[0]) * static_cast<size_t>(nOriginalAllocatedFields));
+            memcpy(static_cast<void *>(paryFields), static_cast<const void *>(&m_aryFields[0]), sizeof(paryFields[0]) * static_cast<size_t>(nOriginalAllocatedFields));
         APE_SAFE_ARRAY_DELETE(m_aryFields)
         m_aryFields = paryFields;
     }
@@ -906,7 +906,8 @@ int CAPETag::RemoveField(int nIndex)
             delete m_aryFields[nIndex];
             m_aryFields[nIndex] = APE_NULL;
         }
-        memmove(&m_aryFields[nIndex], &m_aryFields[static_cast<size_t>(nIndex) + 1], (static_cast<size_t>(m_nAllocatedFields) - static_cast<size_t>(nIndex) - 1) * sizeof(m_aryFields[0]));
+        
+        memmove(static_cast<void *>(&m_aryFields[nIndex]), static_cast<void *>(&m_aryFields[static_cast<size_t>(nIndex) + 1]), (static_cast<size_t>(m_nAllocatedFields) - static_cast<size_t>(nIndex) - 1) * sizeof(m_aryFields[0]));
         m_nFields--;
         return ERROR_SUCCESS;
     }
@@ -1027,7 +1028,7 @@ int CAPETag::SortFields()
 {
     // sort the tag fields by size (so that the smallest fields are at the front of the tag)
     if (m_nFields > 1)
-        qsort(m_aryFields, static_cast<size_t>(m_nFields), sizeof(m_aryFields[0]), CompareFields);
+        qsort(static_cast<void *>(m_aryFields), static_cast<size_t>(m_nFields), sizeof(m_aryFields[0]), CompareFields);
 
     return ERROR_SUCCESS;
 }

@@ -4,9 +4,6 @@
 #include <atomic>
 using namespace APE;
 
-// define globally because defining it just in the function leads to this warning: construction of local static object is not thread safe (after setting the /Zc:threadSafeInit- which was needed for XP)
-static std::atomic<uint32> s_nWindowNumber(100000);
-
 void FixDirectory(CString & strDirectory)
 {
     if (strDirectory.Right(1) != _T("\\"))
@@ -80,7 +77,7 @@ void CreateDirectoryEx(CString strDirectory)
     CreateDirectoryEx(strDirectory.Left(nFound));
 
     // actual work
-    CreateDirectory(strDirectory,APE_NULL);
+    CreateDirectory(strDirectory, APE_NULL);
 }
 
 void ListFiles(CStringArray * pStringArray, CString strPath, bool bRecurse)

@@ -19,16 +19,16 @@ Pretty simple and straightforward console front end.
 using namespace APE;
 
 // defines
-#define COMPRESS_MODE               0
-#define DECOMPRESS_MODE             1
-#define VERIFY_MODE                 2
-#define CONVERT_MODE                3
-#define TAG_MODE                    4
-#define VERIFY_FULL_MODE            5
-#define REMOVE_TAG_MODE             6
-#define CONVERT_TAG_TO_LEGACY_MODE  7
-#define TAG_DUMP_MODE               8
-#define UNDEFINED_MODE              -1
+#define COMPRESS_MODE               (0)
+#define DECOMPRESS_MODE             (1)
+#define VERIFY_MODE                 (2)
+#define CONVERT_MODE                (3)
+#define TAG_MODE                    (4)
+#define VERIFY_FULL_MODE            (5)
+#define REMOVE_TAG_MODE             (6)
+#define CONVERT_TAG_TO_LEGACY_MODE  (7)
+#define TAG_DUMP_MODE               (8)
+#define UNDEFINED_MODE              (-1)
 
 // global variables
 static CAPEDuration g_ProcessingDuration;

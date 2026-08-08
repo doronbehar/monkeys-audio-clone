@@ -4,7 +4,10 @@
 #include "OptionsProcessingDlg.h"
 #include "OptionsOutputDlg.h"
 
-const UINT UM_SAVE_PAGE_OPTIONS = RegisterWindowMessage(_T("Monkey's Audio: Save Page Options"));
+/**************************************************************************************************
+Define UM_SAVE_PAGE_OPTIONS (as an IIFE instead of a static to make Clang happy)
+**************************************************************************************************/
+const UINT UM_SAVE_PAGE_OPTIONS = WM_APP + 101;
 
 /**************************************************************************************************
 OPTIONS_PAGE - base class for options

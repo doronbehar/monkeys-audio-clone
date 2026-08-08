@@ -298,7 +298,8 @@ DWORD WINAPI __stdcall CAPEWinampPlugin::DecodeThread(void * pbKillSwitch)
     long nSilenceMS = 0;
 
     // the sample buffer...must be able to hold twice the original 1152 samples for DSP
-    CSmartPtr<unsigned char> spSampleBuffer(1152 * 2 * s_spAPEDecompressPlay->GetInfo(IAPEDecompress::APE_INFO_CHANNELS) * m_nScaledBytesPerSample);
+    int64 nBufferSize = s_spAPEDecompressPlay->GetInfo(IAPEDecompress::APE_INFO_CHANNELS) * 1152 * 2 * static_cast<int64>(m_nScaledBytesPerSample);
+    CSmartPtr<unsigned char> spSampleBuffer(nBufferSize);
 
     // start the decoding loop
     while (!*(reinterpret_cast<int *>(pbKillSwitch)))
@@ -316,7 +317,7 @@ DWORD WINAPI __stdcall CAPEWinampPlugin::DecodeThread(void * pbKillSwitch)
             double dSeekBlock = static_cast<double>(s_spAPEDecompressPlay->GetInfo(IAPEDecompress::APE_DECOMPRESS_TOTAL_BLOCKS)) * dSeekPercentage;
 
             // seek
-            int64 nSeekBlock = static_cast<int64>(dSeekBlock + 0.5);
+            int64 nSeekBlock = std::lround(dSeekBlock);
             s_spAPEDecompressPlay->Seek(nSeekBlock);
 
             // flush out the output module of data already in it
@@ -969,7 +970,7 @@ Album art
 extern "C" int APE_GetAlbumArt(const wchar_t * filename, const wchar_t * type, void ** bits, size_t * len, wchar_t ** mime_type)
 {
     // error check
-    if (!filename || !*filename || _wcsicmp(type, L"cover"))
+    if (!filename || !*filename || (_wcsicmp(type, L"cover") != 0))
         return -1;
 
     // open file
@@ -1034,7 +1035,7 @@ extern "C" int APE_GetAlbumArt(const wchar_t * filename, const wchar_t * type, v
 extern "C" int APE_SetAlbumArt(const wchar_t * filename, const wchar_t * type, void * /*bits*/, size_t /*len*/, const wchar_t * /*mime_type*/)
 {
     // error check
-    if (!filename || !*filename || _wcsicmp(type, L"cover"))
+    if (!filename || !*filename || (_wcsicmp(type, L"cover") != 0))
         return -1;
 
     // open file
@@ -1055,7 +1056,7 @@ extern "C" int APE_SetAlbumArt(const wchar_t * filename, const wchar_t * type, v
 extern "C" int APE_DeleteAlbumArt(const wchar_t * filename, const wchar_t * type)
 {
     // error check
-    if (!filename || !*filename || _wcsicmp(type, L"cover"))
+    if (!filename || !*filename || (_wcsicmp(type, L"cover") != 0))
         return -1;
 
     // open file

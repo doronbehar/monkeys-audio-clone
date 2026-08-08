@@ -185,6 +185,7 @@ __declspec(dllexport) DWORD FAR PASCAL FilterOptions(HANDLE hInput)
         case APE_COMPRESSION_LEVEL_HIGH: nCompressionLevel = 3; break;
         case APE_COMPRESSION_LEVEL_EXTRA_HIGH: nCompressionLevel = 4; break;
         case APE_COMPRESSION_LEVEL_INSANE: nCompressionLevel = 5; break;
+        default: nCompressionLevel = 2; break;
         }
     }
 

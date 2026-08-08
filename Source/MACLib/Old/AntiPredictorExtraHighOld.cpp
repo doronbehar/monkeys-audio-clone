@@ -244,7 +244,7 @@ void CAntiPredictorExtraHigh3800To3929::AntiPredictCustom(int * pInputArray, int
     short * IPShort = static_cast<short *>(calloc(static_cast<size_t>(NumberOfElements), 2));
     for (q = 0; q < nFirstElement; q++)
     {
-        IPAdaptFactor[q] = ((pInputArray[q] >> 30) & 2) - 1;
+        IPAdaptFactor[q] = static_cast<short>(((pInputArray[q] >> 30) & 2) - 1);
         IPShort[q] = static_cast<short>(pInputArray[q]);
     }
 
@@ -280,12 +280,12 @@ void CAntiPredictorExtraHigh3800To3929::AntiPredictCustom(int * pInputArray, int
         Original = *ip;
 
         IPShort[q] = static_cast<short>(*ip);
-        IPAdaptFactor[q] = ((ip[0] >> 30) & 2) - 1;
+        IPAdaptFactor[q] = static_cast<short>(((ip[0] >> 30) & 2) - 1);
 
         *ip -= (Helper.ConventionalDotProduct(&IPShort[q-nFirstElement], &bm[0], &IPAdaptFactor[q-nFirstElement], Original, nFilterStageElements) >> nFilterStageShift);
 
         IPShort[q] = static_cast<short>(*ip);
-        IPAdaptFactor[q] = ((ip[0] >> 30) & 2) - 1;
+        IPAdaptFactor[q] = static_cast<short>(((ip[0] >> 30) & 2) - 1);
 
         /////////////////////////////////////////////
         *op = *ip + (((p2 * m2) + (p3 * m3) + (p4 * m4)) >> 11);

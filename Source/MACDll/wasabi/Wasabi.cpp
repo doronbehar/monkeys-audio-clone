@@ -1,3 +1,4 @@
+// NOLINTBEGIN
 #pragma warning(disable: 4464) // includes with .. but the Winamp code does this now, so let it pass here
 #pragma warning(disable: 4574) // another Winamp warning
 #include "../stdafx.h"
@@ -240,3 +241,5 @@ CB(WASERVICEFACTORY_GETTESTSTRING, GetTestString)
 CB(WASERVICEFACTORY_SERVICENOTIFY, ServiceNotify)
 END_DISPATCH
 #undef CBCLASS
+
+// NOLINTEND

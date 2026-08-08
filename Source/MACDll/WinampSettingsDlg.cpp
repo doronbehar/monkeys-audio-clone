@@ -99,27 +99,31 @@ void CWinampSettingsDlg::OnOK()
 int CWinampSettingsDlg::GetSliderFromThreadPriority()
 {
     int nSlider = 4;
-    switch (m_nThreadPriority)
-    {
-        case THREAD_PRIORITY_LOWEST: nSlider = 0; break;
-        case THREAD_PRIORITY_BELOW_NORMAL: nSlider = 1; break;
-        case THREAD_PRIORITY_NORMAL: nSlider = 2; break;
-        case THREAD_PRIORITY_ABOVE_NORMAL: nSlider = 3; break;
-        case THREAD_PRIORITY_HIGHEST: nSlider = 4; break;
-    }
+    if (m_nThreadPriority == THREAD_PRIORITY_LOWEST)
+        nSlider = 0;
+    else if (m_nThreadPriority == THREAD_PRIORITY_BELOW_NORMAL)
+        nSlider = 1;
+    else if (m_nThreadPriority == THREAD_PRIORITY_NORMAL)
+        nSlider = 2;
+    else if (m_nThreadPriority == THREAD_PRIORITY_ABOVE_NORMAL)
+        nSlider = 3;
+    else if (m_nThreadPriority == THREAD_PRIORITY_HIGHEST)
+        nSlider = 4;
     return nSlider;
 }
 
 int CWinampSettingsDlg::GetThreadPriorityFromSlider()
 {
     int nThreadPriority = THREAD_PRIORITY_HIGHEST;
-    switch (m_ctrlThreadPrioritySlider.GetPos())
-    {
-        case 0: nThreadPriority = THREAD_PRIORITY_LOWEST; break;
-        case 1: nThreadPriority = THREAD_PRIORITY_BELOW_NORMAL; break;
-        case 2: nThreadPriority = THREAD_PRIORITY_NORMAL; break;
-        case 3: nThreadPriority = THREAD_PRIORITY_ABOVE_NORMAL; break;
-        case 4: nThreadPriority = THREAD_PRIORITY_HIGHEST; break;
-    }
+    if (m_ctrlThreadPrioritySlider.GetPos() == 0)
+        nThreadPriority = THREAD_PRIORITY_LOWEST;
+    else if (m_ctrlThreadPrioritySlider.GetPos() == 1)
+        nThreadPriority = THREAD_PRIORITY_BELOW_NORMAL;
+    else if (m_ctrlThreadPrioritySlider.GetPos() == 2)
+        nThreadPriority = THREAD_PRIORITY_NORMAL;
+    else if (m_ctrlThreadPrioritySlider.GetPos() == 3)
+        nThreadPriority = THREAD_PRIORITY_ABOVE_NORMAL;
+    else if (m_ctrlThreadPrioritySlider.GetPos() == 4)
+        nThreadPriority = THREAD_PRIORITY_HIGHEST;
     return nThreadPriority;
 }

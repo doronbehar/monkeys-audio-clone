@@ -155,11 +155,14 @@ int CAPECompressCreate::WriteFrame(unsigned char * pOutputData, uint32 nBytes)
     FixupFrame(pOutputData, nBytes, m_nFinalWord, m_nFinalBytes);
     nBytes += m_nFinalBytes;
 
+    // size rounded down
+    int64 nBytesRoundedDown = static_cast<int64>(nBytes) / 4 * 4;
+
     // add to MD5
-    m_MD5.AddData(pOutputData, static_cast<int64>(nBytes / 4 * 4));
+    m_MD5.AddData(pOutputData, nBytesRoundedDown);
 
     // write data
-    nResult = m_spIO->Write(pOutputData, static_cast<int64>(nBytes / 4 * 4));
+    nResult = m_spIO->Write(pOutputData, nBytesRoundedDown);
     if (nResult != ERROR_SUCCESS)
         return nResult;
 

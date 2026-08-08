@@ -81,7 +81,7 @@ CAPEInfo::CAPEInfo(int * pErrorCode, const str_utfn * pFilename, IAPETag * pTag,
         // only create if we're less than 200 MB
         if ((nSize == APE_FILE_SIZE_UNDEFINED) || (nSize < (APE_BYTES_IN_MEGABYTE * 200)))
         {
-            CWholeFileIO * pWholeFile = CreateWholeFileIO(m_spIO, nSize);
+            CWholeFileIO * pWholeFile = CWholeFileIO::CreateWholeFileIO(m_spIO, nSize);
             if (pWholeFile != APE_NULL)
             {
                 m_spIO.SetDelete(false);

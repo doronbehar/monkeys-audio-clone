@@ -184,7 +184,7 @@ void CAntiPredictorNormal3320To3800::AntiPredict(int * pInputArray, int * pOutpu
 void CAntiPredictorNormal3800To3929::AntiPredict(int * pInputArray, int * pOutputArray, int NumberOfElements)
 {
     // the frame to start prediction on
-    #define FIRST_ELEMENT    4
+    #define FIRST_ELEMENT    (4)
 
     // short frame handling
     if (NumberOfElements < 8)
@@ -194,7 +194,7 @@ void CAntiPredictorNormal3800To3929::AntiPredict(int * pInputArray, int * pOutpu
     }
 
     // make the first five samples identical in both arrays
-    memcpy(pOutputArray, pInputArray, FIRST_ELEMENT * 4);
+    memcpy(pOutputArray, pInputArray, static_cast<size_t>(FIRST_ELEMENT * 4));
 
     // variable declares and initializations
     int m2 = 64, m3 = 115, m4 = 64, m5 = 740, m6 = 0;

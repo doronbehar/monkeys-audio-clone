@@ -90,12 +90,12 @@ Defines
 #define APE_FORMAT_FLAG_SIGNED_8_BIT        (1 << 11)   // 8-bit values are signed
 #define APE_FORMAT_FLAG_FLOATING_POINT      (1 << 12)   // floating point
 
-#define APE_KILL_FLAG_CONTINUE              0
-#define APE_KILL_FLAG_PAUSE                 -1
-#define APE_KILL_FLAG_STOP                  1
+#define APE_KILL_FLAG_CONTINUE              (0)
+#define APE_KILL_FLAG_PAUSE                 (-1)
+#define APE_KILL_FLAG_STOP                  (1)
 
-#define CREATE_WAV_HEADER_ON_DECOMPRESSION    -1
-#define MAX_AUDIO_BYTES_UNKNOWN -1
+#define CREATE_WAV_HEADER_ON_DECOMPRESSION  (-1)
+#define MAX_AUDIO_BYTES_UNKNOWN             (-1)
 
 /**************************************************************************************************
 All structures are designed for 4-byte alignment

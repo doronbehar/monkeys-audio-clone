@@ -95,14 +95,16 @@ bool CFormatAPE::BuildMenu(CMenu * pMenu, int)
 bool CFormatAPE::ProcessMenuCommand(int nCommand)
 {
     int nCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL;
-    switch (nCommand)
-    {
-        case 0: nCompressionLevel = APE_COMPRESSION_LEVEL_FAST; break;
-        case 1: nCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL; break;
-        case 2: nCompressionLevel = APE_COMPRESSION_LEVEL_HIGH; break;
-        case 3: nCompressionLevel = APE_COMPRESSION_LEVEL_EXTRA_HIGH; break;
-        case 4: nCompressionLevel = APE_COMPRESSION_LEVEL_INSANE; break;
-    }
+    if (nCommand == 0)
+        nCompressionLevel = APE_COMPRESSION_LEVEL_FAST;
+    else if (nCompressionLevel == 1)
+        nCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL;
+    else if (nCompressionLevel == 2)
+        nCompressionLevel = APE_COMPRESSION_LEVEL_HIGH;
+    else if (nCompressionLevel == 3)
+        nCompressionLevel = APE_COMPRESSION_LEVEL_EXTRA_HIGH;
+    else if (nCompressionLevel == 4)
+        nCompressionLevel = APE_COMPRESSION_LEVEL_INSANE;
     theApp.GetSettings()->SetCompression(GetName(), nCompressionLevel);
 
     return true;

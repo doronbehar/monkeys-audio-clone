@@ -76,7 +76,7 @@ bool CMACSettings::Load()
 
     // processing
     // std::thread::hardware_concurrency() returns 32 on my i9-13900KF
-    int nDefaultSimultaneousFiles = APE_MAX<int>(4, std::thread::hardware_concurrency() / 4);
+    int nDefaultSimultaneousFiles = APE_MAX<int>(4, static_cast<int>(std::thread::hardware_concurrency() / 4));
     m_nProcessingSimultaneousFiles = LoadSetting(_T("Processing Simultaneous Files"), nDefaultSimultaneousFiles);
     m_nProcessingPriorityMode = LoadSetting(_T("Processing Priority Mode"), PROCESSING_PRIORITY_MODE_NORMAL);
     m_bProcessingStopOnErrors = LoadSettingBoolean(_T("Processing Stop On Errors"), true);
@@ -170,7 +170,7 @@ void CMACSettings::SetCompression(const CString & strFormat, int nLevel)
     m_nLevel = nLevel;
 }
 
-CString CMACSettings::GetModeName()
+CString CMACSettings::GetModeName() const
 {
     CString strRetVal;
 
@@ -181,7 +181,7 @@ CString CMACSettings::GetModeName()
     return strRetVal;
 }
 
-CString CMACSettings::GetCompressionName()
+CString CMACSettings::GetCompressionName() const
 {
     CString strRetVal;
 

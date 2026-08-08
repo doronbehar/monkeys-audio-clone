@@ -15,7 +15,7 @@ BEGIN_MESSAGE_MAP(CMACApp, CWinApp)
     ON_COMMAND(ID_HELP, &CMACApp::OnHelp)
 END_MESSAGE_MAP()
 
-CMACApp::CMACApp()
+CMACApp::CMACApp() noexcept
 {
     // initialize
     m_dScale = -1.0; // default to an impossible value so the first SetScale(...) call returns that it changed

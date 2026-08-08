@@ -67,11 +67,11 @@ public:
     // helpers
     inline APE::APE_MODES GetMode() const { return m_Mode; }
     inline CString GetFormat() const { return m_strFormat; }
-    inline int GetLevel() const { return m_nLevel;}
+    inline int GetLevel() const { return m_nLevel; }
     void SetMode(APE::APE_MODES Mode);
     void SetCompression(const CString & strFormat, int nLevel);
-    CString GetModeName();
-    CString GetCompressionName();
+    CString GetModeName() const;
+    CString GetCompressionName() const;
 
 protected:
     APE::APE_MODES m_Mode;

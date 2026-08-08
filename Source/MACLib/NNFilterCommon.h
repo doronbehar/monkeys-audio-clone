@@ -6,8 +6,8 @@
 Macros for SIMD expansion
 **************************************************************************************************/
 
-#define EXPAND_SIMD_2(OFFSET, INCREMENT, CODE) {{ OFFSET = 0; CODE } { OFFSET = 1 * INCREMENT; CODE }}
-#define EXPAND_SIMD_4(OFFSET, INCREMENT, CODE) {{ OFFSET = 0; CODE } { OFFSET = 1 * INCREMENT; CODE } { OFFSET = 2 * INCREMENT; CODE } { OFFSET = 3 * INCREMENT; CODE }}
+#define EXPAND_SIMD_2(OFFSET, INCREMENT, CODE) {{ (OFFSET) = 0; CODE } { (OFFSET) = 1 * (INCREMENT); CODE }}
+#define EXPAND_SIMD_4(OFFSET, INCREMENT, CODE) {{ (OFFSET) = 0; CODE } { (OFFSET) = 1 * (INCREMENT); CODE } { (OFFSET) = 2 * (INCREMENT); CODE } { (OFFSET) = 3 * (INCREMENT); CODE }}
 
 /**************************************************************************************************
 Macros to avoid code duplication
@@ -18,11 +18,11 @@ Macros to avoid code duplication
     INTTYPE nTempABS = Abs(VALUE);                              \
                                                                 \
     if (nTempABS > (m_nRunningAverage * 3))                     \
-        m_rbDeltaM[0] = ((VALUE >> 25) & 64) - 32;              \
+        m_rbDeltaM[0] = (((VALUE) >> 25) & 64) - 32;            \
     else if (nTempABS > (m_nRunningAverage * 4) / 3)            \
-        m_rbDeltaM[0] = ((VALUE >> 26) & 32) - 16;              \
+        m_rbDeltaM[0] = (((VALUE) >> 26) & 32) - 16;            \
     else if (nTempABS > 0)                                      \
-        m_rbDeltaM[0] = ((VALUE >> 27) & 16) - 8;               \
+        m_rbDeltaM[0] = (((VALUE) >> 27) & 16) - 8;             \
     else                                                        \
         m_rbDeltaM[0] = 0;                                      \
                                                                 \
@@ -35,7 +35,7 @@ Macros to avoid code duplication
 
 #define UPDATE_DELTA_OLD(VALUE)                                 \
 {                                                               \
-    m_rbDeltaM[0] = (VALUE == 0) ? 0 : ((VALUE >> 28) & 8) - 4; \
+    m_rbDeltaM[0] = ((VALUE) == 0) ? 0 : (((VALUE) >> 28) & 8) - 4; \
     m_rbDeltaM[-4] >>= 1;                                       \
     m_rbDeltaM[-8] >>= 1;                                       \
 }
@@ -51,7 +51,7 @@ APE_INLINE short GetSaturatedShortFromInt(int32 nValue)
 {
     short sValue = static_cast<short>(nValue);
     if (sValue != nValue)
-        sValue = (nValue >> (8 * sizeof(int32) - 1)) ^ 0x7FFF;
+        sValue = static_cast<short>((nValue >> (8 * sizeof(int32) - 1)) ^ 0x7FFF);
     return sValue;
 }
 
@@ -59,7 +59,7 @@ APE_INLINE short GetSaturatedShortFromInt(int64 nValue)
 {
     short sValue = static_cast<short>(nValue);
     if (sValue != nValue)
-        sValue = (nValue >> (8 * sizeof(int64) - 1)) ^ 0x7FFF;
+        sValue = static_cast<short>((nValue >> (8 * sizeof(int64) - 1)) ^ 0x7FFF);
     return sValue;
 }
 
