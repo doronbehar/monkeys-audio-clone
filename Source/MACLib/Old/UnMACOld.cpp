@@ -94,7 +94,22 @@ Decompress frame
 **************************************************************************************************/
 intn CUnMACOld::DecompressFrame(unsigned char * pOutputData, int32 nFrameIndex, int * pErrorCode)
 {
-    return DecompressFrameOld(pOutputData, nFrameIndex, pErrorCode);
+    try
+    {
+        return DecompressFrameOld(pOutputData, nFrameIndex, pErrorCode);
+    }
+    catch (const intn nErrorCode)
+    {
+        if (pErrorCode)
+            *pErrorCode = static_cast<int>(nErrorCode);
+        return -1; // error state
+    }
+    catch (...)
+    {
+        if (pErrorCode)
+            *pErrorCode = ERROR_INVALID_INPUT_FILE;
+        return -1; // error state
+    }
 }
 
 /**************************************************************************************************
@@ -106,8 +121,8 @@ int CUnMACOld::SeekToFrame(intn FrameIndex)
     {
         if ((m_LastDecodedFrameIndex == -1) || ((FrameIndex - 1) != m_LastDecodedFrameIndex))
         {
-            const intn SeekRemainder = (m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_SEEK_BYTE, FrameIndex) - m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_SEEK_BYTE, 0)) % 4;
-            m_spAPEDecompressCore->GetUnBitArrray()->FillAndResetBitArray(m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_SEEK_BYTE, FrameIndex) - SeekRemainder, static_cast<int64>(SeekRemainder) * 8);
+            const int64 nSeekRemainder = (m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_SEEK_BYTE, FrameIndex) - m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_SEEK_BYTE, 0)) % 4;
+            m_spAPEDecompressCore->GetUnBitArrray()->FillAndResetBitArray(m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_SEEK_BYTE, FrameIndex) - nSeekRemainder, nSeekRemainder * 8);
         }
         else
         {

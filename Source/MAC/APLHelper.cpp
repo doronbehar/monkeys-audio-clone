@@ -229,7 +229,7 @@ int64 CAPLHelper::GetAPESampleRate(const CString & strFilename)
         int nFunctionRetVal = ERROR_SUCCESS;
 
         spAPEDecompress.Assign(CreateIAPEDecompress(strFilename, &nFunctionRetVal, true, false, false));
-        if (spAPEDecompress == APE_NULL || nFunctionRetVal != ERROR_SUCCESS) throw(nFunctionRetVal);
+        if (spAPEDecompress == APE_NULL || nFunctionRetVal != ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
 
         nSampleRate = spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_SAMPLE_RATE);
     }

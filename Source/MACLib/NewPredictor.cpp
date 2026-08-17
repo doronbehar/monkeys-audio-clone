@@ -41,7 +41,7 @@ template <class INTTYPE, class DATATYPE> CPredictorCompress<INTTYPE, DATATYPE>::
     }
     else
     {
-        throw(1);
+        throw(static_cast<intn>(ERROR_UNDEFINED));
     }
 }
 
@@ -183,7 +183,7 @@ template <class INTTYPE, class DATATYPE> CPredictorDecompress3950toCurrent<INTTY
     }
     else
     {
-        throw(1);
+        throw(static_cast<intn>(ERROR_UNDEFINED));
     }
 }
 

@@ -177,21 +177,24 @@ CAPESource::~CAPESource()
     }
 }
 
-STDMETHODIMP CAPESource::GetCurFile(LPOLESTR *ppszFileName, AM_MEDIA_TYPE *pmt)
+STDMETHODIMP CAPESource::GetCurFile(LPOLESTR * ppszFileName, AM_MEDIA_TYPE * pmt)
 {
     CheckPointer(ppszFileName, E_POINTER)
     *ppszFileName = NULL;
 
-    if (m_pFileName != NULL) {
-        DWORD n = static_cast<DWORD>(sizeof(WCHAR)*(static_cast<size_t>(1)+static_cast<size_t>(lstrlenW(m_pFileName))));
-
-        *ppszFileName = static_cast<LPOLESTR>(CoTaskMemAlloc( n ));
-        if (*ppszFileName!=NULL) {
+    if (m_pFileName != NULL) 
+    {
+        size_t n = sizeof(WCHAR) * (static_cast<size_t>(1) + static_cast<size_t>(lstrlenW(m_pFileName)));
+        
+        *ppszFileName = static_cast<LPOLESTR>(CoTaskMemAlloc(n));
+        if (*ppszFileName != NULL) 
+        {
             CopyMemory(*ppszFileName, m_pFileName, n);
         }
     }
 
-    if (pmt!=NULL) {
+    if (pmt != NULL) 
+    {
         CopyMediaType(pmt, &((static_cast<CAPEStream *>(m_paStreams[0]))->m_mtOut));
     }
 
@@ -199,14 +202,15 @@ STDMETHODIMP CAPESource::GetCurFile(LPOLESTR *ppszFileName, AM_MEDIA_TYPE *pmt)
 }
 
 
-STDMETHODIMP CAPESource::Load(LPCOLESTR lpwszFileName, const AM_MEDIA_TYPE *pmt)
+STDMETHODIMP CAPESource::Load(LPCOLESTR lpwszFileName, const AM_MEDIA_TYPE * pmt)
 {
     CheckPointer(lpwszFileName, E_POINTER)
 
     // lstrlenW is one of the few Unicode functions that works on win95
     size_t cch = static_cast<size_t>(lstrlenW(lpwszFileName)) + static_cast<size_t>(1);
     m_pFileName = new WCHAR[cch];
-    if (m_pFileName!=NULL) CopyMemory(m_pFileName, lpwszFileName, cch * sizeof(WCHAR));
+    if (m_pFileName != NULL) 
+        CopyMemory(m_pFileName, lpwszFileName, cch * sizeof(WCHAR));
 
     // open the file
     CAPEStream * pStream = static_cast<CAPEStream *>(m_paStreams[0]);
@@ -215,11 +219,12 @@ STDMETHODIMP CAPESource::Load(LPCOLESTR lpwszFileName, const AM_MEDIA_TYPE *pmt)
     return hr;
 }
 
-STDMETHODIMP CAPESource::NonDelegatingQueryInterface(REFIID riid,void **ppv)
+STDMETHODIMP CAPESource::NonDelegatingQueryInterface(REFIID riid,void ** ppv)
 {
     CheckPointer(ppv,E_POINTER)
 
-    if (riid == IID_IFileSourceFilter) {
+    if (riid == IID_IFileSourceFilter) 
+    {
         return GetInterface(static_cast<IFileSourceFilter *>(this), ppv);
     }
 
@@ -266,7 +271,8 @@ CAPEStream::~CAPEStream()
 //-----------------------------------------------------------------------------
 STDMETHODIMP CAPEStream::NonDelegatingQueryInterface(REFIID riid, VOID ** ppv)
 {
-    if (riid == IID_IMediaSeeking) {
+    if (riid == IID_IMediaSeeking) 
+    {
         return CSourceSeeking::NonDelegatingQueryInterface(riid, ppv);
     }
 

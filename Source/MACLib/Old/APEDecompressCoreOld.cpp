@@ -74,7 +74,7 @@ void CAPEDecompressCoreOld::GenerateDecodedArray(int * pInputArray, int nNumberE
 {
     const intn nFrameBytes = static_cast<intn>(m_pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FRAME_BYTES, nFrameIndex));
     if (nFrameBytes <= 0)
-        throw(ERROR_INVALID_INPUT_FILE);
+        throw(static_cast<intn>(ERROR_INVALID_INPUT_FILE));
 
     // run the prediction sequence
     switch (m_pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_COMPRESSION_LEVEL))
@@ -155,7 +155,7 @@ void CAPEDecompressCoreOld::GenerateDecodedArray(int * pInputArray, int nNumberE
             break;
         default:
             // this shouldn't hit, but just to handle all cases we'll put it here
-            throw(ERROR_INVALID_INPUT_FILE);
+            throw(static_cast<intn>(ERROR_INVALID_INPUT_FILE));
 
     }
 }

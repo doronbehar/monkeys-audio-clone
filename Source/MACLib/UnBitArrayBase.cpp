@@ -131,7 +131,7 @@ bool CUnBitArrayBase::EnsureBitsAvailable(uint32 nBits, bool bThrowExceptionOnFa
 
             // throw exception if specified
             if (bThrowExceptionOnFailure)
-                throw(1);
+                throw(static_cast<intn>(ERROR_UNDEFINED));
 
             // data not available
             bResult = false;

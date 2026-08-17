@@ -84,7 +84,7 @@ uint32 CUnBitArrayOld::DecodeValueRiceUnsigned(uint32 k)
     {
         m_nCurrentBitIndex++;
         if (m_nCurrentBitIndex >= m_nBits)
-            throw(ERROR_INVALID_INPUT_FILE);
+            throw(static_cast<intn>(ERROR_INVALID_INPUT_FILE));
     }
     m_nCurrentBitIndex++;
 
@@ -194,7 +194,7 @@ void CUnBitArrayOld::GenerateArrayOld(int * pOutputArray, uint32 nNumberOfElemen
         {
             m_nCurrentBitIndex++;
             if (m_nCurrentBitIndex >= m_nBits)
-                throw(ERROR_INVALID_INPUT_FILE);
+                throw(static_cast<intn>(ERROR_INVALID_INPUT_FILE));
         }
         m_nCurrentBitIndex++;
 
@@ -426,7 +426,7 @@ uint32 CUnBitArray3891To3989::RangeDecodeFastWithUpdate(int nShift)
         if (m_RangeCoderInfo.range == 0)
         {
             ASSERT(false);
-            throw(1);
+            throw(static_cast<intn>(ERROR_UNDEFINED));
         }
 
         // read byte and update range
@@ -442,7 +442,7 @@ uint32 CUnBitArray3891To3989::RangeDecodeFastWithUpdate(int nShift)
     if (m_RangeCoderInfo.range == 0)
     {
         ASSERT(false);
-        throw(1);
+        throw(static_cast<intn>(ERROR_UNDEFINED));
     }
 
     // get the result
@@ -458,7 +458,7 @@ int64 CUnBitArray3891To3989::DecodeValueRange(UNBIT_ARRAY_STATE & BitArrayState)
     // decode
     const uint32 nRangeTotal = RangeDecodeFast(RANGE_OVERFLOW_SHIFT);
     if (nRangeTotal >= 65536)
-        throw(ERROR_INVALID_INPUT_FILE);
+        throw(static_cast<intn>(ERROR_INVALID_INPUT_FILE));
 
     // lookup the symbol from lookup table
     uint32 nOverflow = m_spRangeTable->Get(nRangeTotal);

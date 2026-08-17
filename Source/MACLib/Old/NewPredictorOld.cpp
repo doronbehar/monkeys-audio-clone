@@ -41,7 +41,7 @@ CPredictorDecompress3930to3950::CPredictorDecompress3930to3950(int nCompressionL
     }
     else
     {
-        throw(1);
+        throw(static_cast<intn>(ERROR_UNDEFINED));
     }
 }
 

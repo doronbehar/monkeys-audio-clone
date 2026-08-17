@@ -217,11 +217,23 @@ int CAPEDecompress::Seek(int64 nBlockOffset)
 {
     RETURN_ON_ERROR(InitializeDecompressor())
 
+    // cancel frames
     for (int i = 0; i < m_nThreads; i++)
     {
         CAPEDecompressCore * pWorker = m_spAPEDecompressCore[m_nNextWorker];
 
         pWorker->CancelFrame();
+
+        m_nNextWorker = (m_nNextWorker + 1) % m_nThreads;
+    }
+
+    // put the workers in a freshly constructed state so seeks after failures work again
+    for (int i = 0; i < m_nThreads; i++)
+    {
+        CAPEDecompressCore * pWorker = m_spAPEDecompressCore[m_nNextWorker];
+
+        pWorker->WaitUntilReady();
+        pWorker->SetErrorState(ERROR_SUCCESS);
 
         m_nNextWorker = (m_nNextWorker + 1) % m_nThreads;
     }

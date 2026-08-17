@@ -281,7 +281,7 @@ int CAPECompressCreate::InitializeFile(IAPEIO * pIO, const WAVEFORMATEX * pwfeIn
     // write an empty seek table
     m_spSeekTable.AllocateArray(nMaxFrames, true);
     if (m_spSeekTable == APE_NULL) { return ERROR_INSUFFICIENT_MEMORY; }
-    RETURN_ON_ERROR(pIO->Write(m_spSeekTable, nMaxFrames * 4))
+    RETURN_ON_ERROR(pIO->Write(m_spSeekTable, static_cast<int64>(nMaxFrames) * 4))
     m_nMaxFrames = nMaxFrames;
 
     // write the WAV data
@@ -357,7 +357,7 @@ int CAPECompressCreate::FinalizeFile(IAPEIO * pIO, int nNumberOfFrames, int nFin
     if (pIO->Write(&APEHeader, sizeof(APEHeader)) != ERROR_SUCCESS) { return ERROR_IO_WRITE; }
 
     // write the updated seek table
-    if (pIO->Write(m_spSeekTable, static_cast<int64>(m_nMaxFrames * 4)) != ERROR_SUCCESS) { return ERROR_IO_WRITE; }
+    if (pIO->Write(m_spSeekTable, static_cast<int64>(m_nMaxFrames) * 4) != ERROR_SUCCESS) { return ERROR_IO_WRITE; }
 
     return ERROR_SUCCESS;
 }

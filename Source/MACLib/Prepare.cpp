@@ -660,7 +660,7 @@ void CPrepare::Unprepare(int * paryValues, const WAVEFORMATEX * pWaveFormatEx, u
                     // error check (for overflows)
                     if ((nR < -32768) || (nR > 32767) || (nL < -32768) || (nL > 32767))
                     {
-                        throw(-1);
+                        throw(static_cast<intn>(ERROR_UNDEFINED));
                     }
 
                     *pOutput16 = static_cast<int16>(nR); pOutput16++;
@@ -675,7 +675,7 @@ void CPrepare::Unprepare(int * paryValues, const WAVEFORMATEX * pWaveFormatEx, u
                     // error check (for overflows)
                     if ((nR < -32768) || (nR > 32767) || (nL < -32768) || (nL > 32767))
                     {
-                        throw(-1);
+                        throw(static_cast<intn>(ERROR_UNDEFINED));
                     }
 
                     *pOutput16 = static_cast<int16>(nR); pOutput16++;
@@ -692,7 +692,7 @@ void CPrepare::Unprepare(int * paryValues, const WAVEFORMATEX * pWaveFormatEx, u
                     // error check (for overflows)
                     if ((nR < -32768) || (nR > 32767) || (nL < -32768) || (nL > 32767))
                     {
-                        throw(-1);
+                        throw(static_cast<intn>(ERROR_UNDEFINED));
                     }
 
                     *pOutput16 = static_cast<int16>(nR); pOutput16++;
@@ -707,7 +707,7 @@ void CPrepare::Unprepare(int * paryValues, const WAVEFORMATEX * pWaveFormatEx, u
                     // error check (for overflows)
                     if ((nR < -32768) || (nR > 32767) || (nL < -32768) || (nL > 32767))
                     {
-                        throw(-1);
+                        throw(static_cast<intn>(ERROR_UNDEFINED));
                     }
 
                     *pOutput16 = static_cast<int16>(nR); pOutput16++;
@@ -722,7 +722,7 @@ void CPrepare::Unprepare(int * paryValues, const WAVEFORMATEX * pWaveFormatEx, u
                     // error check (for overflows)
                     if ((nR < -32768) || (nR > 32767) || (nL < -32768) || (nL > 32767))
                     {
-                        throw(-1);
+                        throw(static_cast<intn>(ERROR_UNDEFINED));
                     }
 
                     *pOutput16 = static_cast<int16>(nR); pOutput16++;
@@ -738,7 +738,7 @@ void CPrepare::Unprepare(int * paryValues, const WAVEFORMATEX * pWaveFormatEx, u
                     // error check (for overflows)
                     if ((nR < -32768) || (nR > 32767) || (nL < -32768) || (nL > 32767))
                     {
-                        throw(-1);
+                        throw(static_cast<intn>(ERROR_UNDEFINED));
                     }
 
                     *pOutput16 = static_cast<int16>(nR); pOutput16++;
@@ -783,7 +783,7 @@ void CPrepare::Unprepare(int * paryValues, const WAVEFORMATEX * pWaveFormatEx, u
             // error check (for overflows)
             if ((nR < -32768) || (nR > 32767) || (nL < -32768) || (nL > 32767))
             {
-                throw(-1);
+                throw(static_cast<intn>(ERROR_UNDEFINED));
             }
 
             int16 * pOutput16 = reinterpret_cast<int16 *>(pOutput);

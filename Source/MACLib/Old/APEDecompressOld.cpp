@@ -132,7 +132,16 @@ int CAPEDecompressOld::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * p
 
 int CAPEDecompressOld::Seek(int64 nBlockOffset)
 {
-    RETURN_ON_ERROR(InitializeDecompressor())
+    if (m_bDecompressorInitialized)
+    {
+        // re-initialize the decoder so we reset everything on seek after an error
+        RETURN_ON_ERROR(m_UnMAC.Initialize(this))
+    }
+    else
+    {
+        // initial initialize
+        RETURN_ON_ERROR(InitializeDecompressor())
+    }
 
     // use the offset
     nBlockOffset += m_nStartBlock;

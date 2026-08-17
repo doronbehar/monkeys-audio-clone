@@ -246,8 +246,6 @@
     </Media>
   </ItemGroup>
   <ItemGroup>
-    <Manifest Include="..\..\..\MAC\MAC.manifest">
-      <Filter>Resource Files</Filter>
-    </Manifest>
+    <Manifest Include="..\..\..\MAC\MAC-XP.manifest" />
   </ItemGroup>
 </Project>

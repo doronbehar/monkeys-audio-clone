@@ -121,7 +121,7 @@ public:
             {
                 rbReadFullInput = true;
             }
-            else if (_wcsnicmp(spOption, L"-tagdump", 2) == 0)
+            else if (_wcsnicmp(spOption, L"-tagdump", 8) == 0)
             {
                 rnMode = TAG_DUMP_MODE;
             }
@@ -466,7 +466,7 @@ static int ConvertTagsToLegacy(const str_utfn * pFilename)
         // get the input format
         APE::IAPETag * pTag = spAPEDecompress->GetTag();
         if (pTag == APE_NULL)
-            throw(ERROR_UNDEFINED);
+            throw(static_cast<intn>(ERROR_UNDEFINED));
 
         if (pTag->GetHasID3Tag())
         {
@@ -505,7 +505,7 @@ static int TagDump(const str_utfn * pFilename)
         // get the input format
         APE::IAPETag * pTag = spAPEDecompress->GetTag();
         if (pTag == APE_NULL)
-            throw(ERROR_UNDEFINED);
+            throw(static_cast<intn>(ERROR_UNDEFINED));
 
         // dump tag
         str_utfn cTag[4096];

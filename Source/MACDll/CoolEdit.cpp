@@ -139,7 +139,7 @@ __declspec(dllexport) DWORD FAR PASCAL FilterGetOptions(HWND hWnd, HINSTANCE hIn
     else
         dwDialogReturn = dwOptions;
 
-    dwDialogReturn = static_cast<DWORD>(DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_COMPRESSION), hWnd, DIALOGMsgProc, dwDialogReturn));
+    dwDialogReturn = static_cast<DWORD>(DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_COMPRESSION), hWnd, DIALOGMsgProc, static_cast<LPARAM>(dwDialogReturn)));
 
     return dwDialogReturn;
 }

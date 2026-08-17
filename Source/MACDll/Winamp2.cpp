@@ -348,7 +348,7 @@ DWORD WINAPI __stdcall CAPEWinampPlugin::DecodeThread(void * pbKillSwitch)
             {
                 // get the data
                 if (s_spAPEDecompressPlay->GetData(spSampleBuffer, 576, &nBlocksDecoded, APE_NULL) != ERROR_SUCCESS)
-                    throw(1);
+                    throw(static_cast<intn>(ERROR_UNDEFINED));
             }
             catch(...)
             {
