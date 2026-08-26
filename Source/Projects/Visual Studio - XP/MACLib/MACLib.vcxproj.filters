@@ -197,6 +197,9 @@
     <ClCompile Include="..\..\..\MACLib\Old\NewPredictorOld.cpp">
       <Filter>Source Files\Old</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\MACLib\Interim.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Shared\All.h">

@@ -352,7 +352,7 @@ Modes
 **************************************************************************************************/
 namespace APE
 {
-    enum APE_MODES : uint8
+    enum APE_MODES
     {
         MODE_COMPRESS,
         MODE_DECOMPRESS,

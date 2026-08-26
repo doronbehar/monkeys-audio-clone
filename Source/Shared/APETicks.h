@@ -42,7 +42,7 @@ CAPEDuration - measures duration using a CAPETicks
 class CAPEDuration
 {
 public:
-    CAPEDuration() noexcept
+    CAPEDuration()
     {
         Reset();
     }

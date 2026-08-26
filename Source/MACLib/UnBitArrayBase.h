@@ -43,7 +43,7 @@ class CUnBitArrayBase
 {
 public:
     // enumeration
-    enum DECODE_VALUE_METHOD : uint8
+    enum DECODE_VALUE_METHOD
     {
         DECODE_VALUE_METHOD_UNSIGNED_INT,
         DECODE_VALUE_METHOD_UNSIGNED_RICE,

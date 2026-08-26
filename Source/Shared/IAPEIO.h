@@ -3,7 +3,7 @@
 namespace APE
 {
 
-enum SeekMethod : uint8
+enum SeekMethod
 {
     SeekFileBegin = 0,
     SeekFileCurrent = 1,

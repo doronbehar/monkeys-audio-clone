@@ -197,6 +197,7 @@ set(MAC_LIBRARY_SOURCE_FILES
         Source/MACLib/UnBitArray.cpp
         Source/MACLib/UnBitArrayBase.cpp
         Source/MACLib/WAVInputSource.cpp
+        Source/MACLib/Interim.cpp
         Source/MACLib/Old/NewPredictorOld.cpp
         Source/MACLib/Old/AntiPredictorOld.cpp
         Source/MACLib/Old/AntiPredictorExtraHighOld.cpp

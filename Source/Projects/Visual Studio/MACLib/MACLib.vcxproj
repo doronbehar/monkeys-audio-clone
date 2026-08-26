@@ -348,6 +348,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\MACLib\APEDecompressCore.cpp" />
     <ClCompile Include="..\..\..\MACLib\FloatTransform.cpp" />
+    <ClCompile Include="..\..\..\MACLib\Interim.cpp" />
     <ClCompile Include="..\..\..\MACLib\MACLib.cpp" />
     <ClCompile Include="..\..\..\MACLib\APECompress.cpp" />
     <ClCompile Include="..\..\..\MACLib\APECompressCore.cpp" />

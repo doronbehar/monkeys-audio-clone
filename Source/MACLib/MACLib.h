@@ -272,7 +272,7 @@ public:
     fields when querying for info about the length, etc. so APL will work properly.
     (i.e. (APE_INFO_TOTAL_BLOCKS != APE_DECOMPRESS_TOTAL_BLOCKS) for APL files)
     **************************************************************************************************/
-    enum APE_INFO_FIELDS : uint16
+    enum APE_INFO_FIELDS
     {
         APE_INFO_FILE_VERSION = 1000,               // version of the APE file * 1000 (3.93 = 3930) [ignored, ignored]
         APE_INFO_COMPRESSION_LEVEL = 1001,          // compression level of the APE file [ignored, ignored]
