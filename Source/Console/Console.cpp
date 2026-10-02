@@ -30,8 +30,12 @@ using namespace APE;
 #define TAG_DUMP_MODE               (8)
 #define UNDEFINED_MODE              (-1)
 
-// global variables
-static CAPEDuration g_ProcessingDuration;
+// global variables (we get Clang warnings if the variable is just global, but this works around that)
+static CAPEDuration & GetProcessingDuration()
+{
+    static CAPEDuration s_ProcessingDuration;
+    return s_ProcessingDuration;
+}
 
 /**************************************************************************************************
 Data holder for the arguments so we always have the argument count
@@ -266,7 +270,7 @@ public:
     {
         // calculate the progress
         double dProgress = nPercentageDone / 1.e5;                                                    // [0...1]
-        double dElapsed = g_ProcessingDuration.GetElapsedSeconds();                                   // seconds
+        double dElapsed = GetProcessingDuration().GetElapsedSeconds();                                   // seconds
         double dRemaining = (nPercentageDone > 0) ? dElapsed * ((1.0 / dProgress) - 1.0) : 0;         // seconds
 
         // output the progress
@@ -634,7 +638,7 @@ int _tmain(int argc, TCHAR * argv[])
     }
 
     // set the initial tick count
-    g_ProcessingDuration.Reset();
+    GetProcessingDuration().Reset();
 
     // process
 #ifdef APE_SUPPORT_COMPRESS

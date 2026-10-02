@@ -474,7 +474,10 @@ int CWAVInputSource::AnalyzeSource()
         if ((m_nFileBytes != APE_FILE_SIZE_UNDEFINED) && (RIFFChunkHeader.nChunkBytes != static_cast<uint32_t>(-1)))
         {
             if (RIFFChunkHeader.nChunkBytes > (m_nFileBytes - m_spIO->GetPosition()))
-                return ERROR_INVALID_INPUT_FILE;
+            {
+                // just flag the chunk as going to the end of the file (previously we were returning ERROR_INVALID_INPUT_FILE)
+                RIFFChunkHeader.nChunkBytes = static_cast<uint32_t>(-1);
+            }
         }
 
         // move the file pointer to the end of this chunk
@@ -595,7 +598,13 @@ int CWAVInputSource::AnalyzeSource()
 
     // make sure the data bytes is a whole number of blocks
     if ((m_nDataBytes != -1) && ((m_nDataBytes % m_wfeSource.nBlockAlign) != 0))
-        return ERROR_INVALID_INPUT_FILE;
+    {
+        // we used to return ERROR_INVALID_INPUT_FILE, but on 9/30/2026 this was changed to just shrink the number of data bytes
+        // any extra bytes will get encoded as terminating data, so it should remain bit perfect
+
+        // just shrink the number of data bytes
+        m_nDataBytes = (m_nDataBytes / m_wfeSource.nBlockAlign) * m_wfeSource.nBlockAlign;
+    }
 
     // calculate the terminating bytes
     m_nTerminatingBytes = static_cast<uint32_t>(m_nFileBytes - m_nDataBytes - m_nHeaderBytes);

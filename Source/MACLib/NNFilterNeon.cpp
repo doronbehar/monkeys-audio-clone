@@ -47,13 +47,13 @@ bool GetNeonAvailable()
     vst1q_s16(&pM[z + n], neonNew);                                            \
 }
 
-void AdaptNeon(short * pM, const short * pAdapt, int32 nDirection, int nOrder)
+static void AdaptNeon(short * pM, const short * pAdapt, int32 nDirection, int nOrder)
 {
     // we're working up to 32 elements at a time
     ASSERT(nOrder == 16 || (nOrder % 32) == 0);
 
     // figure out direction
-    const int16x8_t neonDir = vdupq_n_s16((nDirection < 0) - (nDirection > 0));
+    const int16x8_t neonDir = vdupq_n_s16(static_cast<short>((nDirection < 0) - (nDirection > 0)));
 
     int z = 0, n = 0;
     switch (nOrder)
@@ -76,7 +76,7 @@ void AdaptNeon(short * pM, const short * pAdapt, int32 nDirection, int nOrder)
     vst1q_s32(&pM[z + n], neonNew);                                            \
 }
 
-void AdaptNeon(int * pM, const int * pAdapt, int64 nDirection, int nOrder)
+static void AdaptNeon(int * pM, const int * pAdapt, int64 nDirection, int nOrder)
 {
     // we're working 16 elements at a time
     ASSERT((nOrder % 16) == 0);

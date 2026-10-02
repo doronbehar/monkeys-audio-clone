@@ -362,6 +362,5 @@
   <ItemGroup>
     <Text Include="..\..\..\History.txt" />
     <Text Include="..\..\..\Credits.txt" />
-    <Text Include="..\..\..\To Do.txt" />
   </ItemGroup>
 </Project>
