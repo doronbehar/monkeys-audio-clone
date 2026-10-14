@@ -38,6 +38,48 @@ static CAPEDuration & GetProcessingDuration()
 }
 
 /**************************************************************************************************
+Check a file for existence
+**************************************************************************************************/
+static bool FileExists(const str_utfn * pFilename)
+{
+    if (pFilename == APE_NULL)
+        return false;
+    if (0 == wcscmp(pFilename, L"-")  ||  0 == wcscmp(pFilename, L"/dev/stdin"))
+        return true;
+
+#ifdef PLATFORM_WINDOWS
+    bool bFound = false;
+    WIN32_FIND_DATA WFD;
+#ifdef UNICODE
+    HANDLE hFind = FindFirstFile(pFilename, &WFD);
+#else
+    CSmartPtr<char> spFilename(CAPECharacterHelper::GetANSIFromUTFN(pFilename), true);
+    HANDLE hFind = FindFirstFile(spFilename, &WFD);
+#endif
+    if (hFind != INVALID_HANDLE_VALUE)
+    {
+        bFound = true;
+        FindClose(hFind);
+    }
+
+    return bFound;
+#else
+    CSmartPtr<char> spFilenameUTF8((char *) CAPECharacterHelper::GetUTF8FromUTFN(pFilename), true);
+
+    struct stat b;
+
+    if (stat(spFilenameUTF8, &b) != 0)
+        return false;
+
+    if (!S_ISREG(b.st_mode))
+        return false;
+
+    return true;
+#endif
+}
+
+
+/**************************************************************************************************
 Data holder for the arguments so we always have the argument count
 **************************************************************************************************/
 class CArguments

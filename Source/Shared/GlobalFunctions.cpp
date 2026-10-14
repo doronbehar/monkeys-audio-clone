@@ -19,38 +19,6 @@
 namespace APE
 {
 
-void EnableHighDPISupport()
-{
-#if defined(PLATFORM_WINDOWS)
-    HMODULE hUser32 = LoadLibrary(_T("user32.dll"));
-    if (hUser32 != APE_NULL)
-    {
-        // turn on high DPI support
-
-        // older operating systems like Vista
-        BOOL(STDAPICALLTYPE * pSetProcessDPIAware) () = APE_NULL;
-        *(reinterpret_cast<FARPROC *>(&pSetProcessDPIAware)) = GetProcAddress(hUser32, "SetProcessDPIAware"); // NOLINT
-        if (pSetProcessDPIAware != APE_NULL)
-        {
-            pSetProcessDPIAware();
-        }
-
-        // newer operating systems that support per monitor
-        #if !defined(PLATFORM_WINDOWS_XP)
-            BOOL(STDAPICALLTYPE * pSetProcessDpiAwarenessContext) (IN DPI_AWARENESS_CONTEXT value) = APE_NULL;
-            *(reinterpret_cast<FARPROC *>(&pSetProcessDpiAwarenessContext)) = GetProcAddress(hUser32, "SetProcessDpiAwarenessContext"); // NOLINT
-            if (pSetProcessDpiAwarenessContext != APE_NULL)
-            {
-                pSetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-            }
-        #endif
-
-        // cleanup
-        FreeLibrary(hUser32);
-    }
-#endif
-}
-
 int ReadSafe(IAPEIO * pIO, void * pBuffer, int64 nBytes)
 {
     int64 nBytesRead = 0;
@@ -62,44 +30,6 @@ int ReadSafe(IAPEIO * pIO, void * pBuffer, int64 nBytes)
     }
 
     return nResult;
-}
-
-bool FileExists(const str_utfn * pFilename)
-{
-    if (pFilename == APE_NULL)
-        return false;
-    if (0 == wcscmp(pFilename, L"-")  ||  0 == wcscmp(pFilename, L"/dev/stdin"))
-        return true;
-
-#ifdef PLATFORM_WINDOWS
-    bool bFound = false;
-    WIN32_FIND_DATA WFD;
-#ifdef UNICODE
-    HANDLE hFind = FindFirstFile(pFilename, &WFD);
-#else
-    CSmartPtr<char> spFilename(CAPECharacterHelper::GetANSIFromUTFN(pFilename), true);
-    HANDLE hFind = FindFirstFile(spFilename, &WFD);
-#endif
-    if (hFind != INVALID_HANDLE_VALUE)
-    {
-        bFound = true;
-        FindClose(hFind);
-    }
-
-    return bFound;
-#else
-    CSmartPtr<char> spFilenameUTF8((char *) CAPECharacterHelper::GetUTF8FromUTFN(pFilename), true);
-
-    struct stat b;
-
-    if (stat(spFilenameUTF8, &b) != 0)
-        return false;
-
-    if (!S_ISREG(b.st_mode))
-        return false;
-
-    return true;
-#endif
 }
 
 void * AllocateAligned(intn nBytes, intn nAlignment)

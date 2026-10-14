@@ -38,13 +38,10 @@ private:
     int m_LastDecodedFrameIndex;
 
     // functions
-    void GenerateDecodedArrays(intn nBlocks, intn nSpecialCodes, intn nFrameIndex);
-    void GenerateDecodedArray(int * pInput_Array, uint32 Number_of_Elements, intn Frame_Index, CAntiPredictor * pAntiPredictor);
-
-    int CreateAntiPredictors(int nCompressionLevel, int nVersion);
-
-    intn DecompressFrameOld(unsigned char * pOutputData, int32 FrameIndex, int * pErrorCode);
     uint32 CalculateOldChecksum(const int * pDataX, const int * pDataY, intn nChannels, intn nBlocks);
+    void UnprepareMono(int * pInputX, int nBlocks, const WAVEFORMATEX * pWaveFormatEx, unsigned char * pRawData, unsigned int * pCRC, int nFileVersion);
+    void UnprepareStereo(int * pInputX, int * pInputY, int nBlocks, const WAVEFORMATEX * pWaveFormatEx, unsigned char * pRawData, unsigned int * pCRC, int nFileVersion);
+    void UnprepareCRC(int nBlocks, const WAVEFORMATEX * pWaveFormatEx, unsigned char * pRawData, unsigned int * pCRC);
 
 public:
     int m_nBlocksProcessed;

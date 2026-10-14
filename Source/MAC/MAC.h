@@ -46,6 +46,7 @@ public:
     void LoadFont(CFont & Font, int nSizeScale = 100, bool bBold = false);
     void GetMenuColors(COLORREF & rgbMenuBackground, COLORREF & rgbMenuHighlight, COLORREF & rgbMenuText, COLORREF & rgbMenuGrayText, COLORREF & rgbMenuHighlightText, COLORREF & rgbDivider);
     UINT & GetMonitorDPI() { return m_nMonitorDPI; }
+    void EnableHighDPISupport();
 
     // message map
     DECLARE_MESSAGE_MAP()

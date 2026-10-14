@@ -22,14 +22,21 @@ Tasks:
 class IAPEIO;
 class IPredictorDecompress;
 
+#if APE_BYTE_ORDER == APE_LITTLE_ENDIAN
+    #define APE_24_SHIFT_1ST 0
+    #define APE_24_SHIFT_2ND 8
+    #define APE_24_SHIFT_3RD 16
+#else
+    #define APE_24_SHIFT_1ST 16
+    #define APE_24_SHIFT_2ND 8
+    #define APE_24_SHIFT_3RD 0
+#endif
+
 class CPrepare
 {
 public:
     int Prepare(const unsigned char * pRawData, int nBytes, const WAVEFORMATEX * pWaveFormatEx, int * pOutput, int nFrameBlocks, unsigned int * pCRC, int * pSpecialCodes);
     void Unprepare(int * paryValues, const WAVEFORMATEX * pWaveFormatEx, unsigned char * pOutput);
-#ifdef APE_BACKWARDS_COMPATIBILITY
-    int UnprepareOld(int * pInputX, int * pInputY, int nBlocks, const WAVEFORMATEX * pWaveFormatEx, unsigned char * pRawData, unsigned int * pCRC, int nFileVersion);
-#endif
 };
 
 }

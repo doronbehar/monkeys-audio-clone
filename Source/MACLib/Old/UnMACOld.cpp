@@ -5,10 +5,10 @@
 #include "UnMACOld.h"
 #include "Prepare.h"
 #include "APEDecompressCoreOld.h"
+#include "CRC.h"
 
 namespace APE
 {
-
 /**************************************************************************************************
 CUnMACOld class construction
 **************************************************************************************************/
@@ -96,7 +96,107 @@ intn CUnMACOld::DecompressFrame(unsigned char * pOutputData, int32 nFrameIndex, 
 {
     try
     {
-        return DecompressFrameOld(pOutputData, nFrameIndex, pErrorCode);
+        // error check the parameters (too high of a frame index, etc.)
+        if (nFrameIndex >= m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_TOTAL_FRAMES)) { return ERROR_SUCCESS; }
+
+        // get the number of samples in the frame
+        int nBlocks = 0;
+        nBlocks = ((static_cast<int64>(nFrameIndex) + 1) >= m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_TOTAL_FRAMES)) ? static_cast<int>(m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FINAL_FRAME_BLOCKS)) : static_cast<int>(m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BLOCKS_PER_FRAME));
+        if (nBlocks == 0)
+        {
+            if (pErrorCode)
+                *pErrorCode = ERROR_UNDEFINED;
+            return -1; // nothing to do (file must be zero length) (have to return error)
+        }
+
+        // take care of seeking and frame alignment
+        if (SeekToFrame(nFrameIndex) != 0)
+        {
+            if (pErrorCode)
+                *pErrorCode = ERROR_UNDEFINED;
+            return -1;
+        }
+
+        // get the checksum
+        unsigned int nSpecialCodes = 0;
+        uint32 nStoredCRC = 0;
+
+        if (!APE_GET_USES_CRC(m_spAPEDecompress))
+        {
+            nStoredCRC = static_cast<uint32>(m_spAPEDecompressCore->GetUnBitArrray()->DecodeValue(CUnBitArrayBase::DECODE_VALUE_METHOD_UNSIGNED_RICE, 30));
+            if (nStoredCRC == 0)
+            {
+                nSpecialCodes = SPECIAL_FRAME_LEFT_SILENCE | SPECIAL_FRAME_RIGHT_SILENCE;
+            }
+        }
+        else
+        {
+            nStoredCRC = static_cast<uint32>(m_spAPEDecompressCore->GetUnBitArrray()->DecodeValue(CUnBitArrayBase::DECODE_VALUE_METHOD_UNSIGNED_INT));
+
+            // get any 'special' codes if the file uses them (for silence, false stereo, etc.)
+            nSpecialCodes = 0;
+            if (APE_GET_USES_SPECIAL_FRAMES(m_spAPEDecompress))
+            {
+                if (nStoredCRC & 0x80000000)
+                {
+                    nSpecialCodes = static_cast<unsigned int>(m_spAPEDecompressCore->GetUnBitArrray()->DecodeValue(CUnBitArrayBase::DECODE_VALUE_METHOD_UNSIGNED_INT));
+                }
+                nStoredCRC &= 0x7FFFFFFF;
+            }
+        }
+
+        // the CRC that will be figured during decompression
+        uint32 CRC = 0xFFFFFFFF;
+
+        // decompress and convert from (x,y) -> (l,r)
+        // sort of int and ugly.... sorry
+        if (m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS) == 2)
+        {
+            m_spAPEDecompressCore->GenerateDecodedArrays(nBlocks, static_cast<intn>(nSpecialCodes), static_cast<intn>(nFrameIndex));
+
+            WAVEFORMATEX WaveFormatEx; m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAVEFORMATEX, APE_POINTER_TO_INT64(&WaveFormatEx));
+            UnprepareStereo(m_spAPEDecompressCore->GetDataX(), m_spAPEDecompressCore->GetDataY(), nBlocks, &WaveFormatEx,
+                pOutputData, static_cast<unsigned int *>(&CRC), static_cast<int>(m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION)));
+        }
+        else if (m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS) == 1)
+        {
+            m_spAPEDecompressCore->GenerateDecodedArrays(nBlocks, static_cast<intn>(nSpecialCodes), static_cast<intn>(nFrameIndex));
+
+            WAVEFORMATEX WaveFormatEx; m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAVEFORMATEX, APE_POINTER_TO_INT64(&WaveFormatEx));
+            UnprepareMono(m_spAPEDecompressCore->GetDataX(), nBlocks, &WaveFormatEx,
+                pOutputData, static_cast<unsigned int *>(&CRC), static_cast<int>(m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION)));
+        }
+
+        if (APE_GET_USES_SPECIAL_FRAMES(m_spAPEDecompress))
+        {
+            CRC >>= 1;
+        }
+
+        // check the CRC
+        if (!APE_GET_USES_CRC(m_spAPEDecompress))
+        {
+            const uint32 nChecksum = CalculateOldChecksum(m_spAPEDecompressCore->GetDataX(), m_spAPEDecompressCore->GetDataY(), static_cast<intn>(m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS)), nBlocks);
+            if (nChecksum != nStoredCRC)
+            {
+                if (pErrorCode)
+                    *pErrorCode = ERROR_INVALID_CHECKSUM;
+                return -1;
+            }
+        }
+        else
+        {
+            if (CRC != nStoredCRC)
+            {
+                if (pErrorCode)
+                    *pErrorCode = ERROR_INVALID_CHECKSUM;
+                return -1;
+            }
+        }
+
+        if (pErrorCode)
+            *pErrorCode = ERROR_SUCCESS;
+        m_LastDecodedFrameIndex = nFrameIndex;
+        return nBlocks;
     }
     catch (const intn nErrorCode)
     {
@@ -141,115 +241,6 @@ int CUnMACOld::SeekToFrame(intn FrameIndex)
 }
 
 /**************************************************************************************************
-Old code for frame decompression
-**************************************************************************************************/
-intn CUnMACOld::DecompressFrameOld(unsigned char * pOutputData, int32 FrameIndex, int * pErrorCode)
-{
-    // error check the parameters (too high of a frame index, etc.)
-    if (FrameIndex >= m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_TOTAL_FRAMES)) { return ERROR_SUCCESS; }
-
-    // get the number of samples in the frame
-    int nBlocks = 0;
-    nBlocks = ((static_cast<int64>(FrameIndex) + 1) >= m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_TOTAL_FRAMES)) ? static_cast<int>(m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FINAL_FRAME_BLOCKS)) : static_cast<int>(m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BLOCKS_PER_FRAME));
-    if (nBlocks == 0)
-    {
-        if (pErrorCode)
-            *pErrorCode = ERROR_UNDEFINED;
-        return -1; // nothing to do (file must be zero length) (have to return error)
-    }
-
-    // take care of seeking and frame alignment
-    if (SeekToFrame(FrameIndex) != 0)
-    {
-        if (pErrorCode)
-            *pErrorCode = ERROR_UNDEFINED;
-        return -1;
-    }
-
-    // get the checksum
-    unsigned int nSpecialCodes = 0;
-    uint32 nStoredCRC = 0;
-
-    if (!APE_GET_USES_CRC(m_spAPEDecompress))
-    {
-        nStoredCRC = static_cast<uint32>(m_spAPEDecompressCore->GetUnBitArrray()->DecodeValue(CUnBitArrayBase::DECODE_VALUE_METHOD_UNSIGNED_RICE, 30));
-        if (nStoredCRC == 0)
-        {
-            nSpecialCodes = SPECIAL_FRAME_LEFT_SILENCE | SPECIAL_FRAME_RIGHT_SILENCE;
-        }
-    }
-    else
-    {
-        nStoredCRC = static_cast<uint32>(m_spAPEDecompressCore->GetUnBitArrray()->DecodeValue(CUnBitArrayBase::DECODE_VALUE_METHOD_UNSIGNED_INT));
-
-        // get any 'special' codes if the file uses them (for silence, false stereo, etc.)
-        nSpecialCodes = 0;
-        if (APE_GET_USES_SPECIAL_FRAMES(m_spAPEDecompress))
-        {
-            if (nStoredCRC & 0x80000000)
-            {
-                nSpecialCodes = static_cast<unsigned int>(m_spAPEDecompressCore->GetUnBitArrray()->DecodeValue(CUnBitArrayBase::DECODE_VALUE_METHOD_UNSIGNED_INT));
-            }
-            nStoredCRC &= 0x7FFFFFFF;
-        }
-    }
-
-    // the CRC that will be figured during decompression
-    uint32 CRC = 0xFFFFFFFF;
-
-    // decompress and convert from (x,y) -> (l,r)
-    // sort of int and ugly.... sorry
-    if (m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS) == 2)
-    {
-        m_spAPEDecompressCore->GenerateDecodedArrays(nBlocks, static_cast<intn>(nSpecialCodes), static_cast<intn>(FrameIndex));
-
-        WAVEFORMATEX WaveFormatEx; m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAVEFORMATEX, APE_POINTER_TO_INT64(&WaveFormatEx));
-        m_spPrepare->UnprepareOld(m_spAPEDecompressCore->GetDataX(), m_spAPEDecompressCore->GetDataY(), nBlocks, &WaveFormatEx,
-            pOutputData, static_cast<unsigned int *>(&CRC), static_cast<int>(m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION)));
-    }
-    else if (m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS) == 1)
-    {
-        m_spAPEDecompressCore->GenerateDecodedArrays(nBlocks, static_cast<intn>(nSpecialCodes), static_cast<intn>(FrameIndex));
-
-        WAVEFORMATEX WaveFormatEx; m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAVEFORMATEX, APE_POINTER_TO_INT64(&WaveFormatEx));
-        m_spPrepare->UnprepareOld(m_spAPEDecompressCore->GetDataX(), APE_NULL, nBlocks, &WaveFormatEx,
-            pOutputData, static_cast<unsigned int *>(&CRC), static_cast<int>(m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION)));
-    }
-
-    if (APE_GET_USES_SPECIAL_FRAMES(m_spAPEDecompress))
-    {
-        CRC >>= 1;
-    }
-
-    // check the CRC
-    if (!APE_GET_USES_CRC(m_spAPEDecompress))
-    {
-        const uint32 nChecksum = CalculateOldChecksum(m_spAPEDecompressCore->GetDataX(), m_spAPEDecompressCore->GetDataY(), static_cast<intn>(m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS)), nBlocks);
-        if (nChecksum != nStoredCRC)
-        {
-            if (pErrorCode)
-                *pErrorCode = ERROR_INVALID_CHECKSUM;
-            return -1;
-        }
-    }
-    else
-    {
-        if (CRC != nStoredCRC)
-        {
-            if (pErrorCode)
-                *pErrorCode = ERROR_INVALID_CHECKSUM;
-            return -1;
-        }
-    }
-
-    if (pErrorCode)
-        *pErrorCode = ERROR_SUCCESS;
-    m_LastDecodedFrameIndex = FrameIndex;
-    return nBlocks;
-}
-
-
-/**************************************************************************************************
 Figures the old checksum using the X,Y data
 **************************************************************************************************/
 uint32 CUnMACOld::CalculateOldChecksum(const int * pDataX, const int * pDataY, intn nChannels, intn nBlocks)
@@ -273,5 +264,154 @@ uint32 CUnMACOld::CalculateOldChecksum(const int * pDataX, const int * pDataY, i
 
     return nChecksum;
 }
+
+/**************************************************************************************************
+Unprepare
+**************************************************************************************************/
+void CUnMACOld::UnprepareMono(int * pInputX, int nBlocks, const WAVEFORMATEX * pWaveFormatEx, unsigned char * pRawData, unsigned int * pCRC, int nFileVersion)
+{
+    // convert to raw data
+    if (pWaveFormatEx->wBitsPerSample == 8)
+    {
+        unsigned char * R = static_cast<unsigned char *>(&pRawData[0]);
+
+        if (nFileVersion > 3830)
+        {
+            for (int SampleIndex = 0; SampleIndex < nBlocks; SampleIndex++, R++)
+                *R = static_cast<unsigned char>(pInputX[SampleIndex] + 128);
+        }
+        else
+        {
+            for (int SampleIndex = 0; SampleIndex < nBlocks; SampleIndex++, R++)
+                *R = static_cast<unsigned char>(pInputX[SampleIndex]);
+        }
+    }
+    else if (pWaveFormatEx->wBitsPerSample == 24)
+    {
+        unsigned char * Buffer = static_cast<unsigned char *>(&pRawData[0]);
+        int32 RV;
+        for (int SampleIndex = 0; SampleIndex < nBlocks; SampleIndex++)
+        {
+            RV = pInputX[SampleIndex];
+
+            uint32 nTemp = 0;
+            if (RV < 0)
+                nTemp = static_cast<uint32>((RV + 0x800000) | 0x800000);
+            else
+                nTemp = static_cast<uint32>(RV);
+
+            *Buffer++ = static_cast<unsigned char>((nTemp >> APE_24_SHIFT_1ST) & 0xFF);
+            *Buffer++ = static_cast<unsigned char>((nTemp >> APE_24_SHIFT_2ND) & 0xFF);
+            *Buffer++ = static_cast<unsigned char>((nTemp >> APE_24_SHIFT_3RD) & 0xFF);
+        }
+    }
+    else
+    {
+        int16 * pBuffer16 = reinterpret_cast<int16 *>(&pRawData[0]);
+        for (int SampleIndex = 0; SampleIndex < nBlocks; SampleIndex++)
+        {
+            *pBuffer16 = static_cast<int16>(pInputX[SampleIndex]); pBuffer16++;
+        }
+    }
+
+    // calculate CRC
+    UnprepareCRC(nBlocks, pWaveFormatEx, pRawData, pCRC);
+}
+
+void CUnMACOld::UnprepareStereo(int * pInputX, int * pInputY, int nBlocks, const WAVEFORMATEX * pWaveFormatEx, unsigned char * pRawData, unsigned int * pCRC, int nFileVersion)
+{
+    // decompress and convert from (x,y) -> (l,r)
+
+    // convert the x,y data to raw data
+    if (pWaveFormatEx->wBitsPerSample == 16)
+    {
+        int16 R;
+        int16 * pBuffer16 = reinterpret_cast<int16 *>(&pRawData[0]);
+        int * pX = static_cast<int *>(pInputX);
+        int * pY = static_cast<int *>(pInputY);
+
+        for (; pX < &pInputX[nBlocks]; pX++, pY++)
+        {
+            R = static_cast<int16>(*pX - (*pY / 2));
+
+            *pBuffer16 = static_cast<int16>(R); pBuffer16++;
+            *pBuffer16 = static_cast<int16>(R + *pY); pBuffer16++;
+        }
+    }
+    else if (pWaveFormatEx->wBitsPerSample == 8)
+    {
+        unsigned char * R = static_cast<unsigned char *>(&pRawData[0]);
+        unsigned char * L = static_cast<unsigned char *>(&pRawData[1]);
+
+        if (nFileVersion > 3830)
+        {
+            for (int SampleIndex = 0; SampleIndex < nBlocks; SampleIndex++, L += 2, R += 2)
+            {
+                *R = static_cast<unsigned char>(pInputX[SampleIndex] - (pInputY[SampleIndex] / 2) + 128);
+                *L = static_cast<unsigned char>(*R + pInputY[SampleIndex]);
+            }
+        }
+        else
+        {
+            for (int SampleIndex = 0; SampleIndex < nBlocks; SampleIndex++, L += 2, R += 2)
+            {
+                *R = static_cast<unsigned char>(pInputX[SampleIndex] - (pInputY[SampleIndex] / 2));
+                *L = static_cast<unsigned char>(*R + pInputY[SampleIndex]);
+            }
+        }
+    }
+    else if (pWaveFormatEx->wBitsPerSample == 24)
+    {
+        unsigned char * Buffer = static_cast<unsigned char *>(&pRawData[0]);
+        int32 RV, LV;
+
+        for (int SampleIndex = 0; SampleIndex < nBlocks; SampleIndex++)
+        {
+            RV = pInputX[SampleIndex] - (pInputY[SampleIndex] / 2);
+            LV = RV + pInputY[SampleIndex];
+
+            uint32 nTemp = 0;
+            if (RV < 0)
+                nTemp = (static_cast<uint32>((RV + 0x800000)) | 0x800000);
+            else
+                nTemp = static_cast<uint32>(RV);
+
+            *Buffer++ = static_cast<unsigned char>((nTemp >> APE_24_SHIFT_1ST) & 0xFF);
+            *Buffer++ = static_cast<unsigned char>((nTemp >> APE_24_SHIFT_2ND) & 0xFF);
+            *Buffer++ = static_cast<unsigned char>((nTemp >> APE_24_SHIFT_3RD) & 0xFF);
+
+            if (LV < 0)
+                nTemp = (static_cast<uint32>((LV + 0x800000)) | 0x800000);
+            else
+                nTemp = static_cast<uint32>(LV);
+
+            *Buffer++ = static_cast<unsigned char>((nTemp >> APE_24_SHIFT_1ST) & 0xFF);
+            *Buffer++ = static_cast<unsigned char>((nTemp >> APE_24_SHIFT_2ND) & 0xFF);
+            *Buffer++ = static_cast<unsigned char>((nTemp >> APE_24_SHIFT_3RD) & 0xFF);
+        }
+    }
+
+    // calculate CRC
+    UnprepareCRC(nBlocks, pWaveFormatEx, pRawData, pCRC);
+}
+
+void CUnMACOld::UnprepareCRC(int nBlocks, const WAVEFORMATEX * pWaveFormatEx, unsigned char * pRawData, unsigned int * pCRC)
+{
+    uint32 CRC = 0xFFFFFFFF;
+
+#if APE_BYTE_ORDER == APE_BIG_ENDIAN
+    SwitchBufferBytes(const_cast<unsigned char *>(pRawData), pWaveFormatEx->wBitsPerSample / 8, nBlocks * pWaveFormatEx->nChannels);
+#endif
+
+    CRC = CRC_update(CRC, pRawData, static_cast<int>(nBlocks * pWaveFormatEx->nChannels * (pWaveFormatEx->wBitsPerSample / 8)));
+    CRC = CRC ^ 0xFFFFFFFF;
+
+#if APE_BYTE_ORDER == APE_BIG_ENDIAN
+    SwitchBufferBytes(const_cast<unsigned char *>(pRawData), pWaveFormatEx->wBitsPerSample / 8, nBlocks * pWaveFormatEx->nChannels);
+#endif
+
+    * pCRC = CRC;
+}
+
 }
 #endif // #ifdef APE_BACKWARDS_COMPATIBILITY
