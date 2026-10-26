@@ -9,7 +9,7 @@ CWholeFileIO * CWholeFileIO::CreateWholeFileIO(IAPEIO * pSource, int64 nSize)
     // the size should be correct
     ASSERT(nSize == pSource->GetSize());
 
-    int nResult = ERROR_SUCCESS;
+    int nResult = APE_ERROR_SUCCESS;
     CWholeFileIO * pIO = APE_NULL;
 
     // make sure we're at the head of the file
@@ -35,7 +35,7 @@ CWholeFileIO * CWholeFileIO::CreateWholeFileIO(IAPEIO * pSource, int64 nSize)
         // allocate the first buffer then start the read loop
         unsigned char * pBuffer = new unsigned char [static_cast<size_t>(nGrowBytes)];
         int64 nBytesRead = 0;
-        while ((pBuffer != APE_NULL) && (pSource->Read(&pBuffer[nBytes], nGrowBytes, &nBytesRead) == ERROR_SUCCESS))
+        while ((pBuffer != APE_NULL) && (pSource->Read(&pBuffer[nBytes], nGrowBytes, &nBytesRead) == APE_ERROR_SUCCESS))
         {
             // increment the position
             nBytes += nBytesRead;
@@ -95,9 +95,9 @@ CWholeFileIO * CWholeFileIO::CreateWholeFileIO(IAPEIO * pSource, int64 nSize)
             int64 nBytesRead = 0;
             nResult = pSource->Read(spWholeFile, n32BitSize, &nBytesRead);
             if (nBytesRead < n32BitSize)
-                nResult = ERROR_IO_READ;
+                nResult = APE_ERROR_IO_READ;
 
-            if (nResult == ERROR_SUCCESS)
+            if (nResult == APE_ERROR_SUCCESS)
             {
                 // create IO object
                 pIO = new CWholeFileIO(pSource, spWholeFile, nBytesRead);
@@ -128,7 +128,7 @@ CWholeFileIO::~CWholeFileIO()
 
 int CWholeFileIO::Open(const str_utfn *, bool)
 {
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int CWholeFileIO::Close()
@@ -145,12 +145,12 @@ int CWholeFileIO::Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead)
     if (pBytesRead != APE_NULL)
         *pBytesRead = nBytesToRead;
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int CWholeFileIO::Write(const void * , int64, int64 *)
 {
-    return ERROR_IO_WRITE;
+    return APE_ERROR_IO_WRITE;
 }
 
 int CWholeFileIO::Seek(int64 nPosition, SeekMethod nMethod)
@@ -168,7 +168,7 @@ int CWholeFileIO::Seek(int64 nPosition, SeekMethod nMethod)
         m_nWholeFilePointer = GetSize() - abs(nPosition);
     }
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int CWholeFileIO::SetEOF()
@@ -195,12 +195,12 @@ int64 CWholeFileIO::GetSize()
 
 int CWholeFileIO::Create(const str_utfn *)
 {
-    return ERROR_UNDEFINED;
+    return APE_ERROR_UNDEFINED;
 }
 
 int CWholeFileIO::Delete()
 {
-    return ERROR_UNDEFINED;
+    return APE_ERROR_UNDEFINED;
 }
 
 }

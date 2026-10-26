@@ -127,21 +127,21 @@ int CAntiPredictorExtraHighHelper::ConventionalDotProduct(short *bip, short *bbm
     {
         while(bbm < pMaxBBM)
         {
-            EXPAND_32_TIMES(nDotProduct += *bip++ * *bbm++;)
+            APE_EXPAND_32_TIMES(nDotProduct += *bip++ * *bbm++;)
         }
     }
     else if (op > 0)
     {
         while(bbm < pMaxBBM)
         {
-            EXPAND_32_TIMES(nDotProduct += *bip++ * *bbm; *bbm++ += *pIPAdaptFactor++;)
+            APE_EXPAND_32_TIMES(nDotProduct += *bip++ * *bbm; *bbm++ += *pIPAdaptFactor++;)
         }
     }
     else
     {
         while(bbm < pMaxBBM)
         {
-            EXPAND_32_TIMES(nDotProduct += *bip++ * *bbm; *bbm++ -= *pIPAdaptFactor++;)
+            APE_EXPAND_32_TIMES(nDotProduct += *bip++ * *bbm; *bbm++ -= *pIPAdaptFactor++;)
         }
     }
 

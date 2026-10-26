@@ -76,7 +76,7 @@ __declspec(dllexport) DWORD FAR PASCAL ReadFilterInput(HANDLE hInput, unsigned c
         //////////////////////////////////////////////////////////////////////////////////////////////
 
         nBlocksToDecode = (nBlocksToDecode * 3) / 4;
-        if (pAPEDecompress->GetData(reinterpret_cast<unsigned char *>(buf), nBlocksToDecode, &nBlocksDecoded, APE_NULL) != ERROR_SUCCESS)
+        if (pAPEDecompress->GetData(reinterpret_cast<unsigned char *>(buf), nBlocksToDecode, &nBlocksDecoded, APE_NULL) != APE_ERROR_SUCCESS)
             return 0;
 
         // expand to 32 bit
@@ -102,7 +102,7 @@ __declspec(dllexport) DWORD FAR PASCAL ReadFilterInput(HANDLE hInput, unsigned c
         // 32 bit float decode (convert to 32 bit in Cool Edit format)
         //////////////////////////////////////////////////////////////////////////////////////////////
 
-        if (pAPEDecompress->GetData(reinterpret_cast<unsigned char *>(buf), nBlocksToDecode, &nBlocksDecoded, APE_NULL) != ERROR_SUCCESS)
+        if (pAPEDecompress->GetData(reinterpret_cast<unsigned char *>(buf), nBlocksToDecode, &nBlocksDecoded, APE_NULL) != APE_ERROR_SUCCESS)
             return 0;
 
         // expand to 32 bit
@@ -125,7 +125,7 @@ __declspec(dllexport) DWORD FAR PASCAL ReadFilterInput(HANDLE hInput, unsigned c
         // 32 bit decode (convert to 32 bit in Cool Edit format)
         //////////////////////////////////////////////////////////////////////////////////////////////
 
-        if (pAPEDecompress->GetData(reinterpret_cast<unsigned char *>(buf), nBlocksToDecode, &nBlocksDecoded, APE_NULL) != ERROR_SUCCESS)
+        if (pAPEDecompress->GetData(reinterpret_cast<unsigned char *>(buf), nBlocksToDecode, &nBlocksDecoded, APE_NULL) != APE_ERROR_SUCCESS)
             return 0;
 
         // expand to 32 bit
@@ -147,7 +147,7 @@ __declspec(dllexport) DWORD FAR PASCAL ReadFilterInput(HANDLE hInput, unsigned c
         //////////////////////////////////////////////////////////////////////////////////////////////
         // 8 and 16 bits decode
         //////////////////////////////////////////////////////////////////////////////////////////////
-        if (pAPEDecompress->GetData(reinterpret_cast<unsigned char *>(buf), nBlocksToDecode, &nBlocksDecoded, APE_NULL) != ERROR_SUCCESS)
+        if (pAPEDecompress->GetData(reinterpret_cast<unsigned char *>(buf), nBlocksToDecode, &nBlocksDecoded, APE_NULL) != APE_ERROR_SUCCESS)
             return 0;
     }
 

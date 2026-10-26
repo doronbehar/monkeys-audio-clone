@@ -83,7 +83,7 @@ int CAPECompress::StartEx(IAPEIO * pioOutput, const WAVEFORMATEX * pwfeInput, bo
     // store format
     memcpy(&m_wfeInput, pwfeInput, sizeof(WAVEFORMATEX));
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int64 CAPECompress::GetBufferBytesAvailable()
@@ -94,7 +94,7 @@ int64 CAPECompress::GetBufferBytesAvailable()
 int64 CAPECompress::UnlockBuffer(int64 nBytesAdded, bool bProcess)
 {
     if (!m_bBufferLocked)
-        return ERROR_UNDEFINED;
+        return APE_ERROR_UNDEFINED;
 
     m_nBufferTail += nBytesAdded;
     m_bBufferLocked = false;
@@ -105,7 +105,7 @@ int64 CAPECompress::UnlockBuffer(int64 nBytesAdded, bool bProcess)
         if (nResult != 0) { return nResult; }
     }
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 unsigned char * CAPECompress::LockBuffer(int64 * pBytesAvailable)
@@ -129,7 +129,7 @@ int64 CAPECompress::AddData(unsigned char * pData, int64 nBytes)
     ASSERT((nBytes % m_wfeInput.nBlockAlign) == 0);
 
     // check the buffer
-    if (m_spBuffer == APE_NULL) return ERROR_INSUFFICIENT_MEMORY;
+    if (m_spBuffer == APE_NULL) return APE_ERROR_INSUFFICIENT_MEMORY;
 
     // loop
     int64 nBytesDone = 0;
@@ -140,7 +140,7 @@ int64 CAPECompress::AddData(unsigned char * pData, int64 nBytes)
         unsigned char * pBuffer = LockBuffer(&nBytesAvailable);
         if (pBuffer == APE_NULL || nBytesAvailable <= 0)
         {
-            return m_spAPECompressCreate->GetTooMuchData() ? ERROR_APE_COMPRESS_TOO_MUCH_DATA : ERROR_UNDEFINED;
+            return m_spAPECompressCreate->GetTooMuchData() ? APE_ERROR_APE_COMPRESS_TOO_MUCH_DATA : APE_ERROR_UNDEFINED;
         }
 
         // calculate how many bytes to copy and add that much to the buffer
@@ -149,25 +149,25 @@ int64 CAPECompress::AddData(unsigned char * pData, int64 nBytes)
 
         // unlock the buffer (fail if not successful)
         const int64 nResult = UnlockBuffer(static_cast<unsigned int>(nBytesToProcess));
-        if (nResult != ERROR_SUCCESS)
+        if (nResult != APE_ERROR_SUCCESS)
             return nResult;
 
         // update our progress
         nBytesDone += nBytesToProcess;
     }
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int CAPECompress::Finish(unsigned char * pTerminatingData, int64 nTerminatingBytes, int64 nWAVTerminatingBytes)
 {
-    RETURN_ON_ERROR(ProcessBuffer(true))
+    APE_RETURN_ON_ERROR(ProcessBuffer(true))
     return m_spAPECompressCreate->Finish(pTerminatingData, nTerminatingBytes, nWAVTerminatingBytes);
 }
 
 int CAPECompress::ProcessBuffer(bool bFinalize)
 {
-    if (m_spBuffer == APE_NULL) { return ERROR_UNDEFINED; }
+    if (m_spBuffer == APE_NULL) { return APE_ERROR_UNDEFINED; }
 
     try
     {
@@ -192,7 +192,7 @@ int CAPECompress::ProcessBuffer(bool bFinalize)
 
             // encode
             const int nResult = m_spAPECompressCreate->EncodeFrame(&m_spBuffer[m_nBufferHead], static_cast<int>(nFrameBytes));
-            if (nResult != ERROR_SUCCESS) { return nResult; }
+            if (nResult != APE_ERROR_SUCCESS) { return nResult; }
 
             m_nBufferHead += nFrameBytes;
         }
@@ -211,16 +211,16 @@ int CAPECompress::ProcessBuffer(bool bFinalize)
     }
     catch(...)
     {
-        return ERROR_UNDEFINED;
+        return APE_ERROR_UNDEFINED;
     }
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int64 CAPECompress::AddDataFromInputSource(CInputSource * pInputSource, int64 nMaxBytes, int64 * pBytesAdded)
 {
     // error check the parameters
-    if (pInputSource == APE_NULL) return ERROR_BAD_PARAMETER;
+    if (pInputSource == APE_NULL) return APE_ERROR_BAD_PARAMETER;
 
     // initialize
     if (pBytesAdded) *pBytesAdded = 0;
@@ -229,7 +229,7 @@ int64 CAPECompress::AddDataFromInputSource(CInputSource * pInputSource, int64 nM
     int64 nBytesAvailable = 0;
     unsigned char * pBuffer = LockBuffer(&nBytesAvailable);
     if ((pBuffer == APE_NULL) || (nBytesAvailable == 0))
-        return ERROR_INSUFFICIENT_MEMORY;
+        return APE_ERROR_INSUFFICIENT_MEMORY;
 
     // calculate the 'ideal' number of bytes
     int64 nBytesRead = 0;
@@ -274,7 +274,7 @@ int64 CAPECompress::AddDataFromInputSource(CInputSource * pInputSource, int64 nM
         return nResult;
     }
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 void CAPECompress::HandleFloat(bool bFloat, const WAVEFORMATEX * pwfeInput)

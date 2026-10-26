@@ -12,6 +12,7 @@ void FixDirectory(CString & strDirectory)
 
 CString GetInstallPath()
 {
+    // check the registry
     CRegKey reg;
     #if defined(_M_X64)
         reg.Open(HKEY_LOCAL_MACHINE, _T("Software\\Wow6432Node\\Monkey's Audio x64"), KEY_READ);
@@ -19,8 +20,15 @@ CString GetInstallPath()
         reg.Open(HKEY_LOCAL_MACHINE, _T("Software\\Monkey's Audio"), KEY_READ);
     #endif
     CString strInstallDirectory;
-    ULONG nChars = APE_MAX_PATH;
-    reg.QueryStringValue(_T("Install_Dir"), strInstallDirectory.GetBuffer(static_cast<int>(APE_MAX_PATH)), &nChars);
+    ULONG nChars = 0;
+    
+    // get the size
+    reg.QueryStringValue(_T("Install_Dir"), APE_NULL, &nChars);
+
+    // get the value
+    reg.QueryStringValue(_T("Install_Dir"), strInstallDirectory.GetBuffer(static_cast<int>(nChars)), &nChars);
+    
+    // release, clean, and return
     strInstallDirectory.ReleaseBuffer();
     FixDirectory(strInstallDirectory);
     return strInstallDirectory;

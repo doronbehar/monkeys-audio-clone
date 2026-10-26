@@ -61,7 +61,7 @@ protected:
     static CString s_strFilenameExtendedInfo;
     static APE::CSmartPtr<APE::IAPEDecompress> s_spAPEDecompressExtendedFileInfo;
     static APE::CSmartPtr<APE::IAPEDecompress> s_spAPEDecompressPlay;
-    static TCHAR m_cCurrentFilename[APE_MAX_PATH];             // the name of the currently playing file
+    static APE::CSmartPtr<TCHAR> m_spCurrentFilename;          // the name of the currently playing file
     static int m_nDecodePositionMS;                            // the current decoding position, in milliseconds
     static int m_nPaused;                                      // paused
     static int m_nSeekNeeded;                                  // if != -1, it's the point (ms) to seek to

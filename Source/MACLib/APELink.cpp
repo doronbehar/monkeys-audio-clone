@@ -22,7 +22,7 @@ CAPELink::CAPELink(const str_utfn * pFilename)
 
     // open the file
     CSmartPtr<IAPEIO> spioLinkFile(CreateIAPEIO());
-    if (spioLinkFile->Open(pFilename) == ERROR_SUCCESS)
+    if (spioLinkFile->Open(pFilename) == APE_ERROR_SUCCESS)
     {
         // create a buffer
         CSmartPtr<char> spBuffer(new char [4097], true);

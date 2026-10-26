@@ -25,10 +25,10 @@ template <class INTTYPE, class DATATYPE> INTTYPE APE::CNNFilter<INTTYPE, DATATYP
     APE::AdaptGeneric(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nInput, m_nOrder);
 
     // update delta
-    UPDATE_DELTA_NEW(nOutput)
+    APE_UPDATE_DELTA_NEW(nOutput)
 
-        // update the input buffer
-        m_rbInput[0] = GetSaturatedShortFromInt(nOutput);
+    // update the input buffer
+    m_rbInput[0] = GetSaturatedShortFromInt(nOutput);
 
     // increment and roll if necessary
     m_rbInput.IncrementSafe();
@@ -51,7 +51,7 @@ CPredictorDecompressInterim::~CPredictorDecompressInterim()
 
 int CPredictorDecompressInterim::DecompressValue(int64 _nA, int64 _nB)
 {
-    if (m_nCurrentIndex == WINDOW_BLOCKS)
+    if (m_nCurrentIndex == APE_NEW_PREDICTOR_WINDOW_BLOCKS)
     {
         // copy forward and adjust pointers
         m_rbPredictionA.Roll(); m_rbPredictionB.Roll();

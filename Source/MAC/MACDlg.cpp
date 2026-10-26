@@ -457,10 +457,11 @@ void CMACDlg::OnFileAddFiles()
     CFileDialog FileDialog(true, APE_NULL, APE_NULL,
         OFN_ALLOWMULTISELECT | OFN_HIDEREADONLY, theApp.GetFormatArray()->GetOpenFilesFilter());
 
-    // extra initialization (hacky, but safe)
-    CSmartPtr<TCHAR> spFilename(new TCHAR [static_cast<size_t>(APE_MAX_PATH + 1) * 512], true); spFilename[0] = 0;
+    // buffer sizing here is a little squishy -- we decided to use 512 times the traditional MAX_PATH
+    int nBufferCharacters = 133120; // 512 * 260
+    CSmartPtr<TCHAR> spFilename(nBufferCharacters, true);
     FileDialog.m_ofn.lpstrInitialDir = m_strAddFilesBasePath;
-    FileDialog.m_ofn.nMaxFile = APE_MAX_PATH * 512;
+    FileDialog.m_ofn.nMaxFile = static_cast<DWORD>(nBufferCharacters);
     FileDialog.m_ofn.lpstrFile = spFilename.GetPtr();
 
     if (FileDialog.DoModal() == IDOK)
@@ -720,7 +721,7 @@ void CMACDlg::OnTimer(UINT_PTR nIDEvent)
                 if (m_aryFiles[z]->m_bDone == false)
                 {
                     m_aryFiles[z]->m_bDone = true;
-                    m_aryFiles[z]->m_nRetVal = ERROR_USER_STOPPED_PROCESSING;
+                    m_aryFiles[z]->m_nRetVal = APE_ERROR_USER_STOPPED_PROCESSING;
                 }
             }
 

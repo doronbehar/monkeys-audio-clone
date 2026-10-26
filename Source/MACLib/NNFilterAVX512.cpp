@@ -29,7 +29,7 @@ bool GetAVX512Available()
 
 #ifdef APE_USE_AVX512_INTRINSICS
 
-#define ADAPT_AVX512_SIMD_SHORT                                                                                    \
+#define APE_ADAPT_AVX512_SIMD_SHORT                                                                                \
 {                                                                                                                  \
     const __m512i avxM = _mm512_load_si512(&pM[z + n]);                                                            \
     const __m512i avxAdapt = _mm512_loadu_si512(&pAdapt[z + n]);                                                   \
@@ -54,16 +54,16 @@ static void AdaptAVX512(short * pM, const short * pAdapt, int32 nDirection, int 
     switch (nOrder)
     {
     case 32:
-        ADAPT_AVX512_SIMD_SHORT
+        APE_ADAPT_AVX512_SIMD_SHORT
         break;
     default:
         for (z = 0; z < nOrder; z += 64)
-            EXPAND_SIMD_2(n, 32, ADAPT_AVX512_SIMD_SHORT)
+            APE_EXPAND_SIMD_2(n, 32, APE_ADAPT_AVX512_SIMD_SHORT)
         break;
     }
 }
 
-#define ADAPT_AVX512_SIMD_INT                                                                                      \
+#define APE_ADAPT_AVX512_SIMD_INT                                                                                  \
 {                                                                                                                  \
     const __m512i avxM = _mm512_load_si512(&pM[z + n]);                                                            \
     const __m512i avxAdapt = _mm512_loadu_si512(&pAdapt[z + n]);                                                   \
@@ -88,11 +88,11 @@ static void AdaptAVX512(int * pM, const int * pAdapt, int64 nDirection, int nOrd
     switch (nOrder)
     {
     case 16:
-        ADAPT_AVX512_SIMD_INT
+        APE_ADAPT_AVX512_SIMD_INT
         break;
     default:
         for (z = 0; z < nOrder; z += 32)
-            EXPAND_SIMD_2(n, 16, ADAPT_AVX512_SIMD_INT)
+            APE_EXPAND_SIMD_2(n, 16, APE_ADAPT_AVX512_SIMD_INT)
         break;
     }
 }
@@ -167,7 +167,7 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::C
     AdaptAVX512(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nOutput, m_nOrder);
 
     // update delta
-    UPDATE_DELTA_NEW(nInput)
+    APE_UPDATE_DELTA_NEW(nInput)
 
     // convert the input to a short and store it
     m_rbInput[0] = GetSaturatedShortFromInt(nInput);
@@ -200,7 +200,7 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::D
     AdaptAVX512(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nInput, m_nOrder);
 
     // update delta
-    UPDATE_DELTA_NEW(nOutput)
+    APE_UPDATE_DELTA_NEW(nOutput)
 
     // update the input buffer
     m_rbInput[0] = GetSaturatedShortFromInt(nOutput);

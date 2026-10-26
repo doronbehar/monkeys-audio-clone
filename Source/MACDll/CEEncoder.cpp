@@ -86,7 +86,7 @@ __declspec(dllexport) HANDLE FAR PASCAL OpenFilterOutput(LPSTR lpstrFilename,lon
     *lpChunkSize = 16384 * wfeAudioFormat.nBlockAlign;
 
     CSmartPtr<str_utfn> spUTFN(CAPECharacterHelper::GetUTFNFromANSI(lpstrFilename), true);
-    if (pAPEEncoder->pAPECompress->Start(spUTFN, &wfeAudioFormat, false, static_cast<int64>(static_cast<double>(lSize) * rate), nCompressLevel, APE_NULL, CREATE_WAV_HEADER_ON_DECOMPRESSION) != 0)
+    if (pAPEEncoder->pAPECompress->Start(spUTFN, &wfeAudioFormat, false, static_cast<int64>(static_cast<double>(lSize) * rate), nCompressLevel, APE_NULL, APE_CREATE_WAV_HEADER_ON_DECOMPRESSION) != 0)
     {
         SafeDeleteAPEEncoder(pAPEEncoder);
         return APE_NULL;

@@ -39,7 +39,7 @@ bool GetNeonAvailable()
 
 #ifdef APE_USE_NEON_INTRINSICS
 
-#define ADAPT_NEON_SIMD_SHORT                                                  \
+#define APE_ADAPT_NEON_SIMD_SHORT                                              \
 {                                                                              \
     const int16x8_t neonM = vld1q_s16(&pM[z + n]);                             \
     const int16x8_t neonAdapt = vld1q_s16(&pAdapt[z + n]);                     \
@@ -59,16 +59,16 @@ static void AdaptNeon(short * pM, const short * pAdapt, int32 nDirection, int nO
     switch (nOrder)
     {
     case 16:
-        EXPAND_SIMD_2(n, 8, ADAPT_NEON_SIMD_SHORT)
+        APE_EXPAND_SIMD_2(n, 8, APE_ADAPT_NEON_SIMD_SHORT)
         break;
     default:
         for (z = 0; z < nOrder; z += 32)
-            EXPAND_SIMD_4(n, 8, ADAPT_NEON_SIMD_SHORT)
+            APE_EXPAND_SIMD_4(n, 8, APE_ADAPT_NEON_SIMD_SHORT)
         break;
     }
 }
 
-#define ADAPT_NEON_SIMD_INT                                                    \
+#define APE_ADAPT_NEON_SIMD_INT                                                \
 {                                                                              \
     const int32x4_t neonM = vld1q_s32(&pM[z + n]);                             \
     const int32x4_t neonAdapt = vld1q_s32(&pAdapt[z + n]);                     \
@@ -86,7 +86,7 @@ static void AdaptNeon(int * pM, const int * pAdapt, int64 nDirection, int nOrder
 
     int z = 0, n = 0;
     for (z = 0; z < nOrder; z += 16)
-        EXPAND_SIMD_4(n, 4, ADAPT_NEON_SIMD_INT)
+        APE_EXPAND_SIMD_4(n, 4, APE_ADAPT_NEON_SIMD_INT)
 }
 
 static int32 CalculateDotProductNeon(const short * pA, const short * pB, int nOrder)
@@ -182,7 +182,7 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::C
     AdaptNeon(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nOutput, m_nOrder);
 
     // update delta
-    UPDATE_DELTA_NEW(nInput)
+    APE_UPDATE_DELTA_NEW(nInput)
 
     // convert the input to a short and store it
     m_rbInput[0] = GetSaturatedShortFromInt(nInput);
@@ -215,7 +215,7 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::D
     AdaptNeon(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nInput, m_nOrder);
 
     // update delta
-    UPDATE_DELTA_NEW(nOutput)
+    APE_UPDATE_DELTA_NEW(nOutput)
 
     // update the input buffer
     m_rbInput[0] = GetSaturatedShortFromInt(nOutput);

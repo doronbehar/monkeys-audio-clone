@@ -11,22 +11,22 @@ namespace APE
 /**************************************************************************************************
 Declares
 **************************************************************************************************/
-#define MAX_ELEMENT_BITS        128
-#define SAFE_ZONE_BITS          32
+#define APE_BITARRAY_MAX_ELEMENT_BITS        128
+#define APE_BITARRAY_SAFE_ZONE_BITS          32
 
-#define CODE_BITS 32
-#define TOP_VALUE (static_cast<unsigned int>(1) << (CODE_BITS - 1))
-#define SHIFT_BITS (CODE_BITS - 9)
-#define BOTTOM_VALUE (TOP_VALUE >> 8)
+#define APE_BITARRAY_CODE_BITS 32
+#define APE_BITARRAY_TOP_VALUE (static_cast<unsigned int>(1) << (APE_BITARRAY_CODE_BITS - 1))
+#define APE_BITARRAY_SHIFT_BITS (APE_BITARRAY_CODE_BITS - 9)
+#define APE_BITARRAY_BOTTOM_VALUE (APE_BITARRAY_TOP_VALUE >> 8)
 
-#define OVERFLOW_SIGNAL 1
-#define OVERFLOW_PIVOT_VALUE 32768
+#define APE_BITARRAY_OVERFLOW_SIGNAL 1
+#define APE_BITARRAY_OVERFLOW_PIVOT_VALUE 32768
 
 /**************************************************************************************************
 Lookup tables
 **************************************************************************************************/
-#define MODEL_ELEMENTS                  64
-#define RANGE_OVERFLOW_SHIFT            16
+#define APE_BITARRAY_MODEL_ELEMENTS                  64
+#define APE_BITARRAY_RANGE_OVERFLOW_SHIFT            16
 
 const uint32 RANGE_TOTAL[64] = {0,19578,36160,48417,56323,60899,63265,64435,64971,65232,65351,65416,65447,65466,65476,65482,65485,65488,65490,65491,65492,65493,65494,65495,65496,65497,65498,65499,65500,65501,65502,65503,65504,65505,65506,65507,65508,65509,65510,65511,65512,65513,65514,65515,65516,65517,65518,65519,65520,65521,65522,65523,65524,65525,65526,65527,65528,65529,65530,65531,65532,65533,65534,65535,};
 const uint32 RANGE_WIDTH[64] = {19578,16582,12257,7906,4576,2366,1170,536,261,119,65,31,19,10,6,3,3,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,};
@@ -47,7 +47,7 @@ CBitArray::CBitArray(uint32 nInitialBytes)
     // allocate bit array
     m_paryBitArray = static_cast<uint32 *>(calloc(nInitialBytes, 1));
     m_nBitArrayBytes = nInitialBytes;
-    m_nRefillThreshold = m_nBitArrayBytes * 8 - MAX_ELEMENT_BITS - SAFE_ZONE_BITS;
+    m_nRefillThreshold = m_nBitArrayBytes * 8 - APE_BITARRAY_MAX_ELEMENT_BITS - APE_BITARRAY_SAFE_ZONE_BITS;
 
     // empty the range code information
     APE_CLEAR(m_RangeCoderInfo);
@@ -83,17 +83,17 @@ int CBitArray::EnlargeBitArray()
     // re-allocate bit array
     uint32 * pNew = static_cast<uint32 *>(realloc(m_paryBitArray, nNewBytes));
     if (pNew == APE_NULL)
-        return ERROR_INSUFFICIENT_MEMORY;
+        return APE_ERROR_INSUFFICIENT_MEMORY;
     m_paryBitArray = pNew;
 
     // zero new elements
     memset(m_paryBitArray + m_nBitArrayBytes / 4, 0, static_cast<size_t>(nNewBytes - m_nBitArrayBytes));
 
     m_nBitArrayBytes = nNewBytes;
-    m_nRefillThreshold = m_nBitArrayBytes * 8 - MAX_ELEMENT_BITS - SAFE_ZONE_BITS;
+    m_nRefillThreshold = m_nBitArrayBytes * 8 - APE_BITARRAY_MAX_ELEMENT_BITS - APE_BITARRAY_SAFE_ZONE_BITS;
 
     // return a success
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 /**************************************************************************************************
@@ -110,44 +110,44 @@ void CBitArray::ResetBitArray()
 Range coding macros -- ugly, but outperform inline's (every cycle counts here)
 **************************************************************************************************/
 #if APE_BYTE_ORDER == APE_LITTLE_ENDIAN
-    #define PUTC(VALUE) m_paryBitArray[m_nCurrentBitIndex >> 5] |= (static_cast<uint32>(VALUE) & 0xFF) << (24 - (m_nCurrentBitIndex & 31)); m_nCurrentBitIndex += 8;
+    #define APE_PUTC(VALUE) m_paryBitArray[m_nCurrentBitIndex >> 5] |= (static_cast<uint32>(VALUE) & 0xFF) << (24 - (m_nCurrentBitIndex & 31)); m_nCurrentBitIndex += 8;
 #else
-    #define PUTC(VALUE) m_paryBitArray[m_nCurrentBitIndex >> 5] |= (static_cast<uint32>(VALUE) & 0xFF) << (m_nCurrentBitIndex & 31); m_nCurrentBitIndex += 8;
+    #define APE_PUTC(VALUE) m_paryBitArray[m_nCurrentBitIndex >> 5] |= (static_cast<uint32>(VALUE) & 0xFF) << (m_nCurrentBitIndex & 31); m_nCurrentBitIndex += 8;
 #endif
 
-#define NORMALIZE_RANGE_CODER                                                                    \
-    while (m_RangeCoderInfo.range <= BOTTOM_VALUE)                                               \
+#define APE_NORMALIZE_RANGE_CODER                                                                \
+    while (m_RangeCoderInfo.range <= APE_BITARRAY_BOTTOM_VALUE)                                  \
     {                                                                                            \
-        if (m_RangeCoderInfo.low < (0xFF << SHIFT_BITS))                                         \
+        if (m_RangeCoderInfo.low < (0xFF << APE_BITARRAY_SHIFT_BITS))                            \
         {                                                                                        \
-            PUTC(m_RangeCoderInfo.buffer);                                                       \
-            for ( ; m_RangeCoderInfo.help; m_RangeCoderInfo.help--) { PUTC(0xFF); }              \
-            m_RangeCoderInfo.buffer = static_cast<unsigned char>(m_RangeCoderInfo.low >> static_cast<unsigned int>(SHIFT_BITS)); \
+            APE_PUTC(m_RangeCoderInfo.buffer);                                                   \
+            for ( ; m_RangeCoderInfo.help; m_RangeCoderInfo.help--) { APE_PUTC(0xFF); }          \
+            m_RangeCoderInfo.buffer = static_cast<unsigned char>(m_RangeCoderInfo.low >> static_cast<unsigned int>(APE_BITARRAY_SHIFT_BITS)); \
         }                                                                                        \
-        else if (m_RangeCoderInfo.low & TOP_VALUE)                                               \
+        else if (m_RangeCoderInfo.low & APE_BITARRAY_TOP_VALUE)                                  \
         {                                                                                        \
-            PUTC(m_RangeCoderInfo.buffer + 1);                                                   \
+            APE_PUTC(m_RangeCoderInfo.buffer + 1);                                               \
             m_nCurrentBitIndex += (m_RangeCoderInfo.help * 8);                                   \
             m_RangeCoderInfo.help = 0;                                                           \
-            m_RangeCoderInfo.buffer = static_cast<unsigned char>(m_RangeCoderInfo.low >> static_cast<unsigned int>(SHIFT_BITS)); \
+            m_RangeCoderInfo.buffer = static_cast<unsigned char>(m_RangeCoderInfo.low >> static_cast<unsigned int>(APE_BITARRAY_SHIFT_BITS)); \
         }                                                                                        \
         else                                                                                     \
         {                                                                                        \
             m_RangeCoderInfo.help++;                                                             \
         }                                                                                        \
                                                                                                  \
-        m_RangeCoderInfo.low = (m_RangeCoderInfo.low << 8) & (TOP_VALUE - 1);                    \
+        m_RangeCoderInfo.low = (m_RangeCoderInfo.low << 8) & (APE_BITARRAY_TOP_VALUE - 1);       \
         m_RangeCoderInfo.range <<= 8;                                                            \
     }
 
-#define ENCODE_FAST(RANGE_WIDTH, RANGE_TOTAL, SHIFT)                                             \
-    NORMALIZE_RANGE_CODER                                                                        \
+#define APE_ENCODE_FAST(RANGE_WIDTH, RANGE_TOTAL, SHIFT)                                         \
+    APE_NORMALIZE_RANGE_CODER                                                                    \
     const unsigned int nTemp = static_cast<unsigned int>(m_RangeCoderInfo.range >> (SHIFT));     \
     m_RangeCoderInfo.range = nTemp * (RANGE_WIDTH);                                              \
     m_RangeCoderInfo.low += nTemp * (RANGE_TOTAL);
 
-#define ENCODE_DIRECT(VALUE, SHIFT)                                                              \
-    NORMALIZE_RANGE_CODER                                                                        \
+#define APE_ENCODE_DIRECT(VALUE, SHIFT)                                                          \
+    APE_NORMALIZE_RANGE_CODER                                                                    \
     m_RangeCoderInfo.range = m_RangeCoderInfo.range >> (SHIFT);                                  \
     m_RangeCoderInfo.low += m_RangeCoderInfo.range * (VALUE);
 
@@ -159,7 +159,7 @@ int CBitArray::EncodeUnsignedLong(unsigned int n)
     // make sure there is room for the data
     if (m_nCurrentBitIndex > m_nRefillThreshold)
     {
-        RETURN_ON_ERROR(EnlargeBitArray())
+        APE_RETURN_ON_ERROR(EnlargeBitArray())
     }
 
     // encode the value
@@ -178,7 +178,7 @@ int CBitArray::EncodeUnsignedLong(unsigned int n)
 
     m_nCurrentBitIndex += 32;
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 /**************************************************************************************************
@@ -198,7 +198,7 @@ int CBitArray::EncodeValue(int64 nEncode, BIT_ARRAY_STATE & BitArrayState)
     // make sure there is room for the data
     if (m_nCurrentBitIndex > m_nRefillThreshold)
     {
-        RETURN_ON_ERROR(EnlargeBitArray())
+        APE_RETURN_ON_ERROR(EnlargeBitArray())
     }
 
     // convert to unsigned
@@ -211,13 +211,13 @@ int CBitArray::EncodeValue(int64 nEncode, BIT_ARRAY_STATE & BitArrayState)
     if (nOverflow != nOverflow64)
     {
         // overflow happened; increase the pivot value and signal the situation in the bitstream
-        nPivotValue = OVERFLOW_PIVOT_VALUE;
+        nPivotValue = APE_BITARRAY_OVERFLOW_PIVOT_VALUE;
         nOverflow = static_cast<uint32>(nEncode / nPivotValue);
 
         // signal overflow using a low overflow value that can never occur as a "special" overflow value otherwise
-        ENCODE_FAST(RANGE_WIDTH[MODEL_ELEMENTS - 1], RANGE_TOTAL[MODEL_ELEMENTS - 1], RANGE_OVERFLOW_SHIFT)
-        ENCODE_DIRECT((OVERFLOW_SIGNAL >> 16) & 0xFFFF, 16)
-        ENCODE_DIRECT(OVERFLOW_SIGNAL & 0xFFFF, 16)
+        APE_ENCODE_FAST(RANGE_WIDTH[APE_BITARRAY_MODEL_ELEMENTS - 1], RANGE_TOTAL[APE_BITARRAY_MODEL_ELEMENTS - 1], APE_BITARRAY_RANGE_OVERFLOW_SHIFT)
+        APE_ENCODE_DIRECT((APE_BITARRAY_OVERFLOW_SIGNAL >> 16) & 0xFFFF, 16)
+        APE_ENCODE_DIRECT(APE_BITARRAY_OVERFLOW_SIGNAL & 0xFFFF, 16)
     }
     const uint32 nBase = static_cast<uint32>(nEncode - (static_cast<int64>(nOverflow) * static_cast<int64>(nPivotValue)));
 
@@ -226,9 +226,9 @@ int CBitArray::EncodeValue(int64 nEncode, BIT_ARRAY_STATE & BitArrayState)
     BitArrayState.nKSum += static_cast<uint32>((nEncode + 1) / 2) - ((BitArrayState.nKSum + 16) >> 5);
 
     // store the overflow
-    if (nOverflow < (MODEL_ELEMENTS - 1))
+    if (nOverflow < (APE_BITARRAY_MODEL_ELEMENTS - 1))
     {
-        ENCODE_FAST(RANGE_WIDTH[nOverflow], RANGE_TOTAL[nOverflow], RANGE_OVERFLOW_SHIFT)
+        APE_ENCODE_FAST(RANGE_WIDTH[nOverflow], RANGE_TOTAL[nOverflow], APE_BITARRAY_RANGE_OVERFLOW_SHIFT)
 
         #ifdef BUILD_RANGE_TABLE
             g_aryOverflows[nOverflow]++;
@@ -238,7 +238,7 @@ int CBitArray::EncodeValue(int64 nEncode, BIT_ARRAY_STATE & BitArrayState)
     else
     {
         // store the "special" overflow (tells that perfect k is encoded next)
-        ENCODE_FAST(RANGE_WIDTH[MODEL_ELEMENTS - 1], RANGE_TOTAL[MODEL_ELEMENTS - 1], RANGE_OVERFLOW_SHIFT)
+        APE_ENCODE_FAST(RANGE_WIDTH[APE_BITARRAY_MODEL_ELEMENTS - 1], RANGE_TOTAL[APE_BITARRAY_MODEL_ELEMENTS - 1], APE_BITARRAY_RANGE_OVERFLOW_SHIFT)
 
         #ifdef BUILD_RANGE_TABLE
             g_aryOverflows[MODEL_ELEMENTS - 1]++;
@@ -246,8 +246,8 @@ int CBitArray::EncodeValue(int64 nEncode, BIT_ARRAY_STATE & BitArrayState)
         #endif
 
         // code the overflow using straight bits
-        ENCODE_DIRECT((nOverflow >> 16) & 0xFFFF, 16)
-        ENCODE_DIRECT(nOverflow & 0xFFFF, 16)
+        APE_ENCODE_DIRECT((nOverflow >> 16) & 0xFFFF, 16)
+        APE_ENCODE_DIRECT(nOverflow & 0xFFFF, 16)
     }
 
     // code the base
@@ -272,14 +272,14 @@ int CBitArray::EncodeValue(int64 nEncode, BIT_ARRAY_STATE & BitArrayState)
         const uint32 nBaseB = nBase % nSplitFactor;
 
         {
-            NORMALIZE_RANGE_CODER
+            APE_NORMALIZE_RANGE_CODER
             const uint32 nTemp = m_RangeCoderInfo.range / nPivotValueA;
             m_RangeCoderInfo.range = nTemp;
             m_RangeCoderInfo.low += nTemp * nBaseA;
         }
 
         {
-            NORMALIZE_RANGE_CODER
+            APE_NORMALIZE_RANGE_CODER
             const uint32 nTemp = m_RangeCoderInfo.range / nPivotValueB;
             m_RangeCoderInfo.range = nTemp;
             m_RangeCoderInfo.low += nTemp * nBaseB;
@@ -287,13 +287,13 @@ int CBitArray::EncodeValue(int64 nEncode, BIT_ARRAY_STATE & BitArrayState)
     }
     else
     {
-        NORMALIZE_RANGE_CODER
+        APE_NORMALIZE_RANGE_CODER
         const uint32 nTemp = m_RangeCoderInfo.range / nPivotValue;
         m_RangeCoderInfo.range = nTemp;
         m_RangeCoderInfo.low += nTemp * nBase;
     }
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 /**************************************************************************************************
@@ -306,7 +306,7 @@ void CBitArray::FlushBitArray()
 
     // the range coder
     m_RangeCoderInfo.low = 0;  // full code range
-    m_RangeCoderInfo.range = TOP_VALUE;
+    m_RangeCoderInfo.range = APE_BITARRAY_TOP_VALUE;
     m_RangeCoderInfo.buffer = 0;
     m_RangeCoderInfo.help = 0;  // no bytes to follow
 }
@@ -322,32 +322,32 @@ Finalize
 **************************************************************************************************/
 void CBitArray::Finalize()
 {
-    NORMALIZE_RANGE_CODER
+    APE_NORMALIZE_RANGE_CODER
 
-    const unsigned int nTemp = (m_RangeCoderInfo.low >> SHIFT_BITS) + 1;
+    const unsigned int nTemp = (m_RangeCoderInfo.low >> APE_BITARRAY_SHIFT_BITS) + 1;
 
     if (nTemp > 0xFF) // we have a carry
     {
-        PUTC(m_RangeCoderInfo.buffer + 1)
+        APE_PUTC(m_RangeCoderInfo.buffer + 1)
         for ( ; m_RangeCoderInfo.help; m_RangeCoderInfo.help--)
         {
-            PUTC(0)
+            APE_PUTC(0)
         }
     }
     else  // no carry
     {
-        PUTC(m_RangeCoderInfo.buffer)
+        APE_PUTC(m_RangeCoderInfo.buffer)
         for ( ; m_RangeCoderInfo.help; m_RangeCoderInfo.help--)
         {
-            PUTC((static_cast<unsigned char>(0xFF)))
+            APE_PUTC((static_cast<unsigned char>(0xFF)))
         }
     }
 
     // we must output these bytes so the decoder can properly work at the end of the stream
-    PUTC(nTemp & 0xFF)
-    PUTC(0)
-    PUTC(0)
-    PUTC(0)
+    APE_PUTC(nTemp & 0xFF)
+    APE_PUTC(0)
+    APE_PUTC(0)
+    APE_PUTC(0)
 }
 
 /**************************************************************************************************

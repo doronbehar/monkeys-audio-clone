@@ -6,14 +6,14 @@
 Macros for SIMD expansion
 **************************************************************************************************/
 
-#define EXPAND_SIMD_2(OFFSET, INCREMENT, CODE) {{ (OFFSET) = 0; CODE } { (OFFSET) = 1 * (INCREMENT); CODE }}
-#define EXPAND_SIMD_4(OFFSET, INCREMENT, CODE) {{ (OFFSET) = 0; CODE } { (OFFSET) = 1 * (INCREMENT); CODE } { (OFFSET) = 2 * (INCREMENT); CODE } { (OFFSET) = 3 * (INCREMENT); CODE }}
+#define APE_EXPAND_SIMD_2(OFFSET, INCREMENT, CODE) {{ (OFFSET) = 0; CODE } { (OFFSET) = 1 * (INCREMENT); CODE }}
+#define APE_EXPAND_SIMD_4(OFFSET, INCREMENT, CODE) {{ (OFFSET) = 0; CODE } { (OFFSET) = 1 * (INCREMENT); CODE } { (OFFSET) = 2 * (INCREMENT); CODE } { (OFFSET) = 3 * (INCREMENT); CODE }}
 
 /**************************************************************************************************
 Macros to avoid code duplication
 **************************************************************************************************/
 
-#define UPDATE_DELTA_NEW(VALUE)                                 \
+#define APE_UPDATE_DELTA_NEW(VALUE)                             \
 {                                                               \
     INTTYPE nTempABS = Abs(VALUE);                              \
                                                                 \
@@ -33,7 +33,7 @@ Macros to avoid code duplication
     m_rbDeltaM[-8] >>= 1;                                       \
 }
 
-#define UPDATE_DELTA_OLD(VALUE)                                 \
+#define APE_UPDATE_DELTA_OLD(VALUE)                             \
 {                                                               \
     m_rbDeltaM[0] = ((VALUE) == 0) ? 0 : (((VALUE) >> 28) & 8) - 4; \
     m_rbDeltaM[-4] >>= 1;                                       \
@@ -84,14 +84,14 @@ APE_INLINE void Adapt(short * pM, const short * pAdapt, int32 nDirection, int nO
     {
         while (nOrder--)
         {
-            EXPAND_16_TIMES(*pM++ += *pAdapt++;)
+            APE_EXPAND_16_TIMES(*pM++ += *pAdapt++;)
         }
     }
     else if (nDirection > 0)
     {
         while (nOrder--)
         {
-            EXPAND_16_TIMES(*pM++ -= *pAdapt++;)
+            APE_EXPAND_16_TIMES(*pM++ -= *pAdapt++;)
         }
     }
 }
@@ -107,14 +107,14 @@ APE_INLINE void Adapt(int * pM, const int * pAdapt, int64 nDirection, int nOrder
     {
         while (nOrder--)
         {
-            EXPAND_16_TIMES(*pM++ += *pAdapt++;)
+            APE_EXPAND_16_TIMES(*pM++ += *pAdapt++;)
         }
     }
     else if (nDirection > 0)
     {
         while (nOrder--)
         {
-            EXPAND_16_TIMES(*pM++ -= *pAdapt++;)
+            APE_EXPAND_16_TIMES(*pM++ -= *pAdapt++;)
         }
     }
 }
@@ -131,7 +131,7 @@ APE_INLINE int32 CalculateDotProduct(const short * pA, const short * pB, int nOr
 
     while (nOrder--)
     {
-        EXPAND_16_TIMES(nDotProduct += *pA++ * *pB++;)
+        APE_EXPAND_16_TIMES(nDotProduct += *pA++ * *pB++;)
     }
 
     return nDotProduct;
@@ -148,7 +148,7 @@ APE_INLINE int64 CalculateDotProduct(const int * pA, const int * pB, int nOrder)
 
     while (nOrder--)
     {
-        EXPAND_16_TIMES(nTemporary = *pA++ * *pB++; nDotProduct += nTemporary;)
+        APE_EXPAND_16_TIMES(nTemporary = *pA++ * *pB++; nDotProduct += nTemporary;)
     }
 
     return nDotProduct;

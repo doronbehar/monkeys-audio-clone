@@ -34,7 +34,7 @@ void CUnBitArray::GenerateArray(int * pOutputArray, int nElements, intn)
 
 uint32 CUnBitArray::RangeDecodeFast(int nShift)
 {
-    while (m_RangeCoderInfo.range <= BOTTOM_VALUE)
+    while (m_RangeCoderInfo.range <= APE_BITARRAY_BOTTOM_VALUE)
     {
         m_RangeCoderInfo.buffer = (m_RangeCoderInfo.buffer << 8) | DecodeByte();
         m_RangeCoderInfo.low = (m_RangeCoderInfo.low << 8) | ((m_RangeCoderInfo.buffer >> 1) & 0xFF);
@@ -54,13 +54,13 @@ uint32 CUnBitArray::RangeDecodeFast(int nShift)
 uint32 CUnBitArray::RangeDecodeFastWithUpdate(int nShift)
 {
     // update range
-    while (m_RangeCoderInfo.range <= BOTTOM_VALUE)
+    while (m_RangeCoderInfo.range <= APE_BITARRAY_BOTTOM_VALUE)
     {
         // if the decoder's range falls to zero, it means the input bitstream is corrupt
         if (m_RangeCoderInfo.range == 0)
         {
             ASSERT(false);
-            throw(static_cast<intn>(ERROR_UNDEFINED));
+            throw(static_cast<intn>(APE_ERROR_UNDEFINED));
         }
 
         // read byte and update range
@@ -76,7 +76,7 @@ uint32 CUnBitArray::RangeDecodeFastWithUpdate(int nShift)
     if (m_RangeCoderInfo.range == 0)
     {
         ASSERT(false);
-        throw(static_cast<intn>(ERROR_UNDEFINED));
+        throw(static_cast<intn>(APE_ERROR_UNDEFINED));
     }
 
     // get the result
@@ -88,9 +88,9 @@ uint32 CUnBitArray::RangeDecodeFastWithUpdate(int nShift)
 uint32 CUnBitArray::DecodeOverflow(uint32 & nPivotValue)
 {
     // decode
-    const uint32 nRangeTotal = RangeDecodeFast(RANGE_OVERFLOW_SHIFT);
+    const uint32 nRangeTotal = RangeDecodeFast(APE_BITARRAY_RANGE_OVERFLOW_SHIFT);
     if (nRangeTotal >= 65536)
-        throw(static_cast<intn>(ERROR_INVALID_INPUT_FILE));
+        throw(static_cast<intn>(APE_ERROR_INVALID_INPUT_FILE));
 
     // lookup the symbol from lookup table
     uint32 nOverflow = m_spRangeTable->Get(nRangeTotal);
@@ -100,16 +100,16 @@ uint32 CUnBitArray::DecodeOverflow(uint32 & nPivotValue)
     m_RangeCoderInfo.range = m_RangeCoderInfo.range * RANGE_WIDTH_2[nOverflow];
 
     // get the working k
-    if (nOverflow == (MODEL_ELEMENTS - 1))
+    if (nOverflow == (APE_BITARRAY_MODEL_ELEMENTS - 1))
     {
         nOverflow = RangeDecodeFastWithUpdate(16);
         nOverflow <<= 16;
         nOverflow |= RangeDecodeFastWithUpdate(16);
 
         // detect overflow signaling here, adjust the pivot value and try again
-        if (nOverflow == OVERFLOW_SIGNAL)
+        if (nOverflow == APE_BITARRAY_OVERFLOW_SIGNAL)
         {
-            nPivotValue = OVERFLOW_PIVOT_VALUE;
+            nPivotValue = APE_BITARRAY_OVERFLOW_PIVOT_VALUE;
 
             return DecodeOverflow(nPivotValue);
         }
@@ -142,7 +142,7 @@ int64 CUnBitArray::DecodeValueRange(UNBIT_ARRAY_STATE & BitArrayState)
             const uint32 nPivotValueA = (nPivotValue / nSplitFactor) + 1;
             const uint32 nPivotValueB = nSplitFactor;
 
-            while (m_RangeCoderInfo.range <= BOTTOM_VALUE)
+            while (m_RangeCoderInfo.range <= APE_BITARRAY_BOTTOM_VALUE)
             {
                 m_RangeCoderInfo.buffer = (m_RangeCoderInfo.buffer << 8) | DecodeByte();
                 m_RangeCoderInfo.low = (m_RangeCoderInfo.low << 8) | ((m_RangeCoderInfo.buffer >> 1) & 0xFF);
@@ -152,7 +152,7 @@ int64 CUnBitArray::DecodeValueRange(UNBIT_ARRAY_STATE & BitArrayState)
             const uint32 nBaseA = m_RangeCoderInfo.low / m_RangeCoderInfo.range;
             m_RangeCoderInfo.low = m_RangeCoderInfo.low % m_RangeCoderInfo.range;
 
-            while (m_RangeCoderInfo.range <= BOTTOM_VALUE)
+            while (m_RangeCoderInfo.range <= APE_BITARRAY_BOTTOM_VALUE)
             {
                 m_RangeCoderInfo.buffer = (m_RangeCoderInfo.buffer << 8) | DecodeByte();
                 m_RangeCoderInfo.low = (m_RangeCoderInfo.low << 8) | ((m_RangeCoderInfo.buffer >> 1) & 0xFF);
@@ -166,7 +166,7 @@ int64 CUnBitArray::DecodeValueRange(UNBIT_ARRAY_STATE & BitArrayState)
         }
         else
         {
-            while (m_RangeCoderInfo.range <= BOTTOM_VALUE)
+            while (m_RangeCoderInfo.range <= APE_BITARRAY_BOTTOM_VALUE)
             {
                 m_RangeCoderInfo.buffer = (m_RangeCoderInfo.buffer << 8) | DecodeByte();
                 m_RangeCoderInfo.low = (m_RangeCoderInfo.low << 8) | ((m_RangeCoderInfo.buffer >> 1) & 0xFF);
@@ -213,14 +213,14 @@ void CUnBitArray::FlushBitArray()
     AdvanceToByteBoundary();
     DecodeValueXBits(8); // ignore the first byte... (slows compression too much to not output this dummy byte)
     m_RangeCoderInfo.buffer = DecodeValueXBits(8);
-    m_RangeCoderInfo.low = m_RangeCoderInfo.buffer >> (8 - EXTRA_BITS);
-    m_RangeCoderInfo.range = static_cast<unsigned int>(1 << EXTRA_BITS);
+    m_RangeCoderInfo.low = m_RangeCoderInfo.buffer >> (8 - APE_BITARRAY_EXTRA_BITS);
+    m_RangeCoderInfo.range = static_cast<unsigned int>(1 << APE_BITARRAY_EXTRA_BITS);
 }
 
 void CUnBitArray::Finalize()
 {
     // normalize
-    while (m_RangeCoderInfo.range <= BOTTOM_VALUE)
+    while (m_RangeCoderInfo.range <= APE_BITARRAY_BOTTOM_VALUE)
     {
         m_nCurrentBitIndex += 8;
         m_RangeCoderInfo.range <<= 8;

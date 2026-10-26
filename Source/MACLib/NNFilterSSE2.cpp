@@ -28,7 +28,7 @@ void AdaptSSE2(short * pM, const short * pAdapt, int32 nDirection, int nOrder);
 
 int32 CalculateDotProductSSE2(const short * pA, const short * pB, int nOrder);
 
-#define ADAPT_SSE2_SIMD_SHORT                                                                    \
+#define APE_ADAPT_SSE2_SIMD_SHORT                                                                    \
 {                                                                                                \
     const __m128i sseM = _mm_load_si128(reinterpret_cast<const __m128i *>(&pM[z + n]));          \
     const __m128i sseAdapt = _mm_loadu_si128(reinterpret_cast<const __m128i *>(&pAdapt[z + n])); \
@@ -51,16 +51,16 @@ void AdaptSSE2(short * pM, const short * pAdapt, int32 nDirection, int nOrder)
     switch (nOrder)
     {
     case 16:
-        EXPAND_SIMD_2(n, 8, ADAPT_SSE2_SIMD_SHORT)
+        APE_EXPAND_SIMD_2(n, 8, APE_ADAPT_SSE2_SIMD_SHORT)
         break;
     default:
         for (z = 0; z < nOrder; z += 32)
-            EXPAND_SIMD_4(n, 8, ADAPT_SSE2_SIMD_SHORT)
+            APE_EXPAND_SIMD_4(n, 8, APE_ADAPT_SSE2_SIMD_SHORT)
         break;
     }
 }
 
-#define ADAPT_SSE2_SIMD_INT_ADD                                                                  \
+#define APE_ADAPT_SSE2_SIMD_INT_ADD                                                                  \
 {                                                                                                \
     const __m128i sseM = _mm_load_si128(reinterpret_cast<const __m128i *>(&pM[z + n]));          \
     const __m128i sseAdapt = _mm_loadu_si128(reinterpret_cast<const __m128i *>(&pAdapt[z + n])); \
@@ -68,7 +68,7 @@ void AdaptSSE2(short * pM, const short * pAdapt, int32 nDirection, int nOrder)
     _mm_store_si128(reinterpret_cast<__m128i *>(&pM[z + n]), sseNew);                            \
 }
 
-#define ADAPT_SSE2_SIMD_INT_SUB                                                                  \
+#define APE_ADAPT_SSE2_SIMD_INT_SUB                                                                  \
 {                                                                                                \
     const __m128i sseM = _mm_load_si128(reinterpret_cast<const __m128i *>(&pM[z + n]));          \
     const __m128i sseAdapt = _mm_loadu_si128(reinterpret_cast<const __m128i *>(&pAdapt[z + n])); \
@@ -88,12 +88,12 @@ static void AdaptSSE2(int * pM, const int * pAdapt, int64 nDirection, int nOrder
     if (nDirection < 0)
     {
         for (z = 0; z < nOrder; z += 16)
-            EXPAND_SIMD_4(n, 4, ADAPT_SSE2_SIMD_INT_ADD)
+            APE_EXPAND_SIMD_4(n, 4, APE_ADAPT_SSE2_SIMD_INT_ADD)
     }
     else if (nDirection > 0)
     {
         for (z = 0; z < nOrder; z += 16)
-            EXPAND_SIMD_4(n, 4, ADAPT_SSE2_SIMD_INT_SUB)
+            APE_EXPAND_SIMD_4(n, 4, APE_ADAPT_SSE2_SIMD_INT_SUB)
     }
 }
 
@@ -153,7 +153,7 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::C
     AdaptSSE2(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nOutput, m_nOrder);
 
     // update delta
-    UPDATE_DELTA_NEW(nInput)
+    APE_UPDATE_DELTA_NEW(nInput)
 
     // convert the input to a short and store it
     m_rbInput[0] = GetSaturatedShortFromInt(nInput);
@@ -186,7 +186,7 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::D
     AdaptSSE2(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nInput, m_nOrder);
 
     // update delta
-    UPDATE_DELTA_NEW(nOutput)
+    APE_UPDATE_DELTA_NEW(nOutput)
 
     // update the input buffer
     m_rbInput[0] = GetSaturatedShortFromInt(nOutput);

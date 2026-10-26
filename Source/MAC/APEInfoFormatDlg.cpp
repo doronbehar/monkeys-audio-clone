@@ -78,9 +78,9 @@ CString CAPEInfoFormatDlg::GetSummary(const CString & strFilename)
 {
     CString strSummary;
 
-    CSmartPtr<IAPEDecompress> spAPEDecompress; int nFunctionRetVal = ERROR_UNDEFINED;
+    CSmartPtr<IAPEDecompress> spAPEDecompress; int nFunctionRetVal = APE_ERROR_UNDEFINED;
     spAPEDecompress.Assign(CreateIAPEDecompress(strFilename, &nFunctionRetVal, true, true, false));
-    if ((spAPEDecompress != APE_NULL) && (nFunctionRetVal == ERROR_SUCCESS))
+    if ((spAPEDecompress != APE_NULL) && (nFunctionRetVal == APE_ERROR_SUCCESS))
     {
         CString strLine;
 
@@ -139,7 +139,7 @@ CString CAPEInfoFormatDlg::GetSummary(const CString & strFilename)
         CSmartPtr<CInputSource> spInputSource(CInputSource::CreateInputSource(strFilename, &wfeInput, &nTotalBlocks, &nHeaderBytes, &nTerminatingBytes, &nFlags, APE_NULL, false, &nErrorCode));
 
         CString strFormat;
-        if (nErrorCode == ERROR_SUCCESS)
+        if (nErrorCode == APE_ERROR_SUCCESS)
         {
             // output details from the input source
             strFormat.Format(_T("%d samples per second\r\n%d channels\r\n%d bits per sample\r\n%I64d header bytes\r\n%I64d terminating bytes\r\n%I64d total blocks"), static_cast<int>(wfeInput.nSamplesPerSec), static_cast<int>(wfeInput.nChannels), static_cast<int>(wfeInput.wBitsPerSample), nHeaderBytes, nTerminatingBytes, nTotalBlocks);

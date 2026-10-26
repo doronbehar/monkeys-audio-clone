@@ -6,6 +6,7 @@
 #include "Prepare.h"
 #include "APEDecompressCoreOld.h"
 #include "CRC.h"
+#include "GlobalFunctions.h"
 
 namespace APE
 {
@@ -44,7 +45,7 @@ int CUnMACOld::Initialize(IAPEDecompress * pAPEDecompress)
     if (pAPEDecompress == APE_NULL)
     {
         Uninitialize();
-        return ERROR_INITIALIZING_UNMAC;
+        return APE_ERROR_INITIALIZING_UNMAC;
     }
 
     // set the member pointer to the IAPEDecompress class
@@ -63,7 +64,7 @@ int CUnMACOld::Initialize(IAPEDecompress * pAPEDecompress)
     m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAVEFORMATEX, APE_POINTER_TO_INT64(&m_wfeInput));
 
     // return a successful value
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 /**************************************************************************************************
@@ -86,7 +87,7 @@ int CUnMACOld::Uninitialize()
         m_bInitialized = false;
     }
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 /**************************************************************************************************
@@ -97,7 +98,7 @@ intn CUnMACOld::DecompressFrame(unsigned char * pOutputData, int32 nFrameIndex, 
     try
     {
         // error check the parameters (too high of a frame index, etc.)
-        if (nFrameIndex >= m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_TOTAL_FRAMES)) { return ERROR_SUCCESS; }
+        if (nFrameIndex >= m_spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_TOTAL_FRAMES)) { return APE_ERROR_SUCCESS; }
 
         // get the number of samples in the frame
         int nBlocks = 0;
@@ -105,7 +106,7 @@ intn CUnMACOld::DecompressFrame(unsigned char * pOutputData, int32 nFrameIndex, 
         if (nBlocks == 0)
         {
             if (pErrorCode)
-                *pErrorCode = ERROR_UNDEFINED;
+                *pErrorCode = APE_ERROR_UNDEFINED;
             return -1; // nothing to do (file must be zero length) (have to return error)
         }
 
@@ -113,7 +114,7 @@ intn CUnMACOld::DecompressFrame(unsigned char * pOutputData, int32 nFrameIndex, 
         if (SeekToFrame(nFrameIndex) != 0)
         {
             if (pErrorCode)
-                *pErrorCode = ERROR_UNDEFINED;
+                *pErrorCode = APE_ERROR_UNDEFINED;
             return -1;
         }
 
@@ -126,7 +127,7 @@ intn CUnMACOld::DecompressFrame(unsigned char * pOutputData, int32 nFrameIndex, 
             nStoredCRC = static_cast<uint32>(m_spAPEDecompressCore->GetUnBitArrray()->DecodeValue(CUnBitArrayBase::DECODE_VALUE_METHOD_UNSIGNED_RICE, 30));
             if (nStoredCRC == 0)
             {
-                nSpecialCodes = SPECIAL_FRAME_LEFT_SILENCE | SPECIAL_FRAME_RIGHT_SILENCE;
+                nSpecialCodes = APE_SPECIAL_FRAME_LEFT_SILENCE | APE_SPECIAL_FRAME_RIGHT_SILENCE;
             }
         }
         else
@@ -179,7 +180,7 @@ intn CUnMACOld::DecompressFrame(unsigned char * pOutputData, int32 nFrameIndex, 
             if (nChecksum != nStoredCRC)
             {
                 if (pErrorCode)
-                    *pErrorCode = ERROR_INVALID_CHECKSUM;
+                    *pErrorCode = APE_ERROR_INVALID_CHECKSUM;
                 return -1;
             }
         }
@@ -188,13 +189,13 @@ intn CUnMACOld::DecompressFrame(unsigned char * pOutputData, int32 nFrameIndex, 
             if (CRC != nStoredCRC)
             {
                 if (pErrorCode)
-                    *pErrorCode = ERROR_INVALID_CHECKSUM;
+                    *pErrorCode = APE_ERROR_INVALID_CHECKSUM;
                 return -1;
             }
         }
 
         if (pErrorCode)
-            *pErrorCode = ERROR_SUCCESS;
+            *pErrorCode = APE_ERROR_SUCCESS;
         m_LastDecodedFrameIndex = nFrameIndex;
         return nBlocks;
     }
@@ -207,7 +208,7 @@ intn CUnMACOld::DecompressFrame(unsigned char * pOutputData, int32 nFrameIndex, 
     catch (...)
     {
         if (pErrorCode)
-            *pErrorCode = ERROR_INVALID_INPUT_FILE;
+            *pErrorCode = APE_ERROR_INVALID_INPUT_FILE;
         return -1; // error state
     }
 }
@@ -237,7 +238,7 @@ int CUnMACOld::SeekToFrame(intn FrameIndex)
         }
     }
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 /**************************************************************************************************

@@ -68,7 +68,7 @@ In_Module g_APEWinampPluginModule =
 /**************************************************************************************************
 Global variables -- shoot me now
 **************************************************************************************************/
-TCHAR CAPEWinampPlugin::m_cCurrentFilename[APE_MAX_PATH] = { 0 };
+APE::CSmartPtr<TCHAR> CAPEWinampPlugin::m_spCurrentFilename;
 int CAPEWinampPlugin::m_nDecodePositionMS = -1;
 int CAPEWinampPlugin::m_nPaused = 0;
 int CAPEWinampPlugin::m_nSeekNeeded = -1;
@@ -91,7 +91,8 @@ int CAPEWinampPlugin::Play(char * pFilename)
 {
     // reset or initialize any public variables
     CSmartPtr<str_utfn> spFilename(CAPECharacterHelper::GetUTFNFromANSI(pFilename), true);
-    _tcscpy_s(m_cCurrentFilename, APE_MAX_PATH, spFilename);
+    m_spCurrentFilename.AllocateArray(static_cast<int>(_tcslen(spFilename)) + 1);
+    memcpy(m_spCurrentFilename.GetPtr(), spFilename, (_tcslen(spFilename) + 1) * sizeof(str_utfn));
 
     m_nPaused = 0;
     m_nDecodePositionMS = 0;
@@ -99,8 +100,8 @@ int CAPEWinampPlugin::Play(char * pFilename)
 
     // open the file
     int nErrorCode = 0;
-    s_spAPEDecompressPlay.Assign(CreateIAPEDecompress(m_cCurrentFilename, &nErrorCode, true, true, false));
-    if ((s_spAPEDecompressPlay == APE_NULL) || (nErrorCode != ERROR_SUCCESS))
+    s_spAPEDecompressPlay.Assign(CreateIAPEDecompress(m_spCurrentFilename.GetPtr(), &nErrorCode, true, true, false));
+    if ((s_spAPEDecompressPlay == APE_NULL) || (nErrorCode != APE_ERROR_SUCCESS))
         return -1;
 
     // quit if it's a zero length file
@@ -347,8 +348,8 @@ DWORD WINAPI __stdcall CAPEWinampPlugin::DecodeThread(void * pbKillSwitch)
             try
             {
                 // get the data
-                if (s_spAPEDecompressPlay->GetData(spSampleBuffer, 576, &nBlocksDecoded, APE_NULL) != ERROR_SUCCESS)
-                    throw(static_cast<intn>(ERROR_UNDEFINED));
+                if (s_spAPEDecompressPlay->GetData(spSampleBuffer, 576, &nBlocksDecoded, APE_NULL) != APE_ERROR_SUCCESS)
+                    throw(static_cast<intn>(APE_ERROR_UNDEFINED));
             }
             catch(...)
             {
@@ -370,7 +371,7 @@ DWORD WINAPI __stdcall CAPEWinampPlugin::DecodeThread(void * pbKillSwitch)
                         _T("Please ensure that you are using the latest version of Monkey's Audio. ")
                         _T("If this error persists using the latest version of Monkey's Audio, it is likely that the file has become corrupted.\r\n\r\n")
                         _T("Use the option 'Ignore Bitstream Errors' in the plug-in settings to not recieve this warning when Monkey's Audio encounters an error while decompressing."),
-                        cErrorTime, m_cCurrentFilename
+                        cErrorTime, m_spCurrentFilename.GetPtr()
                     );
 
                     MessageBoxW(g_APEWinampPluginModule.hMainWindow, cErrorMessage, L"Monkey's Audio Decompression Error", MB_OK | MB_ICONERROR);
@@ -532,12 +533,12 @@ void CAPEWinampPlugin::BuildDescriptionString(CString & strBuffer, IAPETag * pAP
     REPLACE_TOKEN_WITH_TAG_FIELD(APE_TAG_FIELD_GENRE, _T("%6"))
     REPLACE_TOKEN_WITH_TAG_FIELD(APE_TAG_FIELD_TRACK, _T("%7"))
 
-    TCHAR * p = m_cCurrentFilename + _tcslen(m_cCurrentFilename);
-    while (*p != '\\' && p >= m_cCurrentFilename)
+    TCHAR * p = m_spCurrentFilename.GetPtr() + _tcslen(m_spCurrentFilename.GetPtr());
+    while (*p != '\\' && p >= m_spCurrentFilename.GetPtr())
         p--;
     strBuffer.Replace(_T("%8"), ++p);
 
-    strBuffer.Replace(_T("%9"), m_cCurrentFilename);
+    strBuffer.Replace(_T("%9"), m_spCurrentFilename.GetPtr());
 }
 
 /**************************************************************************************************
@@ -551,7 +552,7 @@ void CAPEWinampPlugin::GetFileInformation(char * pFilename, char * pTitle, int *
     {
         // currently playing file
         spAPEDecompress.Assign(s_spAPEDecompressPlay, false, false);
-        strFilename = m_cCurrentFilename;
+        strFilename = m_spCurrentFilename;
     }
     else
     {
@@ -592,7 +593,7 @@ Show the about dialog
 **************************************************************************************************/
 void CAPEWinampPlugin::ShowAboutDialog(HWND hwndParent)
 {
-    MessageBoxW(hwndParent, PLUGIN_ABOUT, L"Monkey's Audio Player", MB_OK);
+    MessageBoxW(hwndParent, APE_PLUGIN_ABOUT, L"Monkey's Audio Player", MB_OK);
 }
 
 /**************************************************************************************************
@@ -731,6 +732,13 @@ int CAPEWinampPlugin::winampGetExtendedFileInfo(extendedFileInfoStruct & Info)
     {
         s_spAPEDecompressExtendedFileInfo.Assign(CreateIAPEDecompress(spUTFN, APE_NULL, false, true, false));
         s_strFilenameExtendedInfo = spUTFN;
+    }
+
+    // check for errors
+    if ((s_spAPEDecompressExtendedFileInfo == NULL) ||
+        (s_spAPEDecompressExtendedFileInfo->GetTag() == NULL))
+    {
+        return 1;
     }
 
     // get the tag value
@@ -908,7 +916,7 @@ int CAPEWinampPlugin::winampWriteExtendedFileInfo(void)
         IAPETag * pTag = s_spAPEDecompressExtendedFileInfo->GetTag();
         if (pTag != APE_NULL)
         {
-            if (pTag->Save(false) == ERROR_SUCCESS)
+            if (pTag->Save(false) == APE_ERROR_SUCCESS)
                 nResult = 1;
         }
         KillMediaTimer(); // stop the timer since we're already deleting
@@ -983,7 +991,7 @@ extern "C" int APE_GetAlbumArt(const wchar_t * filename, const wchar_t * type, v
     spAPEDecompress.Assign(CreateIAPEDecompress(filename, APE_NULL, false, true, false));
 
     // get the tag
-    IAPETag * pTag = spAPEDecompress->GetTag();
+    IAPETag * pTag = spAPEDecompress ? spAPEDecompress->GetTag() : APE_NULL;
     if (pTag != APE_NULL)
     {
         IAPETagField * pTagImage = pTag->GetTagField(APE_TAG_FIELD_COVER_ART_FRONT);
@@ -993,7 +1001,7 @@ extern "C" int APE_GetAlbumArt(const wchar_t * filename, const wchar_t * type, v
             CSmartPtr<BYTE> spBuffer(new BYTE [*len], true);
 
             int nBufferBytes = static_cast<int>(*len);
-            if (pTag->GetFieldBinary(APE_TAG_FIELD_COVER_ART_FRONT, spBuffer, &nBufferBytes) == ERROR_SUCCESS)
+            if (pTag->GetFieldBinary(APE_TAG_FIELD_COVER_ART_FRONT, spBuffer, &nBufferBytes) == APE_ERROR_SUCCESS)
             {
                 BYTE * pImage = APE_NULL; int nImageBytes = -1;
                 for (int nSearch = 0; nSearch < nBufferBytes; nSearch++)

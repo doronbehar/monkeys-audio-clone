@@ -84,7 +84,7 @@ uint32 CUnBitArrayOld::DecodeValueRiceUnsigned(uint32 k)
     {
         m_nCurrentBitIndex++;
         if (m_nCurrentBitIndex >= m_nBits)
-            throw(static_cast<intn>(ERROR_INVALID_INPUT_FILE));
+            throw(static_cast<intn>(APE_ERROR_INVALID_INPUT_FILE));
     }
     m_nCurrentBitIndex++;
 
@@ -194,7 +194,7 @@ void CUnBitArrayOld::GenerateArrayOld(int * pOutputArray, uint32 nNumberOfElemen
         {
             m_nCurrentBitIndex++;
             if (m_nCurrentBitIndex >= m_nBits)
-                throw(static_cast<intn>(ERROR_INVALID_INPUT_FILE));
+                throw(static_cast<intn>(APE_ERROR_INVALID_INPUT_FILE));
         }
         m_nCurrentBitIndex++;
 
@@ -400,7 +400,7 @@ void CUnBitArray3891To3989::GenerateArray(int * pOutputArray, int nElements, int
 
 uint32 CUnBitArray3891To3989::RangeDecodeFast(int nShift)
 {
-    while (m_RangeCoderInfo.range <= BOTTOM_VALUE)
+    while (m_RangeCoderInfo.range <= APE_BITARRAY_BOTTOM_VALUE)
     {
         m_RangeCoderInfo.buffer = (m_RangeCoderInfo.buffer << 8) | DecodeByte();
         m_RangeCoderInfo.low = (m_RangeCoderInfo.low << 8) | ((m_RangeCoderInfo.buffer >> 1) & 0xFF);
@@ -420,13 +420,13 @@ uint32 CUnBitArray3891To3989::RangeDecodeFast(int nShift)
 uint32 CUnBitArray3891To3989::RangeDecodeFastWithUpdate(int nShift)
 {
     // update range
-    while (m_RangeCoderInfo.range <= BOTTOM_VALUE)
+    while (m_RangeCoderInfo.range <= APE_BITARRAY_BOTTOM_VALUE)
     {
         // if the decoder's range falls to zero, it means the input bitstream is corrupt
         if (m_RangeCoderInfo.range == 0)
         {
             ASSERT(false);
-            throw(static_cast<intn>(ERROR_UNDEFINED));
+            throw(static_cast<intn>(APE_ERROR_UNDEFINED));
         }
 
         // read byte and update range
@@ -442,7 +442,7 @@ uint32 CUnBitArray3891To3989::RangeDecodeFastWithUpdate(int nShift)
     if (m_RangeCoderInfo.range == 0)
     {
         ASSERT(false);
-        throw(static_cast<intn>(ERROR_UNDEFINED));
+        throw(static_cast<intn>(APE_ERROR_UNDEFINED));
     }
 
     // get the result
@@ -456,9 +456,9 @@ int64 CUnBitArray3891To3989::DecodeValueRange(UNBIT_ARRAY_STATE & BitArrayState)
     int64 nValue = 0;
 
     // decode
-    const uint32 nRangeTotal = RangeDecodeFast(RANGE_OVERFLOW_SHIFT);
+    const uint32 nRangeTotal = RangeDecodeFast(APE_BITARRAY_RANGE_OVERFLOW_SHIFT);
     if (nRangeTotal >= 65536)
-        throw(static_cast<intn>(ERROR_INVALID_INPUT_FILE));
+        throw(static_cast<intn>(APE_ERROR_INVALID_INPUT_FILE));
 
     // lookup the symbol from lookup table
     uint32 nOverflow = m_spRangeTable->Get(nRangeTotal);
@@ -469,7 +469,7 @@ int64 CUnBitArray3891To3989::DecodeValueRange(UNBIT_ARRAY_STATE & BitArrayState)
 
     // get the working k
     uint32 nTempK;
-    if (nOverflow == (MODEL_ELEMENTS - 1))
+    if (nOverflow == (APE_BITARRAY_MODEL_ELEMENTS - 1))
     {
         nTempK = RangeDecodeFastWithUpdate(5);
         nOverflow = 0;
@@ -523,14 +523,14 @@ void CUnBitArray3891To3989::FlushBitArray()
     AdvanceToByteBoundary();
     DecodeValueXBits(8); // ignore the first byte... (slows compression too much to not output this dummy byte)
     m_RangeCoderInfo.buffer = DecodeValueXBits(8);
-    m_RangeCoderInfo.low = m_RangeCoderInfo.buffer >> (8 - EXTRA_BITS);
-    m_RangeCoderInfo.range = static_cast<unsigned int>(1 << EXTRA_BITS);
+    m_RangeCoderInfo.low = m_RangeCoderInfo.buffer >> (8 - APE_BITARRAY_EXTRA_BITS);
+    m_RangeCoderInfo.range = static_cast<unsigned int>(1 << APE_BITARRAY_EXTRA_BITS);
 }
 
 void CUnBitArray3891To3989::Finalize()
 {
     // normalize
-    while (m_RangeCoderInfo.range <= BOTTOM_VALUE)
+    while (m_RangeCoderInfo.range <= APE_BITARRAY_BOTTOM_VALUE)
     {
         m_nCurrentBitIndex += 8;
         m_RangeCoderInfo.range <<= 8;

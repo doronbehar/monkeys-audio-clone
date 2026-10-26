@@ -80,7 +80,7 @@ int CAPEHeader::FindDescriptor(bool bSeek)
     const unsigned int nGoalID2 = ('M' << 24) | ('A' << 16) | ('C' << 8) | ('F');
     unsigned int nReadID = 0;
     const int nResult = m_pIO->Read(&nReadID, 4, &nBytesRead);
-    if ((nResult != ERROR_SUCCESS) || (nBytesRead != 4)) return ERROR_UNDEFINED;
+    if ((nResult != APE_ERROR_SUCCESS) || (nBytesRead != 4)) return APE_ERROR_UNDEFINED;
 
     nReadID = ConvertU32BE(nReadID);
 
@@ -134,7 +134,7 @@ int CAPEHeader::Analyze(APE_FILE_INFO * pInfo)
 {
     // error check
     if ((m_pIO == APE_NULL) || (pInfo == APE_NULL))
-        return ERROR_BAD_PARAMETER;
+        return APE_ERROR_BAD_PARAMETER;
 
     // variables
     int64 nBytesRead = 0;
@@ -142,13 +142,13 @@ int CAPEHeader::Analyze(APE_FILE_INFO * pInfo)
     // find the descriptor
     pInfo->nJunkHeaderBytes = FindDescriptor(true);
     if (pInfo->nJunkHeaderBytes < 0)
-        return ERROR_UNDEFINED;
+        return APE_ERROR_UNDEFINED;
 
     // read the first 8 bytes of the descriptor (ID and version)
     APE_COMMON_HEADER CommonHeader;
     APE_CLEAR(CommonHeader);
-    if ((m_pIO->Read(&CommonHeader, sizeof(APE_COMMON_HEADER), &nBytesRead) != ERROR_SUCCESS) || (nBytesRead != sizeof(APE_COMMON_HEADER)))
-        return ERROR_IO_READ;
+    if ((m_pIO->Read(&CommonHeader, sizeof(APE_COMMON_HEADER), &nBytesRead) != APE_ERROR_SUCCESS) || (nBytesRead != sizeof(APE_COMMON_HEADER)))
+        return APE_ERROR_IO_READ;
 
     CommonHeader.nVersion = ConvertU16LE(CommonHeader.nVersion);
 
@@ -156,10 +156,10 @@ int CAPEHeader::Analyze(APE_FILE_INFO * pInfo)
     if ((CommonHeader.cID[0] != 'M' || CommonHeader.cID[1] != 'A' || CommonHeader.cID[2] != 'C' || CommonHeader.cID[3] != ' ') &&
         (CommonHeader.cID[0] != 'M' || CommonHeader.cID[1] != 'A' || CommonHeader.cID[2] != 'C' || CommonHeader.cID[3] != 'F'))
     {
-        return ERROR_UNDEFINED;
+        return APE_ERROR_UNDEFINED;
     }
 
-    int nResult = ERROR_UNDEFINED;
+    int nResult = APE_ERROR_UNDEFINED;
 
     if (CommonHeader.nVersion >= 3980)
     {
@@ -175,7 +175,7 @@ int CAPEHeader::Analyze(APE_FILE_INFO * pInfo)
     // check for invalid channels
     if ((pInfo->nChannels > APE_MAXIMUM_CHANNELS) || (pInfo->nChannels < APE_MINIMUM_CHANNELS))
     {
-        return ERROR_INVALID_INPUT_FILE;
+        return APE_ERROR_INVALID_INPUT_FILE;
     }
 
     return nResult;
@@ -192,8 +192,8 @@ int CAPEHeader::AnalyzeCurrent(APE_FILE_INFO * pInfo)
 
     // read the descriptor
     m_pIO->Seek(pInfo->nJunkHeaderBytes, SeekFileBegin);
-    if ((m_pIO->Read(pInfo->spAPEDescriptor.GetPtr(), sizeof(APE_DESCRIPTOR), &nBytesRead) != ERROR_SUCCESS) || (nBytesRead != sizeof(APE_DESCRIPTOR)))
-        return ERROR_IO_READ;
+    if ((m_pIO->Read(pInfo->spAPEDescriptor.GetPtr(), sizeof(APE_DESCRIPTOR), &nBytesRead) != APE_ERROR_SUCCESS) || (nBytesRead != sizeof(APE_DESCRIPTOR)))
+        return APE_ERROR_IO_READ;
 
     pInfo->spAPEDescriptor->nVersionEncoder        = ConvertU16LE(pInfo->spAPEDescriptor->nVersionEncoder);
     pInfo->spAPEDescriptor->nVersionProgram        = ConvertU16LE(pInfo->spAPEDescriptor->nVersionProgram);
@@ -212,8 +212,8 @@ int CAPEHeader::AnalyzeCurrent(APE_FILE_INFO * pInfo)
     }
 
     // read the header
-    if ((m_pIO->Read(&APEHeader, sizeof(APEHeader), &nBytesRead) != ERROR_SUCCESS) || (nBytesRead != sizeof(APEHeader)))
-        return ERROR_IO_READ;
+    if ((m_pIO->Read(&APEHeader, sizeof(APEHeader), &nBytesRead) != APE_ERROR_SUCCESS) || (nBytesRead != sizeof(APEHeader)))
+        return APE_ERROR_IO_READ;
 
     APEHeader.nCompressionLevel = ConvertU16LE(APEHeader.nCompressionLevel);
     APEHeader.nFormatFlags      = ConvertU16LE(APEHeader.nFormatFlags);
@@ -272,15 +272,15 @@ int CAPEHeader::AnalyzeCurrent(APE_FILE_INFO * pInfo)
     if ((pInfo->nAPETotalBytes != APE_FILE_SIZE_UNDEFINED) && (static_cast<int64>(pInfo->nSeekTableElements) > (pInfo->nAPETotalBytes / 4)))
     {
         ASSERT(0);
-        return ERROR_INVALID_INPUT_FILE;
+        return APE_ERROR_INVALID_INPUT_FILE;
     }
 
     // get the seek tables (really no reason to get the whole thing if there's extra)
     CSmartPtr<uint32> spSeekByteTable32(pInfo->nSeekTableElements);
-    if (spSeekByteTable32 == APE_NULL) { return ERROR_UNDEFINED; }
+    if (spSeekByteTable32 == APE_NULL) { return APE_ERROR_UNDEFINED; }
 
-    if ((m_pIO->Read(spSeekByteTable32.GetPtr(), static_cast<int64>(pInfo->nSeekTableElements) * 4, &nBytesRead) != ERROR_SUCCESS) || (nBytesRead != static_cast<int64>(pInfo->nSeekTableElements) * 4))
-        return ERROR_IO_READ;
+    if ((m_pIO->Read(spSeekByteTable32.GetPtr(), static_cast<int64>(pInfo->nSeekTableElements) * 4, &nBytesRead) != APE_ERROR_SUCCESS) || (nBytesRead != static_cast<int64>(pInfo->nSeekTableElements) * 4))
+        return APE_ERROR_IO_READ;
 
     // convert to int64
     Convert32BitSeekTable(pInfo, spSeekByteTable32, pInfo->nSeekTableElements);
@@ -290,37 +290,37 @@ int CAPEHeader::AnalyzeCurrent(APE_FILE_INFO * pInfo)
     {
         if (pInfo->nWAVHeaderBytes < 0 || pInfo->nWAVHeaderBytes > APE_WAV_HEADER_OR_FOOTER_MAXIMUM_BYTES)
         {
-            return ERROR_INVALID_INPUT_FILE;
+            return APE_ERROR_INVALID_INPUT_FILE;
         }
         if (pInfo->nWAVHeaderBytes > 0)
         {
             pInfo->spWaveHeaderData.AllocateArray(pInfo->nWAVHeaderBytes);
-            if (pInfo->spWaveHeaderData == APE_NULL) { return ERROR_UNDEFINED; }
-            if ((m_pIO->Read(pInfo->spWaveHeaderData.GetPtr(), static_cast<int64>(pInfo->nWAVHeaderBytes), &nBytesRead) != ERROR_SUCCESS) || (nBytesRead != pInfo->nWAVHeaderBytes))
-                return ERROR_IO_READ;
+            if (pInfo->spWaveHeaderData == APE_NULL) { return APE_ERROR_UNDEFINED; }
+            if ((m_pIO->Read(pInfo->spWaveHeaderData.GetPtr(), static_cast<int64>(pInfo->nWAVHeaderBytes), &nBytesRead) != APE_ERROR_SUCCESS) || (nBytesRead != pInfo->nWAVHeaderBytes))
+                return APE_ERROR_IO_READ;
         }
     }
 
     // check for an invalid blocks per frame
     if (pInfo->nBlocksPerFrame <= 0)
-        return ERROR_INVALID_INPUT_FILE;
+        return APE_ERROR_INVALID_INPUT_FILE;
 
     if (pInfo->nCompressionLevel >= 5000)
     {
         if (pInfo->nBlocksPerFrame > (10 * APE_ONE_MILLION))
-            return ERROR_INVALID_INPUT_FILE;
+            return APE_ERROR_INVALID_INPUT_FILE;
     }
     else
     {
         if (pInfo->nBlocksPerFrame > APE_ONE_MILLION)
-            return ERROR_INVALID_INPUT_FILE;
+            return APE_ERROR_INVALID_INPUT_FILE;
     }
 
     // check the final frame size being nonsense
     if (APEHeader.nFinalFrameBlocks > pInfo->nBlocksPerFrame)
-        return ERROR_INVALID_INPUT_FILE;
+        return APE_ERROR_INVALID_INPUT_FILE;
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int CAPEHeader::AnalyzeOld(APE_FILE_INFO * pInfo)
@@ -333,8 +333,8 @@ int CAPEHeader::AnalyzeOld(APE_FILE_INFO * pInfo)
 
     m_pIO->Seek(pInfo->nJunkHeaderBytes, SeekFileBegin);
 
-    if ((m_pIO->Read(&APEHeader, sizeof(APEHeader), &nBytesRead) != ERROR_SUCCESS) || (nBytesRead != sizeof(APEHeader)))
-        return ERROR_IO_READ;
+    if ((m_pIO->Read(&APEHeader, sizeof(APEHeader), &nBytesRead) != APE_ERROR_SUCCESS) || (nBytesRead != sizeof(APEHeader)))
+        return APE_ERROR_IO_READ;
 
     APEHeader.nVersion          = ConvertU16LE(APEHeader.nVersion);
     APEHeader.nCompressionLevel = ConvertU16LE(APEHeader.nCompressionLevel);
@@ -351,7 +351,7 @@ int CAPEHeader::AnalyzeOld(APE_FILE_INFO * pInfo)
 
     // fail on 0 length APE files (catches non-finalized APE files)
     if (APEHeader.nTotalFrames == 0)
-        return ERROR_UNDEFINED;
+        return APE_ERROR_UNDEFINED;
 
     int nPeakLevel = -1;
     if (APEHeader.nFormatFlags & APE_FORMAT_FLAG_HAS_PEAK_LEVEL)
@@ -363,8 +363,8 @@ int CAPEHeader::AnalyzeOld(APE_FILE_INFO * pInfo)
 
     if (APEHeader.nFormatFlags & APE_FORMAT_FLAG_HAS_SEEK_ELEMENTS)
     {
-        if ((m_pIO->Read(&pInfo->nSeekTableElements, 4, &nBytesRead) != ERROR_SUCCESS) || (nBytesRead != 4))
-            return ERROR_IO_READ;
+        if ((m_pIO->Read(&pInfo->nSeekTableElements, 4, &nBytesRead) != APE_ERROR_SUCCESS) || (nBytesRead != 4))
+            return APE_ERROR_IO_READ;
 
         pInfo->nSeekTableElements = ConvertU32LE(pInfo->nSeekTableElements);
     }
@@ -397,36 +397,36 @@ int CAPEHeader::AnalyzeOld(APE_FILE_INFO * pInfo)
 
     // check for an invalid blocks per frame
     if (pInfo->nBlocksPerFrame > (10 * APE_ONE_MILLION) || pInfo->nBlocksPerFrame <= 0)
-        return ERROR_INVALID_INPUT_FILE;
+        return APE_ERROR_INVALID_INPUT_FILE;
 
     // check the final frame size being nonsense
     if (APEHeader.nFinalFrameBlocks > pInfo->nBlocksPerFrame)
-        return ERROR_INVALID_INPUT_FILE;
+        return APE_ERROR_INVALID_INPUT_FILE;
 
     // check for nonsense in nSeekTableElements field
     if ((pInfo->nAPETotalBytes != APE_FILE_SIZE_UNDEFINED) && (static_cast<int64>(pInfo->nSeekTableElements) > (pInfo->nAPETotalBytes / 4)))
     {
         ASSERT(0);
-        return ERROR_INVALID_INPUT_FILE;
+        return APE_ERROR_INVALID_INPUT_FILE;
     }
 
     // get the wave header
     if (!(APEHeader.nFormatFlags & APE_FORMAT_FLAG_CREATE_WAV_HEADER) && (APEHeader.nHeaderBytes > 0))
     {
-        if (APEHeader.nHeaderBytes > APE_WAV_HEADER_OR_FOOTER_MAXIMUM_BYTES) return ERROR_INVALID_INPUT_FILE;
-        if (m_pIO->GetPosition() + APEHeader.nHeaderBytes > m_pIO->GetSize()) { return ERROR_UNDEFINED; }
+        if (APEHeader.nHeaderBytes > APE_WAV_HEADER_OR_FOOTER_MAXIMUM_BYTES) return APE_ERROR_INVALID_INPUT_FILE;
+        if (m_pIO->GetPosition() + APEHeader.nHeaderBytes > m_pIO->GetSize()) { return APE_ERROR_UNDEFINED; }
         pInfo->spWaveHeaderData.AllocateArray(APEHeader.nHeaderBytes);
-        if (pInfo->spWaveHeaderData == APE_NULL) { return ERROR_UNDEFINED; }
-        if ((m_pIO->Read(pInfo->spWaveHeaderData.GetPtr(), APEHeader.nHeaderBytes, &nBytesRead) != ERROR_SUCCESS) || (nBytesRead != APEHeader.nHeaderBytes))
-            return ERROR_IO_READ;
+        if (pInfo->spWaveHeaderData == APE_NULL) { return APE_ERROR_UNDEFINED; }
+        if ((m_pIO->Read(pInfo->spWaveHeaderData.GetPtr(), APEHeader.nHeaderBytes, &nBytesRead) != APE_ERROR_SUCCESS) || (nBytesRead != APEHeader.nHeaderBytes))
+            return APE_ERROR_IO_READ;
     }
 
     // get the seek tables (really no reason to get the whole thing if there's extra)
     CSmartPtr<uint32> spSeekByteTable32(pInfo->nSeekTableElements);
-    if (spSeekByteTable32 == APE_NULL) { return ERROR_UNDEFINED; }
+    if (spSeekByteTable32 == APE_NULL) { return APE_ERROR_UNDEFINED; }
 
-    if ((m_pIO->Read(spSeekByteTable32.GetPtr(), static_cast<int64>(pInfo->nSeekTableElements) * 4, &nBytesRead) != ERROR_SUCCESS) || (nBytesRead != static_cast<int64>(pInfo->nSeekTableElements) * 4))
-        return ERROR_IO_READ;
+    if ((m_pIO->Read(spSeekByteTable32.GetPtr(), static_cast<int64>(pInfo->nSeekTableElements) * 4, &nBytesRead) != APE_ERROR_SUCCESS) || (nBytesRead != static_cast<int64>(pInfo->nSeekTableElements) * 4))
+        return APE_ERROR_IO_READ;
 
     // convert to int64
     Convert32BitSeekTable(pInfo, spSeekByteTable32, pInfo->nSeekTableElements);
@@ -436,14 +436,14 @@ int CAPEHeader::AnalyzeOld(APE_FILE_INFO * pInfo)
     if (APEHeader.nVersion <= 3800)
     {
         pInfo->spSeekBitTable.AllocateArray(pInfo->nSeekTableElements);
-        if (pInfo->spSeekBitTable == APE_NULL) { return ERROR_UNDEFINED; }
+        if (pInfo->spSeekBitTable == APE_NULL) { return APE_ERROR_UNDEFINED; }
 
-        if ((m_pIO->Read(pInfo->spSeekBitTable.GetPtr(), static_cast<int64>(pInfo->nSeekTableElements), &nBytesRead) != ERROR_SUCCESS) || (nBytesRead != static_cast<unsigned int>(pInfo->nSeekTableElements)))
-            return ERROR_IO_READ;
+        if ((m_pIO->Read(pInfo->spSeekBitTable.GetPtr(), static_cast<int64>(pInfo->nSeekTableElements), &nBytesRead) != APE_ERROR_SUCCESS) || (nBytesRead != static_cast<unsigned int>(pInfo->nSeekTableElements)))
+            return APE_ERROR_IO_READ;
     }
 #endif
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 }

@@ -10,9 +10,50 @@
 #define COLUMN_COUNT                    7
 
 #include "MACFileArray.h"
+#include <afxole.h>
 
+// forward declarations
 class CMACDlg;
+class CMACListCtrl; 
 
+/**************************************************************************************************
+CMACDropTarget
+**************************************************************************************************/
+class CMACDropTarget : public COleDropTarget
+{
+private:
+    CMACListCtrl * m_pOwnerCtrl;
+
+public:
+    CMACDropTarget(CMACListCtrl * pOwnerCtrl) : m_pOwnerCtrl(pOwnerCtrl) {}
+    virtual ~CMACDropTarget() APE_OVERRIDE {}
+
+    // called when dragging files over the control
+    virtual DROPEFFECT OnDragEnter(CWnd * /*pWnd*/, COleDataObject * pDataObject, DWORD /*dwKeyState*/, CPoint /*point*/) override
+    {
+        if (pDataObject->IsDataAvailable(CF_HDROP)) 
+        {
+            return DROPEFFECT_COPY; // shows "+" cursor
+        }
+        return DROPEFFECT_NONE; // shows red circle
+    }
+
+    virtual DROPEFFECT OnDragOver(CWnd * /*pWnd*/, COleDataObject * pDataObject, DWORD /*dwKeyState*/, CPoint /*point*/) override
+    {
+        if (pDataObject->IsDataAvailable(CF_HDROP)) 
+        {
+            return DROPEFFECT_COPY;
+        }
+        return DROPEFFECT_NONE;
+    }
+
+    // called when files are dropped onto the control
+    virtual BOOL OnDrop(CWnd * pWnd, COleDataObject * pDataObject, DROPEFFECT dropEffect, CPoint point) override;
+};
+
+/**************************************************************************************************
+CMACListCtrl
+**************************************************************************************************/
 class CMACListCtrl : public CListCtrl
 {
 public:
@@ -48,7 +89,6 @@ public:
 protected:
     afx_msg void OnDestroy();
     afx_msg void OnGetdispinfo(NMHDR * pNMHDR, LRESULT * pResult);
-    afx_msg void OnDropFiles(HDROP hDropInfo);
     afx_msg void OnBegindrag(NMHDR * pNMHDR, LRESULT * pResult);
     afx_msg void OnRclick(NMHDR * pNMHDR, LRESULT * pResult);
     afx_msg void OnLvnColumnclickList(NMHDR * pNMHDR, LRESULT * pResult);

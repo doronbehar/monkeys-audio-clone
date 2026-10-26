@@ -33,7 +33,7 @@ static void AdaptSSE41(short * pM, const short * pAdapt, int32 nDirection, int n
     return AdaptSSE2(pM, pAdapt, nDirection, nOrder);
 }
 
-#define ADAPT_SSE41_SIMD_INT                                                                     \
+#define APE_ADAPT_SSE41_SIMD_INT                                                                     \
 {                                                                                                \
     const __m128i sseM = _mm_load_si128(reinterpret_cast<const __m128i *>(&pM[z + n]));          \
     const __m128i sseAdapt = _mm_loadu_si128(reinterpret_cast<const __m128i *>(&pAdapt[z + n])); \
@@ -54,7 +54,7 @@ static void AdaptSSE41(int * pM, const int * pAdapt, int64 nDirection, int nOrde
 
     int z = 0, n = 0;
     for (z = 0; z < nOrder; z += 16)
-        EXPAND_SIMD_4(n, 4, ADAPT_SSE41_SIMD_INT)
+        APE_EXPAND_SIMD_4(n, 4, APE_ADAPT_SSE41_SIMD_INT)
 }
 
 static int32 CalculateDotProductSSE41(const short * pA, const short * pB, int nOrder)
@@ -124,7 +124,7 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::C
     AdaptSSE41(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nOutput, m_nOrder);
 
     // update delta
-    UPDATE_DELTA_NEW(nInput)
+    APE_UPDATE_DELTA_NEW(nInput)
 
     // convert the input to a short and store it
     m_rbInput[0] = GetSaturatedShortFromInt(nInput);
@@ -157,7 +157,7 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::D
     AdaptSSE41(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nInput, m_nOrder);
 
     // update delta
-    UPDATE_DELTA_NEW(nOutput)
+    APE_UPDATE_DELTA_NEW(nOutput)
 
     // update the input buffer
     m_rbInput[0] = GetSaturatedShortFromInt(nOutput);

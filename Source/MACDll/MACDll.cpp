@@ -16,10 +16,10 @@ int __stdcall GetVersionNumber()
 #ifdef PLATFORM_WINDOWS
 int __stdcall GetInterfaceCompatibility(int nVersion, bool bDisplayWarningsOnFailure, HWND hwndParent)
 {
-    int nRetVal = ERROR_SUCCESS;
+    int nRetVal = APE_ERROR_SUCCESS;
     if (nVersion > APE_FILE_VERSION_NUMBER)
     {
-        nRetVal = ERROR_UNDEFINED;
+        nRetVal = APE_ERROR_UNDEFINED;
         if (bDisplayWarningsOnFailure)
         {
             wchar_t cMessage[1024];
@@ -31,7 +31,7 @@ int __stdcall GetInterfaceCompatibility(int nVersion, bool bDisplayWarningsOnFai
     }
     else if (nVersion < 3940)
     {
-        nRetVal = ERROR_UNDEFINED;
+        nRetVal = APE_ERROR_UNDEFINED;
         if (bDisplayWarningsOnFailure)
         {
             wchar_t cMessage[1024];
@@ -69,7 +69,7 @@ int __stdcall TagFileSimple(const str_ansi * pFilename, const char * pArtist, co
 
     CSmartPtr<IAPEIO> spFileIO(CreateIAPEIO());
     if (spFileIO->Open(spFilename) != 0)
-        return ERROR_UNDEFINED;
+        return APE_ERROR_UNDEFINED;
 
     CAPETag APETag(spFileIO, true);
 
@@ -86,10 +86,10 @@ int __stdcall TagFileSimple(const str_ansi * pFilename, const char * pArtist, co
 
     if (APETag.Save(bUseOldID3) != 0)
     {
-        return ERROR_UNDEFINED;
+        return APE_ERROR_UNDEFINED;
     }
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int __stdcall GetID3Tag(const str_ansi * pFilename, ID3_TAG * pID3Tag)
@@ -102,7 +102,7 @@ int __stdcall GetID3TagW(const str_utfn * pFilename, ID3_TAG * pID3Tag)
 {
     CSmartPtr<IAPEIO> spFileIO(CreateIAPEIO());
     if (spFileIO->Open(pFilename) != 0)
-        return ERROR_UNDEFINED;
+        return APE_ERROR_UNDEFINED;
 
     CAPETag APETag(spFileIO, true);
 
@@ -118,20 +118,20 @@ int __stdcall RemoveTag(const str_ansi * pFilename)
 int __stdcall RemoveTagW(const str_utfn * pFilename)
 {
     // create a decompress object
-    int nErrorCode = ERROR_SUCCESS;
+    int nErrorCode = APE_ERROR_SUCCESS;
     CSmartPtr<IAPEDecompress> spAPEDecompress(CreateIAPEDecompress(pFilename, &nErrorCode, false, true, false));
 
     // error check creation
-    if (nErrorCode != ERROR_SUCCESS)
+    if (nErrorCode != APE_ERROR_SUCCESS)
         return nErrorCode;
-    if (spAPEDecompress == APE_NULL) return ERROR_UNDEFINED;
+    if (spAPEDecompress == APE_NULL) return APE_ERROR_UNDEFINED;
 
     // remove the tag
     IAPETag * pTag = spAPEDecompress->GetTag();
     if (pTag != APE_NULL)
         nErrorCode = pTag->Remove(false);
     else
-        nErrorCode = ERROR_UNDEFINED;
+        nErrorCode = APE_ERROR_UNDEFINED;
 
     // result
     return nErrorCode;

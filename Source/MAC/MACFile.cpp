@@ -18,7 +18,7 @@ MAC_FILE::MAC_FILE()
     m_Mode = MODE_COMPRESS;
     m_nStageProgress = 0;
     m_bDone = false;
-    m_nRetVal = ERROR_UNDEFINED;
+    m_nRetVal = APE_ERROR_UNDEFINED;
     m_bStarted = false;
     m_bNeedsUpdate = false;
     m_nProcessingElapsedMS = 0;
@@ -38,7 +38,7 @@ bool MAC_FILE::PrepareForProcessing(CMACProcessFiles * pProcessFiles)
     m_Mode = theApp.GetSettings()->GetMode();
     m_nStageProgress = 0;
     m_bDone = false;
-    m_nRetVal = ERROR_UNDEFINED;
+    m_nRetVal = APE_ERROR_UNDEFINED;
     m_bStarted = false;
     m_bNeedsUpdate = false;
     m_nProcessingElapsedMS = 0;

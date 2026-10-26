@@ -16,9 +16,9 @@ template <class INTTYPE, class DATATYPE> CNNFilter<INTTYPE, DATATYPE>::CNNFilter
   m_rbDeltaM(m_nOrder)
 {
     if (nOrder <= 0)
-        throw(static_cast<intn>(ERROR_UNDEFINED));
+        throw(static_cast<intn>(APE_ERROR_UNDEFINED));
     else if ((nOrder != 16) && ((nOrder % 32) != 0))
-        throw(static_cast<intn>(ERROR_UNDEFINED));
+        throw(static_cast<intn>(APE_ERROR_UNDEFINED));
 
     m_nRunningAverage = 0;
 

@@ -15,7 +15,7 @@ CAPEDecompressCore::CAPEDecompressCore(int * pErrorCode, CAPEDecompress * pDecom
 {
     m_semProcess.Wait();
 
-    *pErrorCode = ERROR_SUCCESS;
+    *pErrorCode = APE_ERROR_SUCCESS;
 
     // open / analyze the file
     m_pAPEInfo = pAPEInfo;
@@ -36,7 +36,7 @@ CAPEDecompressCore::CAPEDecompressCore(int * pErrorCode, CAPEDecompress * pDecom
     m_nSpecialCodes = 0;
     m_nCRC = 0;
     m_nStoredCRC = 0;
-    m_nErrorState = ERROR_SUCCESS;
+    m_nErrorState = APE_ERROR_SUCCESS;
     m_bCancelFrame = false;
     m_bExit = false;
     APE_CLEAR(m_aryBitArrayStates);
@@ -51,7 +51,7 @@ CAPEDecompressCore::CAPEDecompressCore(int * pErrorCode, CAPEDecompress * pDecom
     // we do this after setting all the variables or else we get compile warnings
     if (m_pAPEInfo->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION) < 3930)
     {
-        *pErrorCode = ERROR_UNDEFINED;
+        *pErrorCode = APE_ERROR_UNDEFINED;
         return;
     }
 }
@@ -79,7 +79,7 @@ void CAPEDecompressCore::Run()
         if (m_bExit) break;
 
         int nResult = DecodeFrame();
-        if (nResult != ERROR_SUCCESS)
+        if (nResult != APE_ERROR_SUCCESS)
             SetErrorState(nResult);
         else
             m_semReady.Post();
@@ -91,7 +91,7 @@ void CAPEDecompressCore::DecodeFrame(int nSkipBytes, int64 nFrameBlocks)
     m_spUnBitArray->FillAndResetBitArray(0, static_cast<int64>(nSkipBytes) * 8);
     m_nSkipBytes = nSkipBytes;
     m_nFrameBlocks = nFrameBlocks;
-    m_nErrorState = ERROR_SUCCESS;
+    m_nErrorState = APE_ERROR_SUCCESS;
     m_bCancelFrame = false;
 
     m_semProcess.Post();
@@ -122,7 +122,7 @@ void CAPEDecompressCore::GetFrameData(unsigned char * pBuffer)
 
 uint32 CAPEDecompressCore::GetFrameBytes() const
 {
-    if (m_bCancelFrame || m_nErrorState != ERROR_SUCCESS)
+    if (m_bCancelFrame || m_nErrorState != APE_ERROR_SUCCESS)
         return 0;
 
     return static_cast<uint32>(m_nFrameBlocks) * static_cast<uint32>(m_nBlockAlign);
@@ -147,11 +147,11 @@ int CAPEDecompressCore::InitializeDecompressor()
 {
     // check if we have anything to do
     if (m_bDecompressorInitialized)
-        return ERROR_SUCCESS;
+        return APE_ERROR_SUCCESS;
 
     // check the block align
     if ((m_nBlockAlign <= 0) || (m_nBlockAlign > 256))
-        return ERROR_INVALID_INPUT_FILE;
+        return APE_ERROR_INVALID_INPUT_FILE;
 
     // create a frame buffer
     m_cbFrameBuffer.CreateBuffer(static_cast<uint32>(m_pDecompress->GetInfo(IAPEDecompress::APE_INFO_BLOCKS_PER_FRAME)) * static_cast<uint32>(m_nBlockAlign), static_cast<uint32>(m_nBlockAlign * 64));
@@ -165,7 +165,7 @@ int CAPEDecompressCore::InitializeDecompressor()
     m_Version = APE_VERSION(static_cast<int>(m_pDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION)), static_cast<int>(m_pDecompress->GetInfo(IAPEDecompress::APE_INFO_PROGRAM_VERSION)), 0);
 
     // loop channels
-    int nResult = ERROR_UNDEFINED;
+    int nResult = APE_ERROR_UNDEFINED;
     for (int nChannel = 0; nChannel < nChannels; nChannel++)
     {
         if (m_Version.m_nFileVersion >= 3950)
@@ -175,20 +175,20 @@ int CAPEDecompressCore::InitializeDecompressor()
             else
                 m_aryPredictor[nChannel] = new CPredictorDecompress3950toCurrent<int64, int>(nCompressionLevel, m_Version, nBitsPerSample);
 
-            nResult = ERROR_SUCCESS;
+            nResult = APE_ERROR_SUCCESS;
         }
 #ifdef APE_BACKWARDS_COMPATIBILITY
         else
         {
             m_aryPredictor[nChannel] = new CPredictorDecompress3930to3950(nCompressionLevel, m_Version);
 
-            nResult = ERROR_SUCCESS;
+            nResult = APE_ERROR_SUCCESS;
         }
 #endif
     }
 
     // update the initialized flag
-    if (nResult == ERROR_SUCCESS)
+    if (nResult == APE_ERROR_SUCCESS)
         m_bDecompressorInitialized = true;
 
     return nResult;
@@ -212,10 +212,10 @@ int CAPEDecompressCore::DecodeFrame()
     // but this allows robust error handling of bad frames
     int64 nBlocksLeft = m_nFrameBlocks;
     if (nBlocksLeft <= 0)
-        nResult = ERROR_DECOMPRESSING_FRAME;
+        nResult = APE_ERROR_DECOMPRESSING_FRAME;
 
     // loop and decode data (if there's a failure above we won't even enter the loop)
-    while ((nBlocksLeft > 0) && (nResult == ERROR_SUCCESS))
+    while ((nBlocksLeft > 0) && (nResult == APE_ERROR_SUCCESS))
     {
         // analyze
         const int64 nBlocksThisPass = m_nFrameBlocks;
@@ -255,7 +255,7 @@ int CAPEDecompressCore::DecodeFrame()
             else
             {
                 // save the return value
-                nResult = ERROR_INVALID_CHECKSUM;
+                nResult = APE_ERROR_INVALID_CHECKSUM;
             }
         }
 
@@ -289,8 +289,8 @@ void CAPEDecompressCore::DecodeBlocksToFrameBuffer(int64 nBlocks)
         }
         else if (m_wfeInput.nChannels == 2)
         {
-            if ((m_nSpecialCodes & SPECIAL_FRAME_LEFT_SILENCE) &&
-                (m_nSpecialCodes & SPECIAL_FRAME_RIGHT_SILENCE))
+            if ((m_nSpecialCodes & APE_SPECIAL_FRAME_LEFT_SILENCE) &&
+                (m_nSpecialCodes & APE_SPECIAL_FRAME_RIGHT_SILENCE))
             {
                 for (nBlocksProcessed = 0; nBlocksProcessed < nBlocks; nBlocksProcessed++)
                 {
@@ -299,7 +299,7 @@ void CAPEDecompressCore::DecodeBlocksToFrameBuffer(int64 nBlocks)
                     m_cbFrameBuffer.UpdateAfterDirectWrite(static_cast<uint32>(m_nBlockAlign));
                 }
             }
-            else if (m_nSpecialCodes & SPECIAL_FRAME_PSEUDO_STEREO)
+            else if (m_nSpecialCodes & APE_SPECIAL_FRAME_PSEUDO_STEREO)
             {
                 for (nBlocksProcessed = 0; nBlocksProcessed < nBlocks; nBlocksProcessed++)
                 {
@@ -343,7 +343,7 @@ void CAPEDecompressCore::DecodeBlocksToFrameBuffer(int64 nBlocks)
         }
         else if (m_wfeInput.nChannels == 1)
         {
-            if (m_nSpecialCodes & SPECIAL_FRAME_MONO_SILENCE)
+            if (m_nSpecialCodes & APE_SPECIAL_FRAME_MONO_SILENCE)
             {
                 for (nBlocksProcessed = 0; nBlocksProcessed < nBlocks; nBlocksProcessed++)
                 {

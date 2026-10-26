@@ -56,7 +56,7 @@ int CBufferIO::Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead)
 
 int CBufferIO::Write(const void *, int64, int64 *)
 {
-    return ERROR_IO_WRITE;
+    return APE_ERROR_IO_WRITE;
 }
 
 int CBufferIO::Seek(int64 nPosition, SeekMethod nMethod)
@@ -137,7 +137,7 @@ bool CHeaderIO::ReadHeader(BYTE (& aryHeader)[64])
     if ((nFileSize > 64) || (nFileSize == APE_FILE_SIZE_UNDEFINED))
         nFileSize = 64;
     m_nHeaderBytes = nFileSize;
-    if (ReadSafe(m_spSource, m_aryHeader, static_cast<int>(m_nHeaderBytes)) != ERROR_SUCCESS)
+    if (ReadSafe(m_spSource, m_aryHeader, static_cast<int>(m_nHeaderBytes)) != APE_ERROR_SUCCESS)
         return false;
 
     // copy the header out
@@ -159,7 +159,7 @@ int CHeaderIO::Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead)
 {
     // if we're inside the header, just copy out of it for the first part of the read
     int64 nBytesRead = 0;
-    int nResult = ERROR_SUCCESS;
+    int nResult = APE_ERROR_SUCCESS;
     if (m_nPosition < m_nHeaderBytes)
     {
         // read from header
@@ -194,7 +194,7 @@ int CHeaderIO::Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead)
 
 int CHeaderIO::Write(const void *, int64, int64 *)
 {
-    return ERROR_IO_WRITE;
+    return APE_ERROR_IO_WRITE;
 }
 
 int CHeaderIO::Seek(int64 nPosition, SeekMethod nMethod)
@@ -204,7 +204,7 @@ int CHeaderIO::Seek(int64 nPosition, SeekMethod nMethod)
         m_nPosition += nPosition;
         if (m_nPosition > m_nHeaderBytes)
             m_spSource->Seek(m_nPosition, SeekFileBegin);
-        return ERROR_SUCCESS;
+        return APE_ERROR_SUCCESS;
     }
     else if (nMethod == SeekFileBegin)
     {
@@ -213,7 +213,7 @@ int CHeaderIO::Seek(int64 nPosition, SeekMethod nMethod)
             m_spSource->Seek(m_nPosition, SeekFileBegin);
         else
             m_spSource->Seek(m_nHeaderBytes, SeekFileBegin);
-        return ERROR_SUCCESS;
+        return APE_ERROR_SUCCESS;
     }
     else if (nMethod == SeekFileEnd)
     {
@@ -222,10 +222,10 @@ int CHeaderIO::Seek(int64 nPosition, SeekMethod nMethod)
             m_spSource->Seek(m_nPosition, SeekFileBegin);
         else
             m_spSource->Seek(m_nHeaderBytes, SeekFileBegin);
-        return ERROR_SUCCESS;
+        return APE_ERROR_SUCCESS;
     }
 
-    return ERROR_IO_READ;
+    return APE_ERROR_IO_READ;
 }
 
 int CHeaderIO::SetEOF()

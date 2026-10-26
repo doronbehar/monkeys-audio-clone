@@ -39,10 +39,10 @@ public:
 
 private:
     CSmartPtr<unsigned char> m_spBuffer;
-    HANDLE      m_hFile;
-    str_utfn    m_cFileName[APE_MAX_PATH];
-    bool        m_bReadOnly;
-    bool        m_bPipe;
+    HANDLE m_hFile;
+    CSmartPtr<str_utfn> m_spFileName;
+    bool m_bReadOnly;
+    bool m_bPipe;
 };
 
 }

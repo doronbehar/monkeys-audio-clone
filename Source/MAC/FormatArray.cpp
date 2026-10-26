@@ -134,7 +134,7 @@ bool CFormatArray::ProcessCompressionMenu(int nID)
 
 int CFormatArray::Process(MAC_FILE * pInfo)
 {
-    int nRetVal = ERROR_INVALID_INPUT_FILE;
+    int nRetVal = APE_ERROR_INVALID_INPUT_FILE;
 
     // use the format
     IFormat * pFormat = pInfo->m_pFormat;

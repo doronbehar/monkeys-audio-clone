@@ -82,14 +82,9 @@ BOOL CMACApp::InitInstance()
     if (strCommandLine.CompareNoCase(_T("-uninstall")) == 0)
     {
         // launch the uninstall (this way we show as the icon for the uninstall instead of a non-descript one)
-        TCHAR * pUninstall = new TCHAR [APE_MAX_PATH];
-        pUninstall[0] = 0;
-        _tcscat_s(pUninstall, APE_MAX_PATH, GetInstallPath());
-        _tcscat_s(pUninstall, APE_MAX_PATH, _T("uninstall.exe"));
+        CString strUninstall = GetInstallPath() + _T("uninstall.exe");
 
-        ShellExecute(APE_NULL, APE_NULL, pUninstall, APE_NULL, APE_NULL, SW_SHOW);
-
-        APE_SAFE_ARRAY_DELETE(pUninstall)
+        ShellExecute(APE_NULL, APE_NULL, strUninstall, APE_NULL, APE_NULL, SW_SHOW);
 
         return false;
     }
@@ -430,7 +425,6 @@ void CMACApp::GetMenuColors(COLORREF & rgbMenuBackground, COLORREF & rgbMenuHigh
 
 void CMACApp::EnableHighDPISupport()
 {
-#if defined(PLATFORM_WINDOWS)
     HMODULE hUser32 = LoadLibrary(_T("user32.dll"));
     if (hUser32 != APE_NULL)
     {
@@ -457,7 +451,6 @@ void CMACApp::EnableHighDPISupport()
         // cleanup
         FreeLibrary(hUser32);
     }
-#endif
 }
 
 void CMACApp::DestroyObjects()

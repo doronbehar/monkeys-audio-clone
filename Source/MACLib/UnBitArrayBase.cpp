@@ -20,14 +20,10 @@ CreateUnBitArray
 **************************************************************************************************/
 #ifdef APE_BACKWARDS_COMPATIBILITY
 CUnBitArrayBase * CreateUnBitArray(IAPEDecompress * pAPEDecompress, IAPEIO * pIO, intn nVersion)
-#else
-CUnBitArrayBase * CreateUnBitArray(IAPEDecompress *, IAPEIO * pIO, intn nVersion)
-#endif
 {
     // determine the furthest position we should read in the I/O object
     int64 nFurthestReadByte = pIO->GetSize();
 
-#ifdef APE_BACKWARDS_COMPATIBILITY
     if (nVersion < 3900)
     {
         if (nFurthestReadByte > 0)
@@ -55,7 +51,13 @@ CUnBitArrayBase * CreateUnBitArray(IAPEDecompress *, IAPEIO * pIO, intn nVersion
     {
         return dynamic_cast<CUnBitArrayBase *>(new CUnBitArray(pIO, nVersion, nFurthestReadByte));
     }
+}
 #else
+CUnBitArrayBase * CreateUnBitArray(IAPEDecompress *, IAPEIO * pIO, intn nVersion)
+{
+    // determine the furthest position we should read in the I/O object
+    int64 nFurthestReadByte = pIO->GetSize();
+
     // create the appropriate object
     if (nVersion < 3990)
     {
@@ -66,8 +68,8 @@ CUnBitArrayBase * CreateUnBitArray(IAPEDecompress *, IAPEIO * pIO, intn nVersion
     }
 
     return dynamic_cast<CUnBitArrayBase *>(new CUnBitArray(pIO, nVersion, nFurthestReadByte));
-#endif
 }
+#endif
 
 /**************************************************************************************************
 RangeOverflowTable
@@ -121,7 +123,7 @@ bool CUnBitArrayBase::EnsureBitsAvailable(uint32 nBits, bool bThrowExceptionOnFa
     if ((m_nCurrentBitIndex + nBits) >= (m_nGoodBytes * 8))
     {
         // fill
-        bool bSuccess = (FillBitArray() == ERROR_SUCCESS);
+        bool bSuccess = (FillBitArray() == APE_ERROR_SUCCESS);
 
         // if we still don't have enough good bytes, we don't have the bits available
         if (!bSuccess || ((m_nCurrentBitIndex + nBits) >= (m_nGoodBytes * 8)))
@@ -131,7 +133,7 @@ bool CUnBitArrayBase::EnsureBitsAvailable(uint32 nBits, bool bThrowExceptionOnFa
 
             // throw exception if specified
             if (bThrowExceptionOnFailure)
-                throw(static_cast<intn>(ERROR_UNDEFINED));
+                throw(static_cast<intn>(APE_ERROR_UNDEFINED));
 
             // data not available
             bResult = false;
@@ -165,12 +167,12 @@ uint32 CUnBitArrayBase::DecodeValueXBits(uint32 nBits)
 
 int CUnBitArrayBase::FillAndResetBitArray(int64 nFileLocation, int64 nNewBitIndex)
 {
-    if (nNewBitIndex < 0) return ERROR_INVALID_INPUT_FILE;
+    if (nNewBitIndex < 0) return APE_ERROR_INVALID_INPUT_FILE;
 
     // seek if necessary
     if (nFileLocation != -1)
     {
-        RETURN_ON_ERROR(m_pIO->Seek(nFileLocation, SeekFileBegin))
+        APE_RETURN_ON_ERROR(m_pIO->Seek(nFileLocation, SeekFileBegin))
     }
 
     // fill
@@ -231,13 +233,13 @@ int CUnBitArrayBase::FillBitArray()
     m_nCurrentBitIndex = m_nCurrentBitIndex & 31;
 
     // return
-    return (nResult == 0) ? ERROR_SUCCESS : ERROR_IO_READ;
+    return (nResult == 0) ? APE_ERROR_SUCCESS : APE_ERROR_IO_READ;
 }
 
 int CUnBitArrayBase::CreateHelper(IAPEIO * pIO, intn nBytes, intn nVersion)
 {
     // check the parameters
-    if ((pIO == APE_NULL) || (nBytes <= 0)) { return ERROR_BAD_PARAMETER; }
+    if ((pIO == APE_NULL) || (nBytes <= 0)) { return APE_ERROR_BAD_PARAMETER; }
 
     // save the size
     m_nElements = static_cast<uint32>(nBytes / 4);
@@ -254,9 +256,9 @@ int CUnBitArrayBase::CreateHelper(IAPEIO * pIO, intn nBytes, intn nVersion)
     int64 nAllocateElements = static_cast<int64>(m_nElements) + 64;
     m_spBitArray.AllocateArray(nAllocateElements, true);
     if (m_spBitArray == APE_NULL)
-        return ERROR_INSUFFICIENT_MEMORY;
+        return APE_ERROR_INSUFFICIENT_MEMORY;
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 }

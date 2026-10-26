@@ -40,12 +40,12 @@ void CAPEDecompressCoreOld::GenerateDecodedArrays(intn nBlocks, intn nSpecialCod
 {
     if (m_pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_CHANNELS) == 2)
     {
-        if ((nSpecialCodes & SPECIAL_FRAME_LEFT_SILENCE) && (nSpecialCodes & SPECIAL_FRAME_RIGHT_SILENCE))
+        if ((nSpecialCodes & APE_SPECIAL_FRAME_LEFT_SILENCE) && (nSpecialCodes & APE_SPECIAL_FRAME_RIGHT_SILENCE))
         {
             APE_CLEAR_ARRAY(m_spDataX, nBlocks);
             APE_CLEAR_ARRAY(m_spDataY, nBlocks);
         }
-        else if (nSpecialCodes & SPECIAL_FRAME_PSEUDO_STEREO)
+        else if (nSpecialCodes & APE_SPECIAL_FRAME_PSEUDO_STEREO)
         {
             GenerateDecodedArray(m_spDataX, static_cast<int>(nBlocks), nFrameIndex, m_spAntiPredictorX);
             APE_CLEAR_ARRAY(m_spDataY, nBlocks);
@@ -58,7 +58,7 @@ void CAPEDecompressCoreOld::GenerateDecodedArrays(intn nBlocks, intn nSpecialCod
     }
     else
     {
-        if (nSpecialCodes & SPECIAL_FRAME_LEFT_SILENCE)
+        if (nSpecialCodes & APE_SPECIAL_FRAME_LEFT_SILENCE)
         {
             APE_CLEAR_ARRAY(m_spDataX, nBlocks);
         }
@@ -74,7 +74,7 @@ void CAPEDecompressCoreOld::GenerateDecodedArray(int * pInputArray, int nNumberE
 {
     const intn nFrameBytes = static_cast<intn>(m_pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FRAME_BYTES, nFrameIndex));
     if (nFrameBytes <= 0)
-        throw(static_cast<intn>(ERROR_INVALID_INPUT_FILE));
+        throw(static_cast<intn>(APE_ERROR_INVALID_INPUT_FILE));
 
     // run the prediction sequence
     switch (m_pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_COMPRESSION_LEVEL))
@@ -155,7 +155,7 @@ void CAPEDecompressCoreOld::GenerateDecodedArray(int * pInputArray, int nNumberE
             break;
         default:
             // this shouldn't hit, but just to handle all cases we'll put it here
-            throw(static_cast<intn>(ERROR_INVALID_INPUT_FILE));
+            throw(static_cast<intn>(APE_ERROR_INVALID_INPUT_FILE));
 
     }
 }

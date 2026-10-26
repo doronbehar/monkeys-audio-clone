@@ -109,7 +109,6 @@ namespace APE
 
 CStdLibFileIO::CStdLibFileIO()
 {
-    APE_CLEAR(m_cFileName);
     m_bReadOnly = false;
     m_bPipe = false;
     m_pFile = APE_NULL;
@@ -128,9 +127,6 @@ int CStdLibFileIO::GetHandle()
 int CStdLibFileIO::Open(const str_utfn * pName, bool)
 {
     Close();
-
-    if (wcslen(pName) >= APE_MAX_PATH)
-        return ERROR_UNDEFINED;
 
     m_bReadOnly = false;
 
@@ -168,16 +164,17 @@ int CStdLibFileIO::Open(const str_utfn * pName, bool)
     }
 
     if (!m_pFile)
-        return ERROR_UNDEFINED;
+        return APE_ERROR_UNDEFINED;
 
-    wcscpy_s(m_cFileName, APE_MAX_PATH, pName);
+    m_spFileName.AllocateArray(static_cast<int>(wcslen(pName)) + 1);
+    memcpy(m_spFileName.GetPtr(), pName, (wcslen(pName) + 1) * sizeof(str_utfn));
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int CStdLibFileIO::Close()
 {
-    int nResult = ERROR_UNDEFINED;
+    int nResult = APE_ERROR_UNDEFINED;
 
     if (m_pFile != APE_NULL)
     {
@@ -193,11 +190,11 @@ int CStdLibFileIO::Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead)
     int64 nBytesRead = static_cast<int64>(fread(pBuffer, 1, static_cast<size_t>(nBytesToRead), m_pFile));
     if (pBytesRead != APE_NULL)
         *pBytesRead = nBytesRead;
-    int nRetVal = ERROR_SUCCESS;
+    int nRetVal = APE_ERROR_SUCCESS;
     if ((nBytesRead == 0) && (nBytesToRead > 0))
-        nRetVal = ERROR_IO_READ;
+        nRetVal = APE_ERROR_IO_READ;
     else if (ferror(m_pFile))
-        nRetVal = ERROR_IO_READ;
+        nRetVal = APE_ERROR_IO_READ;
     return nRetVal;
 }
 
@@ -206,7 +203,7 @@ int CStdLibFileIO::Write(const void * pBuffer, int64 nBytesToWrite, int64 * pByt
     int64 nBytesWritten = static_cast<int64>(fwrite(pBuffer, 1, static_cast<size_t>(nBytesToWrite), m_pFile));
     if (pBytesWritten != APE_NULL)
         *pBytesWritten = nBytesWritten;
-    return (ferror(m_pFile) || (nBytesWritten != nBytesToWrite)) ? ERROR_IO_WRITE : ERROR_SUCCESS;
+    return (ferror(m_pFile) || (nBytesWritten != nBytesToWrite)) ? APE_ERROR_IO_WRITE : APE_ERROR_SUCCESS;
 }
 
 int CStdLibFileIO::Seek(int64 nPosition, SeekMethod nMethod)
@@ -261,18 +258,12 @@ int64 CStdLibFileIO::GetSize()
     return nLength;
 }
 
-int CStdLibFileIO::GetName(str_utfn(&rpBuffer)[APE_MAX_PATH])
-{
-    wcscpy_s(rpBuffer, APE_MAX_PATH, m_cFileName);
-    return ERROR_SUCCESS;
-}
-
 int CStdLibFileIO::Create(const str_utfn * pName)
 {
     Close();
 
     if (wcslen(pName) >= MAX_PATH)
-        return ERROR_UNDEFINED;
+        return APE_ERROR_UNDEFINED;
 
     if (0 == wcscmp(pName, L"-") || 0 == wcscmp(pName, L"/dev/stdout"))
     {
@@ -292,17 +283,18 @@ int CStdLibFileIO::Create(const str_utfn * pName)
     }
 
     if (!m_pFile)
-        return ERROR_UNDEFINED;
+        return APE_ERROR_UNDEFINED;
 
-    wcscpy_s(m_cFileName, APE_MAX_PATH, pName);
+    m_spFileName.AllocateArray(static_cast<int>(wcslen(pName)) + 1);
+    memcpy(m_spFileName.GetPtr(), pName, (wcslen(pName) + 1) * sizeof(str_utfn));
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int CStdLibFileIO::Delete()
 {
     Close();
-    CSmartPtr<char> spFilenameUTF8((char *) CAPECharacterHelper::GetUTF8FromUTFN(m_cFileName), true);
+    CSmartPtr<char> spFilenameUTF8((char *) CAPECharacterHelper::GetUTF8FromUTFN(m_spFileName), true);
     #ifdef PLATFORM_WINDOWS
         return _unlink(spFilenameUTF8);    // 0 success, -1 error
     #else

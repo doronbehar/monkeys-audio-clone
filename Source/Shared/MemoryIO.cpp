@@ -21,12 +21,12 @@ int CMemoryIO::Open(const str_utfn * pName, bool bOpenReadOnly)
     (void) pName;
     (void) bOpenReadOnly;
 
-    return ERROR_UNDEFINED;
+    return APE_ERROR_UNDEFINED;
 }
 
 int CMemoryIO::Close()
 {
-    return ERROR_UNDEFINED;
+    return APE_ERROR_UNDEFINED;
 }
 
 int CMemoryIO::Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead)
@@ -36,7 +36,7 @@ int CMemoryIO::Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead)
     m_nPosition += nBytesRead;
     if (pBytesRead != APE_NULL)
         *pBytesRead = nBytesRead;
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int CMemoryIO::Write(const void * pBuffer, int64 nBytesToWrite, int64 * pBytesWritten)
@@ -46,7 +46,7 @@ int CMemoryIO::Write(const void * pBuffer, int64 nBytesToWrite, int64 * pBytesWr
     m_nPosition += nBytesWritten;
     if (pBytesWritten != APE_NULL)
         *pBytesWritten = nBytesWritten;
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int CMemoryIO::Seek(int64 nPosition, SeekMethod nMethod)
@@ -55,27 +55,27 @@ int CMemoryIO::Seek(int64 nPosition, SeekMethod nMethod)
     {
     case SeekFileBegin:
         if (nPosition > m_nBufferBytes)
-            return ERROR_UNDEFINED;
+            return APE_ERROR_UNDEFINED;
         m_nPosition = static_cast<int>(nPosition);
         break;
     case SeekFileEnd:
         if (nPosition > m_nBufferBytes)
-            return ERROR_UNDEFINED;
+            return APE_ERROR_UNDEFINED;
         m_nPosition = static_cast<int>(m_nBufferBytes - nPosition);
         break;
     case SeekFileCurrent:
         if (m_nPosition + nPosition < 0 || m_nPosition + nPosition > m_nBufferBytes)
-            return ERROR_UNDEFINED;
+            return APE_ERROR_UNDEFINED;
         m_nPosition = static_cast<int>(m_nPosition + nPosition);
         break;
     }
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int CMemoryIO::SetEOF()
 {
-    return ERROR_UNDEFINED;
+    return APE_ERROR_UNDEFINED;
 }
 
 unsigned char * CMemoryIO::GetBuffer(int * pnBufferBytes)
@@ -99,12 +99,12 @@ int64 CMemoryIO::GetSize()
 
 int CMemoryIO::Create(const str_utfn *)
 {
-    return ERROR_UNDEFINED;
+    return APE_ERROR_UNDEFINED;
 }
 
 int CMemoryIO::Delete()
 {
-    return ERROR_UNDEFINED;
+    return APE_ERROR_UNDEFINED;
 }
 
 }

@@ -36,18 +36,18 @@ int CAPECompressCreate::Start(IAPEIO * pioOutput, int nThreads, const WAVEFORMAT
 {
     // verify the parameters
     if (pioOutput == APE_NULL || pwfeInput == APE_NULL)
-        return ERROR_BAD_PARAMETER;
+        return APE_ERROR_BAD_PARAMETER;
 
     // verify channels
     if ((pwfeInput->nChannels < APE_MINIMUM_CHANNELS) || (pwfeInput->nChannels > APE_MAXIMUM_CHANNELS))
     {
-        return ERROR_INPUT_FILE_UNSUPPORTED_CHANNEL_COUNT;
+        return APE_ERROR_INPUT_FILE_UNSUPPORTED_CHANNEL_COUNT;
     }
 
     // verify bitdepth
     if ((pwfeInput->wBitsPerSample != 8) && (pwfeInput->wBitsPerSample != 16) && (pwfeInput->wBitsPerSample != 24) && (pwfeInput->wBitsPerSample != 32))
     {
-        return ERROR_INPUT_FILE_UNSUPPORTED_BIT_DEPTH;
+        return APE_ERROR_INPUT_FILE_UNSUPPORTED_BIT_DEPTH;
     }
 
     // verify format tag
@@ -59,7 +59,7 @@ int CAPECompressCreate::Start(IAPEIO * pioOutput, int nThreads, const WAVEFORMAT
     {
         // supported only if we have float compression enabled
         #ifndef APE_SUPPORT_FLOAT_COMPRESSION
-            return ERROR_INVALID_INPUT_FILE;
+            return APE_ERROR_INVALID_INPUT_FILE;
         #endif
         nFlags |= APE_FORMAT_FLAG_FLOATING_POINT;
     }
@@ -70,7 +70,7 @@ int CAPECompressCreate::Start(IAPEIO * pioOutput, int nThreads, const WAVEFORMAT
     else
     {
         // unsupported file
-        return ERROR_INVALID_INPUT_FILE;
+        return APE_ERROR_INVALID_INPUT_FILE;
     }
 
     // initialize (creates the base classes)
@@ -103,7 +103,7 @@ int CAPECompressCreate::Start(IAPEIO * pioOutput, int nThreads, const WAVEFORMAT
     m_nLastFrameBlocks = m_nBlocksPerFrame;
 
     // initialize the file
-    const uint32 nMaxAudioBlocks = (nMaxAudioBytes == MAX_AUDIO_BYTES_UNKNOWN) ? 0xFFFFFFFF : static_cast<uint32>(nMaxAudioBytes / pwfeInput->nBlockAlign);
+    const uint32 nMaxAudioBlocks = (nMaxAudioBytes == APE_MAX_AUDIO_BYTES_UNKNOWN) ? 0xFFFFFFFF : static_cast<uint32>(nMaxAudioBytes / pwfeInput->nBlockAlign);
     int64 nMaxFrames = (static_cast<int64>(nMaxAudioBlocks) / static_cast<int64>(m_nBlocksPerFrame));
     if ((nMaxAudioBlocks % static_cast<uint32>(m_nBlocksPerFrame)) != 0) nMaxFrames++;
 
@@ -121,7 +121,7 @@ int CAPECompressCreate::EncodeFrame(const void * pInputData, int nInputBytes)
 
     if ((nInputBlocks < m_nBlocksPerFrame) && (m_nLastFrameBlocks < m_nBlocksPerFrame))
     {
-        return ERROR_UNDEFINED; // can only pass a smaller frame for the very last time
+        return APE_ERROR_UNDEFINED; // can only pass a smaller frame for the very last time
     }
 
     CAPECompressCore * pWorker = m_spAPECompressCore[m_nNextWorker];
@@ -131,7 +131,7 @@ int CAPECompressCreate::EncodeFrame(const void * pInputData, int nInputBytes)
 
     if (pWorker->GetFrameBytes() > 0)
     {
-        RETURN_ON_ERROR(WriteFrame(pWorker->GetFrameBuffer(), pWorker->GetFrameBytes()))
+        APE_RETURN_ON_ERROR(WriteFrame(pWorker->GetFrameBuffer(), pWorker->GetFrameBytes()))
     }
 
     // encode next frame
@@ -148,7 +148,7 @@ int CAPECompressCreate::WriteFrame(unsigned char * pOutputData, uint32 nBytes)
 {
     // update the seek table
     int nResult = SetSeekByte(m_nFrameIndex++, m_spIO->GetPosition() + m_nFinalBytes);
-    if (nResult != ERROR_SUCCESS)
+    if (nResult != APE_ERROR_SUCCESS)
         return nResult;
 
     // fixup frame byte order
@@ -163,14 +163,14 @@ int CAPECompressCreate::WriteFrame(unsigned char * pOutputData, uint32 nBytes)
 
     // write data
     nResult = m_spIO->Write(pOutputData, nBytesRoundedDown);
-    if (nResult != ERROR_SUCCESS)
+    if (nResult != APE_ERROR_SUCCESS)
         return nResult;
 
     // update final word/bytes
     m_nFinalWord = reinterpret_cast<uint32 *>(pOutputData)[nBytes / 4];
     m_nFinalBytes = nBytes % 4;
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 void CAPECompressCreate::FixupFrame(unsigned char * pBuffer, uint32 nBytes, uint32 nFinalWord, uint32 nFinalBytes)
@@ -199,7 +199,7 @@ int CAPECompressCreate::Finish(const void * pTerminatingData, int64 nTerminating
 
         if (pWorker->GetFrameBytes() > 0)
         {
-            RETURN_ON_ERROR(WriteFrame(pWorker->GetFrameBuffer(), pWorker->GetFrameBytes()))
+            APE_RETURN_ON_ERROR(WriteFrame(pWorker->GetFrameBuffer(), pWorker->GetFrameBytes()))
         }
 
         pWorker->Exit();
@@ -213,7 +213,7 @@ int CAPECompressCreate::Finish(const void * pTerminatingData, int64 nTerminating
 
     m_MD5.AddData(&m_nFinalWord, 4);
 
-    RETURN_ON_ERROR(m_spIO->Write(&m_nFinalWord, 4))
+    APE_RETURN_ON_ERROR(m_spIO->Write(&m_nFinalWord, 4))
 
     // finalize the file
     return FinalizeFile(m_spIO, m_nFrameIndex, m_nLastFrameBlocks, pTerminatingData, nTerminatingBytes, nWAVTerminatingBytes);
@@ -229,25 +229,25 @@ int CAPECompressCreate::SetSeekByte(int nFrame, int64 nByteOffset)
     if (nFrame >= m_nMaxFrames)
     {
         m_bTooMuchData = true;
-        return ERROR_APE_COMPRESS_TOO_MUCH_DATA;
+        return APE_ERROR_APE_COMPRESS_TOO_MUCH_DATA;
     }
     const uint32 nSeekEntry = static_cast<uint32>(nByteOffset); // we let this overflow then correct the overflows when we parse the table
     m_spSeekTable[nFrame] = ConvertU32LE(nSeekEntry);
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int CAPECompressCreate::InitializeFile(IAPEIO * pIO, const WAVEFORMATEX * pwfeInput, intn nMaxFrames, intn nCompressionLevel, const void * pHeaderData, int64 nHeaderBytes, int32 nFlags)
 {
     // error check the parameters
     if (pIO == APE_NULL || pwfeInput == APE_NULL || nMaxFrames <= 0)
-        return ERROR_BAD_PARAMETER;
+        return APE_ERROR_BAD_PARAMETER;
 
     APE_DESCRIPTOR APEDescriptor; APE_CLEAR(APEDescriptor);
     APE_HEADER APEHeader; APE_CLEAR(APEHeader);
 
     // don't allow header data that's too large
     if (nHeaderBytes > APE_WAV_HEADER_OR_FOOTER_MAXIMUM_BYTES)
-        return ERROR_INPUT_FILE_TOO_LARGE;
+        return APE_ERROR_INPUT_FILE_TOO_LARGE;
 
     // create the descriptor (only fill what we know)
     APEDescriptor.cID[0] = 'M';
@@ -261,7 +261,7 @@ int CAPECompressCreate::InitializeFile(IAPEIO * pIO, const WAVEFORMATEX * pwfeIn
     APEDescriptor.nDescriptorBytes = ConvertU32LE(sizeof(APEDescriptor));
     APEDescriptor.nHeaderBytes = ConvertU32LE(sizeof(APEHeader));
     APEDescriptor.nSeekTableBytes = ConvertU32LE(static_cast<uint32>(nMaxFrames) * static_cast<uint32>(sizeof(unsigned int)));
-    APEDescriptor.nHeaderDataBytes = ConvertU32LE(static_cast<uint32>((nHeaderBytes == CREATE_WAV_HEADER_ON_DECOMPRESSION) ? 0 : nHeaderBytes));
+    APEDescriptor.nHeaderDataBytes = ConvertU32LE(static_cast<uint32>((nHeaderBytes == APE_CREATE_WAV_HEADER_ON_DECOMPRESSION) ? 0 : nHeaderBytes));
 
     // create the header (only fill what we know now)
     APEHeader.nBitsPerSample = ConvertU16LE(pwfeInput->wBitsPerSample);
@@ -270,29 +270,29 @@ int CAPECompressCreate::InitializeFile(IAPEIO * pIO, const WAVEFORMATEX * pwfeIn
 
     APEHeader.nCompressionLevel = ConvertU16LE(static_cast<uint16>(nCompressionLevel));
     APEHeader.nFormatFlags = ConvertU16LE(static_cast<uint16>(nFlags));
-    APEHeader.nFormatFlags |= ConvertU16LE(static_cast<uint16>((nHeaderBytes == CREATE_WAV_HEADER_ON_DECOMPRESSION) ? APE_FORMAT_FLAG_CREATE_WAV_HEADER : 0));
+    APEHeader.nFormatFlags |= ConvertU16LE(static_cast<uint16>((nHeaderBytes == APE_CREATE_WAV_HEADER_ON_DECOMPRESSION) ? APE_FORMAT_FLAG_CREATE_WAV_HEADER : 0));
 
     APEHeader.nBlocksPerFrame = ConvertU32LE(static_cast<uint32>(m_nBlocksPerFrame));
 
     // write the data to the file
-    RETURN_ON_ERROR(pIO->Write(&APEDescriptor, sizeof(APEDescriptor)))
-    RETURN_ON_ERROR(pIO->Write(&APEHeader, sizeof(APEHeader)))
+    APE_RETURN_ON_ERROR(pIO->Write(&APEDescriptor, sizeof(APEDescriptor)))
+    APE_RETURN_ON_ERROR(pIO->Write(&APEHeader, sizeof(APEHeader)))
 
     // write an empty seek table
     m_spSeekTable.AllocateArray(nMaxFrames, true);
-    if (m_spSeekTable == APE_NULL) { return ERROR_INSUFFICIENT_MEMORY; }
-    RETURN_ON_ERROR(pIO->Write(m_spSeekTable, static_cast<int64>(nMaxFrames) * 4))
+    if (m_spSeekTable == APE_NULL) { return APE_ERROR_INSUFFICIENT_MEMORY; }
+    APE_RETURN_ON_ERROR(pIO->Write(m_spSeekTable, static_cast<int64>(nMaxFrames) * 4))
     m_nMaxFrames = nMaxFrames;
 
     // write the WAV data
-    if ((pHeaderData != APE_NULL) && (nHeaderBytes > 0) && (nHeaderBytes != CREATE_WAV_HEADER_ON_DECOMPRESSION))
+    if ((pHeaderData != APE_NULL) && (nHeaderBytes > 0) && (nHeaderBytes != APE_CREATE_WAV_HEADER_ON_DECOMPRESSION))
     {
         // MD5 and write data
         m_MD5.AddData(pHeaderData, nHeaderBytes);
-        RETURN_ON_ERROR(pIO->Write(pHeaderData, nHeaderBytes))
+        APE_RETURN_ON_ERROR(pIO->Write(pHeaderData, nHeaderBytes))
     }
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int CAPECompressCreate::FinalizeFile(IAPEIO * pIO, int nNumberOfFrames, int nFinalFrameBlocks, const void * pTerminatingData, int64 nTerminatingBytes, int64 nWAVTerminatingBytes)
@@ -308,7 +308,7 @@ int CAPECompressCreate::FinalizeFile(IAPEIO * pIO, int nNumberOfFrames, int nFin
     {
         // don't allow terminating data that's too large
         if (nTerminatingBytes > APE_WAV_HEADER_OR_FOOTER_MAXIMUM_BYTES)
-            return ERROR_INPUT_FILE_TOO_LARGE;
+            return APE_ERROR_INPUT_FILE_TOO_LARGE;
 
         // update the MD5 sum to include the WAV terminating bytes
         m_MD5.AddData(pTerminatingData, nWAVTerminatingBytes);
@@ -317,9 +317,9 @@ int CAPECompressCreate::FinalizeFile(IAPEIO * pIO, int nNumberOfFrames, int nFin
         const int64 nWriteSize = static_cast<int64>(nTerminatingBytes);
 
         // write the entire chunk to the new file
-        if (pIO->Write(pTerminatingData, nWriteSize) != ERROR_SUCCESS)
+        if (pIO->Write(pTerminatingData, nWriteSize) != APE_ERROR_SUCCESS)
         {
-            return ERROR_IO_WRITE;
+            return APE_ERROR_IO_WRITE;
         }
     }
 
@@ -329,12 +329,12 @@ int CAPECompressCreate::FinalizeFile(IAPEIO * pIO, int nNumberOfFrames, int nFin
     // get the descriptor
     APE_DESCRIPTOR APEDescriptor;
     nResult = pIO->Read(&APEDescriptor, sizeof(APEDescriptor), &nBytesRead);
-    if ((nResult != ERROR_SUCCESS) || (nBytesRead != sizeof(APEDescriptor))) { return ERROR_IO_READ; }
+    if ((nResult != APE_ERROR_SUCCESS) || (nBytesRead != sizeof(APEDescriptor))) { return APE_ERROR_IO_READ; }
 
     // get the header
     APE_HEADER APEHeader;
     nResult = pIO->Read(&APEHeader, sizeof(APEHeader), &nBytesRead);
-    if ((nResult != ERROR_SUCCESS) || (nBytesRead != sizeof(APEHeader))) { return ERROR_IO_READ; }
+    if ((nResult != APE_ERROR_SUCCESS) || (nBytesRead != sizeof(APEHeader))) { return APE_ERROR_IO_READ; }
 
     // update the header
     APEHeader.nFinalFrameBlocks = ConvertU32LE(static_cast<uint32>(nFinalFrameBlocks));
@@ -353,13 +353,13 @@ int CAPECompressCreate::FinalizeFile(IAPEIO * pIO, int nNumberOfFrames, int nFin
 
     // set the pointer and re-write the updated header and peak level
     pIO->Seek(0, SeekFileBegin);
-    if (pIO->Write(&APEDescriptor, sizeof(APEDescriptor)) != ERROR_SUCCESS) { return ERROR_IO_WRITE; }
-    if (pIO->Write(&APEHeader, sizeof(APEHeader)) != ERROR_SUCCESS) { return ERROR_IO_WRITE; }
+    if (pIO->Write(&APEDescriptor, sizeof(APEDescriptor)) != APE_ERROR_SUCCESS) { return APE_ERROR_IO_WRITE; }
+    if (pIO->Write(&APEHeader, sizeof(APEHeader)) != APE_ERROR_SUCCESS) { return APE_ERROR_IO_WRITE; }
 
     // write the updated seek table
-    if (pIO->Write(m_spSeekTable, static_cast<int64>(m_nMaxFrames) * 4) != ERROR_SUCCESS) { return ERROR_IO_WRITE; }
+    if (pIO->Write(m_spSeekTable, static_cast<int64>(m_nMaxFrames) * 4) != APE_ERROR_SUCCESS) { return APE_ERROR_IO_WRITE; }
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 }

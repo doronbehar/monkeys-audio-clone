@@ -41,7 +41,7 @@ CPredictorDecompress3930to3950::CPredictorDecompress3930to3950(int nCompressionL
     }
     else
     {
-        throw(static_cast<intn>(ERROR_UNDEFINED));
+        throw(static_cast<intn>(APE_ERROR_UNDEFINED));
     }
 }
 
@@ -70,7 +70,7 @@ int CPredictorDecompress3930to3950::Flush()
     m_nLastValue = 0;
     m_nCurrentIndex = 0;
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int CPredictorDecompress3930to3950::DecompressValue(int64 nInput, int64)
@@ -113,5 +113,6 @@ int CPredictorDecompress3930to3950::DecompressValue(int64 nInput, int64)
 
     return nResult;
 }
-#endif
+
 }
+#endif // #ifdef APE_BACKWARDS_COMPATIBILITY

@@ -52,7 +52,7 @@ Construction
 **************************************************************************************************/
 CAPEInfo::CAPEInfo(int * pErrorCode, const str_utfn * pFilename, IAPETag * pTag, bool bAPL, bool bReadOnly, bool bAnalyzeTagNow, bool bReadWholeFile)
 {
-    *pErrorCode = ERROR_SUCCESS;
+    *pErrorCode = APE_ERROR_SUCCESS;
     CloseFile();
 
     // store the APL status
@@ -62,7 +62,7 @@ CAPEInfo::CAPEInfo(int * pErrorCode, const str_utfn * pFilename, IAPETag * pTag,
     m_spIO.Assign(CreateIAPEIO());
 
     *pErrorCode = m_spIO->Open(pFilename, bReadOnly);
-    if (*pErrorCode != ERROR_SUCCESS)
+    if (*pErrorCode != APE_ERROR_SUCCESS)
     {
         CloseFile();
         return;
@@ -95,7 +95,7 @@ CAPEInfo::CAPEInfo(int * pErrorCode, const str_utfn * pFilename, IAPETag * pTag,
     if (GetFileInformation() != 0)
     {
         CloseFile();
-        *pErrorCode = ERROR_INVALID_INPUT_FILE;
+        *pErrorCode = APE_ERROR_INVALID_INPUT_FILE;
         return;
     }
 
@@ -124,7 +124,7 @@ CAPEInfo::CAPEInfo(int * pErrorCode, const str_utfn * pFilename, IAPETag * pTag,
 CAPEInfo::CAPEInfo(int * pErrorCode, IAPEIO * pIO, IAPETag * pTag)
 {
     m_bAPL = false;
-    *pErrorCode = ERROR_SUCCESS;
+    *pErrorCode = APE_ERROR_SUCCESS;
     CloseFile();
 
     m_spIO.Assign(pIO, false, false);
@@ -133,7 +133,7 @@ CAPEInfo::CAPEInfo(int * pErrorCode, IAPEIO * pIO, IAPETag * pTag)
     if (GetFileInformation() != 0)
     {
         CloseFile();
-        *pErrorCode = ERROR_INVALID_INPUT_FILE;
+        *pErrorCode = APE_ERROR_INVALID_INPUT_FILE;
         return;
     }
 
@@ -170,7 +170,7 @@ int CAPEInfo::CloseFile()
     m_APEFileInfo.nSeekTableElements = 0;
     m_bHasFileInformationLoaded = false;
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 /**************************************************************************************************
@@ -179,13 +179,13 @@ Get the file information about the file
 int CAPEInfo::GetFileInformation()
 {
     // quit if there is no simple file
-    if (m_spIO == APE_NULL) { return ERROR_UNDEFINED; }
+    if (m_spIO == APE_NULL) { return APE_ERROR_UNDEFINED; }
 
     // quit if the file information has already been loaded
-    if (m_bHasFileInformationLoaded) { return ERROR_SUCCESS; }
+    if (m_bHasFileInformationLoaded) { return APE_ERROR_SUCCESS; }
 
     // use a CAPEHeader class to help us analyze the file
-    int nResult = ERROR_UNDEFINED;
+    int nResult = APE_ERROR_UNDEFINED;
     try
     {
         CAPEHeader APEHeader(m_spIO);
@@ -193,11 +193,11 @@ int CAPEInfo::GetFileInformation()
     }
     catch (...)
     {
-        nResult = ERROR_UNDEFINED;
+        nResult = APE_ERROR_UNDEFINED;
     }
 
     // update our internal state
-    if (nResult == ERROR_SUCCESS)
+    if (nResult == APE_ERROR_SUCCESS)
         m_bHasFileInformationLoaded = true;
 
     // return
@@ -209,7 +209,7 @@ Primary query function
 **************************************************************************************************/
 int64 CAPEInfo::GetInfo(IAPEDecompress::APE_INFO_FIELDS Field, int64 nParam1, int64 nParam2)
 {
-    int64 nResult = ERROR_UNDEFINED;
+    int64 nResult = APE_ERROR_UNDEFINED;
 
     switch (Field)
     {
@@ -295,26 +295,27 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_INFO_FIELDS Field, int64 nParam1, in
         nResult = m_APEFileInfo.nDecompressedBitrate;
         break;
     case IAPEDecompress::APE_INFO_PEAK_LEVEL:
-        nResult = ERROR_UNDEFINED; // no longer supported
+        nResult = APE_ERROR_UNDEFINED; // no longer supported
         break;
     case IAPEDecompress::APE_INFO_SEEK_BIT:
     {
-        const int64 nFrame = nParam1;
-        if (APE_GET_FRAMES_START_ON_BYTES_BOUNDARIES(this))
-        {
-            nResult = 0;
-        }
-        else
-        {
-            if ((nFrame < 0) || (static_cast<uint32>(nFrame) >= m_APEFileInfo.nTotalFrames))
+        // APE_INFO_SEEK_BIT is only called on backwards compatibility files (from UnMACOld)
+        #ifdef APE_BACKWARDS_COMPATIBILITY
+            const int64 nFrame = nParam1;
+            if (APE_GET_FRAMES_START_ON_BYTES_BOUNDARIES(this))
+            {
                 nResult = 0;
+            }
             else
-#ifdef APE_BACKWARDS_COMPATIBILITY
-                nResult = m_APEFileInfo.spSeekBitTable[nFrame];
-#else
-                nResult = 0;
-#endif
-        }
+            {
+                if ((nFrame < 0) || (static_cast<uint32>(nFrame) >= m_APEFileInfo.nTotalFrames))
+                    nResult = 0;
+                else
+                    nResult = m_APEFileInfo.spSeekBitTable[nFrame];
+            }
+        #else
+            nResult = 0;
+        #endif
         break;
     }
     case IAPEDecompress::APE_INFO_SEEK_BYTE:
@@ -337,14 +338,14 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_INFO_FIELDS Field, int64 nParam1, in
             {
                 if (static_cast<APE::int64>(sizeof(RF64_HEADER)) > nMaxBytes)
                 {
-                    nResult = ERROR_UNDEFINED;
+                    nResult = APE_ERROR_UNDEFINED;
                 }
                 else
                 {
                     WAVEFORMATEX wfeFormat; GetInfo(IAPEDecompress::APE_INFO_WAVEFORMATEX, APE_POINTER_TO_INT64(&wfeFormat), 0);
                     RF64_HEADER WAVHeader; FillRF64Header(&WAVHeader, m_APEFileInfo.nWAVDataBytes, &wfeFormat);
                     memcpy(pBuffer, &WAVHeader, sizeof(RF64_HEADER));
-                    nResult = ERROR_SUCCESS;
+                    nResult = APE_ERROR_SUCCESS;
                 }
 
             }
@@ -352,7 +353,7 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_INFO_FIELDS Field, int64 nParam1, in
             {
                 if (static_cast<APE::int64>(sizeof(WAVE_HEADER)) > nMaxBytes)
                 {
-                    nResult = ERROR_UNDEFINED;
+                    nResult = APE_ERROR_UNDEFINED;
                 }
                 else
                 {
@@ -360,7 +361,7 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_INFO_FIELDS Field, int64 nParam1, in
                     WAVE_HEADER WAVHeader; FillWaveHeader(&WAVHeader, static_cast<int64>(m_APEFileInfo.nWAVDataBytes), &wfeFormat,
                         static_cast<intn>(m_APEFileInfo.nWAVTerminatingBytes));
                     memcpy(pBuffer, &WAVHeader, sizeof(WAVE_HEADER));
-                    nResult = ERROR_SUCCESS;
+                    nResult = APE_ERROR_SUCCESS;
                 }
             }
         }
@@ -368,13 +369,13 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_INFO_FIELDS Field, int64 nParam1, in
         {
             if (m_APEFileInfo.nWAVHeaderBytes > nMaxBytes)
             {
-                nResult = ERROR_UNDEFINED;
+                nResult = APE_ERROR_UNDEFINED;
             }
             else
             {
                 if ((m_APEFileInfo.spWaveHeaderData != APE_NULL) && (m_APEFileInfo.nWAVHeaderBytes > 0))
                     memcpy(pBuffer, m_APEFileInfo.spWaveHeaderData, static_cast<size_t>(m_APEFileInfo.nWAVHeaderBytes));
-                nResult = ERROR_SUCCESS;
+                nResult = APE_ERROR_SUCCESS;
             }
         }
         break;
@@ -386,7 +387,7 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_INFO_FIELDS Field, int64 nParam1, in
 
         if (m_APEFileInfo.nWAVTerminatingBytes > static_cast<uint32>(nMaxBytes))
         {
-            nResult = ERROR_UNDEFINED;
+            nResult = APE_ERROR_UNDEFINED;
         }
         else
         {
@@ -403,7 +404,7 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_INFO_FIELDS Field, int64 nParam1, in
                 // restore the file pointer
                 m_spIO->Seek(nOriginalFileLocation, SeekFileBegin);
             }
-            nResult = ERROR_SUCCESS;
+            nResult = APE_ERROR_SUCCESS;
         }
         break;
     }
@@ -411,7 +412,7 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_INFO_FIELDS Field, int64 nParam1, in
     {
         WAVEFORMATEX * pWaveFormatEx = reinterpret_cast<WAVEFORMATEX *>(nParam1);
         FillWaveFormatEx(pWaveFormatEx, WAVE_FORMAT_PCM, m_APEFileInfo.nSampleRate, m_APEFileInfo.nBitsPerSample, m_APEFileInfo.nChannels);
-        nResult = ERROR_SUCCESS;
+        nResult = APE_ERROR_SUCCESS;
         break;
     }
     case IAPEDecompress::APE_INFO_IO_SOURCE:
@@ -424,7 +425,7 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_INFO_FIELDS Field, int64 nParam1, in
         // bound-check the frame index
         if ((nFrame < 0) || (static_cast<uint32>(nFrame) >= m_APEFileInfo.nTotalFrames))
         {
-            nResult = ERROR_UNDEFINED;
+            nResult = APE_ERROR_UNDEFINED;
         }
         else
         {
@@ -465,7 +466,7 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_INFO_FIELDS Field, int64 nParam1, in
         // bound-check the frame index
         if ((nFrame < 0) || (static_cast<uint32>(nFrame) >= m_APEFileInfo.nTotalFrames))
         {
-            nResult = ERROR_UNDEFINED;
+            nResult = APE_ERROR_UNDEFINED;
         }
         else
         {
@@ -487,16 +488,16 @@ int64 CAPEInfo::GetInfo(IAPEDecompress::APE_INFO_FIELDS Field, int64 nParam1, in
         {
             char * pBuffer = reinterpret_cast<char *>(nParam1);
             memcpy(pBuffer, m_APEFileInfo.spAPEDescriptor->cFileMD5, sizeof(m_APEFileInfo.spAPEDescriptor->cFileMD5));
-            nResult = ERROR_SUCCESS;
+            nResult = APE_ERROR_SUCCESS;
         }
         break;
     case IAPEDecompress::APE_INFO_MD5_MATCHES:
-        nResult = ERROR_INVALID_CHECKSUM;
+        nResult = APE_ERROR_INVALID_CHECKSUM;
         if (m_APEFileInfo.spAPEDescriptor != APE_NULL)
         {
             char * pBuffer = reinterpret_cast<char *>(nParam1);
             if (memcmp(pBuffer, m_APEFileInfo.spAPEDescriptor->cFileMD5, 16) == 0)
-                nResult = ERROR_SUCCESS;
+                nResult = APE_ERROR_SUCCESS;
         }
         break;
     case IAPEDecompress::APE_INFO_FILE_INFO:

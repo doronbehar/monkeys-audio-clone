@@ -9,7 +9,7 @@ namespace APE
 
 CAPEDecompressOld::CAPEDecompressOld(int * pErrorCode, IAPEInfo * pAPEInfo, int nStartBlock, int nFinishBlock)
 {
-    *pErrorCode = ERROR_SUCCESS;
+    *pErrorCode = APE_ERROR_SUCCESS;
 
     // open / analyze the file
     m_spAPEInfo.Assign(pAPEInfo);
@@ -32,14 +32,14 @@ CAPEDecompressOld::CAPEDecompressOld(int * pErrorCode, IAPEInfo * pAPEInfo, int 
     // do this after initializing variables or else we get a warning
     if (m_spAPEInfo->GetInfo(APE_INFO_FILE_VERSION) > 3920)
     {
-        *pErrorCode = ERROR_UNDEFINED;
+        *pErrorCode = APE_ERROR_UNDEFINED;
         return;
     }
 
     // check block alignment
     if ((m_nBlockAlign <= 0) || (m_nBlockAlign > 32))
     {
-        *pErrorCode = ERROR_INVALID_INPUT_FILE;
+        *pErrorCode = APE_ERROR_INVALID_INPUT_FILE;
         return;
     }
 }
@@ -57,16 +57,16 @@ int CAPEDecompressOld::InitializeDecompressor()
 {
     // check if we have anything to do
     if (m_bDecompressorInitialized)
-        return ERROR_SUCCESS;
+        return APE_ERROR_SUCCESS;
 
     // initialize the decoder
-    RETURN_ON_ERROR(m_UnMAC.Initialize(this))
+    APE_RETURN_ON_ERROR(m_UnMAC.Initialize(this))
 
     const int64 nMaximumDecompressedFrameBytes = m_nBlockAlign * static_cast<intn>(GetInfo(APE_INFO_BLOCKS_PER_FRAME));
     const int64 nTotalBufferBytes = APE_MAX<int64>(65536, (nMaximumDecompressedFrameBytes + 16) * 2);
     m_spBuffer.AllocateArray(nTotalBufferBytes);
     if (m_spBuffer == APE_NULL)
-        return ERROR_INSUFFICIENT_MEMORY;
+        return APE_ERROR_INSUFFICIENT_MEMORY;
 
     // update the initialized flag
     m_bDecompressorInitialized = true;
@@ -79,7 +79,7 @@ int CAPEDecompressOld::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * p
 {
     if (pBlocksRetrieved) *pBlocksRetrieved = 0;
 
-    RETURN_ON_ERROR(InitializeDecompressor())
+    APE_RETURN_ON_ERROR(InitializeDecompressor())
 
     // cap
     const int64 nBlocksUntilFinish = m_nFinishBlock - m_nCurrentBlock;
@@ -112,7 +112,7 @@ int CAPEDecompressOld::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * p
         // decode more
         if (nBytesLeft > 0)
         {
-            int nErrorCode = ERROR_UNDEFINED;
+            int nErrorCode = APE_ERROR_UNDEFINED;
             nBlocksDecoded = m_UnMAC.DecompressFrame(&m_spBuffer[m_nBufferTail], static_cast<int32>(m_nCurrentFrame++), &nErrorCode);
             if (nBlocksDecoded < 0)
                 return nErrorCode;
@@ -127,7 +127,7 @@ int CAPEDecompressOld::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * p
 
     if (pBlocksRetrieved) *pBlocksRetrieved = nBlocksRetrieved;
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int CAPEDecompressOld::Seek(int64 nBlockOffset)
@@ -135,12 +135,12 @@ int CAPEDecompressOld::Seek(int64 nBlockOffset)
     if (m_bDecompressorInitialized)
     {
         // re-initialize the decoder so we reset everything on seek after an error
-        RETURN_ON_ERROR(m_UnMAC.Initialize(this))
+        APE_RETURN_ON_ERROR(m_UnMAC.Initialize(this))
     }
     else
     {
         // initial initialize
-        RETURN_ON_ERROR(InitializeDecompressor())
+        APE_RETURN_ON_ERROR(InitializeDecompressor())
     }
 
     // use the offset
@@ -167,7 +167,7 @@ int CAPEDecompressOld::Seek(int64 nBlockOffset)
 
     m_nCurrentFrame = nBaseFrame;
 
-    int nErrorCode = ERROR_UNDEFINED;
+    int nErrorCode = APE_ERROR_UNDEFINED;
     const intn nBlocksDecoded = m_UnMAC.DecompressFrame(spTempBuffer.GetPtr(), static_cast<int32>(m_nCurrentFrame++), &nErrorCode);
 
     if (nBlocksDecoded < 0)
@@ -179,7 +179,7 @@ int CAPEDecompressOld::Seek(int64 nBlockOffset)
 
     m_nCurrentBlock = nBlockOffset;
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int64 CAPEDecompressOld::GetInfo(APE_INFO_FIELDS Field, int64 nParam1, int64 nParam2)

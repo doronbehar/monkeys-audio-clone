@@ -94,7 +94,7 @@ bool CFormatPlugin::Load(const CString & strAPXFilename)
             {
                 MAC_FILE File;
                 File.m_Mode = MODE_CHECK;
-                if (Process(&File) != ERROR_SUCCESS)
+                if (Process(&File) != APE_ERROR_SUCCESS)
                 {
                     bRetVal = false;
                 }
@@ -229,7 +229,7 @@ CString CFormatPlugin::GetOutputExtension(APE_MODES Mode, const CString & strInp
 
 int CFormatPlugin::Process(MAC_FILE * pInfo)
 {
-    int nRetVal = ERROR_UNDEFINED;
+    int nRetVal = APE_ERROR_UNDEFINED;
 
     CFormatPluginLevelInfo * pLevelInfo = GetLevelInfo(pInfo->m_Mode, pInfo->m_strInputFilename, pInfo->m_nLevel);
     if (pLevelInfo != APE_NULL)
@@ -249,9 +249,9 @@ int CFormatPlugin::Process(MAC_FILE * pInfo)
             {
                 DWORD dwError = GetLastError();
                 if (dwError == ERROR_ACCESS_DENIED)
-                    return ERROR_UAC_PERMISSION;
+                    return APE_ERROR_UAC_PERMISSION;
                 else
-                    return ERROR_UNDEFINED;
+                    return APE_ERROR_UNDEFINED;
             }
             CloseHandle(hFile);
             DeleteFile(pInfo->m_strWorkingFilename);
@@ -272,16 +272,16 @@ int CFormatPlugin::Process(MAC_FILE * pInfo)
         if (pLevelInfo->m_strSuccessReturn.IsEmpty() == false)
         {
             if (bSuccess && (nExitCode == _ttoi(pLevelInfo->m_strSuccessReturn)))
-                nRetVal = ERROR_SUCCESS;
+                nRetVal = APE_ERROR_SUCCESS;
             else
-                nRetVal = ERROR_UNDEFINED;
+                nRetVal = APE_ERROR_UNDEFINED;
         }
         else
         {
             if (pLevelInfo->m_strCommandLine.Find(_T("[OUTPUT]")) != -1)
-                nRetVal = (bSuccess && FileExists(pInfo->m_strWorkingFilename)) ? ERROR_SUCCESS : ERROR_UNDEFINED;
+                nRetVal = (bSuccess && FileExists(pInfo->m_strWorkingFilename)) ? APE_ERROR_SUCCESS : APE_ERROR_UNDEFINED;
             else
-                nRetVal = ERROR_SUCCESS;
+                nRetVal = APE_ERROR_SUCCESS;
         }
     }
 

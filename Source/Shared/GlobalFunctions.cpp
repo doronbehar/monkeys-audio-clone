@@ -23,10 +23,10 @@ int ReadSafe(IAPEIO * pIO, void * pBuffer, int64 nBytes)
 {
     int64 nBytesRead = 0;
     int nResult = pIO->Read(pBuffer, nBytes, &nBytesRead);
-    if (nResult == ERROR_SUCCESS)
+    if (nResult == APE_ERROR_SUCCESS)
     {
         if (nBytes != nBytesRead)
-            nResult = ERROR_IO_READ;
+            nResult = APE_ERROR_IO_READ;
     }
 
     return nResult;

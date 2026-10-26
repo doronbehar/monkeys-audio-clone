@@ -10,7 +10,7 @@ namespace APE
 
 CAPEDecompress::CAPEDecompress(int * pErrorCode, IAPEInfo * pAPEInfo, int64 nStartBlock, int64 nFinishBlock)
 {
-    *pErrorCode = ERROR_SUCCESS;
+    *pErrorCode = APE_ERROR_SUCCESS;
 
     // initialize
     m_nThreads = 1;
@@ -39,7 +39,7 @@ CAPEDecompress::CAPEDecompress(int * pErrorCode, IAPEInfo * pAPEInfo, int64 nSta
     // we do this after setting all the variables or else we get compile warnings
     if (m_spAPEInfo->GetInfo(APE_INFO_FILE_VERSION) < 3930)
     {
-        *pErrorCode = ERROR_UNDEFINED;
+        *pErrorCode = APE_ERROR_UNDEFINED;
         return;
     }
 
@@ -68,7 +68,7 @@ int CAPEDecompress::InitializeDecompressor()
 {
     // check if we have anything to do
     if (m_bDecompressorInitialized)
-        return ERROR_SUCCESS;
+        return APE_ERROR_SUCCESS;
 
     // update the initialized flag
     m_bDecompressorInitialized = true;
@@ -76,11 +76,11 @@ int CAPEDecompress::InitializeDecompressor()
     // create and start threads
     for (int i = 0; i < m_nThreads; i++)
     {
-        int nErrorCode = ERROR_SUCCESS;
+        int nErrorCode = APE_ERROR_SUCCESS;
 
         m_spAPEDecompressCore[i].Assign(new CAPEDecompressCore(&nErrorCode, this, m_spAPEInfo));
 
-        if (nErrorCode != ERROR_SUCCESS)
+        if (nErrorCode != APE_ERROR_SUCCESS)
             return nErrorCode;
 
         m_spAPEDecompressCore[i]->Start();
@@ -92,11 +92,11 @@ int CAPEDecompress::InitializeDecompressor()
 
 int CAPEDecompress::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlocksRetrieved, APE_GET_DATA_PROCESSING * pProcessing)
 {
-    int nResult = ERROR_SUCCESS;
+    int nResult = APE_ERROR_SUCCESS;
     if (pBlocksRetrieved) *pBlocksRetrieved = 0;
 
     // make sure we're initialized
-    RETURN_ON_ERROR(InitializeDecompressor())
+    APE_RETURN_ON_ERROR(InitializeDecompressor())
 
     // cap
     const int64 nBlocksUntilFinish = m_nFinishBlock - m_nCurrentBlock;
@@ -121,7 +121,7 @@ int CAPEDecompress::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlo
             pWorker->WaitUntilReady();
 
             nResult = pWorker->GetErrorState();
-            if (nResult != ERROR_SUCCESS)
+            if (nResult != APE_ERROR_SUCCESS)
             {
                 // output silence
                 const uint32 nOutputSilenceBytes = m_cbFrameBuffer.MaxAdd();
@@ -144,13 +144,13 @@ int CAPEDecompress::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlo
             if (m_nCurrentFrame < m_spAPEInfo->GetInfo(APE_INFO_TOTAL_FRAMES))
             {
                 int nScheduleResult = ScheduleFrameDecode(pWorker, m_nCurrentFrame++);
-                if (nScheduleResult != ERROR_SUCCESS)
+                if (nScheduleResult != APE_ERROR_SUCCESS)
                     nResult = nScheduleResult;
             }
             else
             {
                 // reset worker to ready state
-                pWorker->SetErrorState(ERROR_SUCCESS);
+                pWorker->SetErrorState(APE_ERROR_SUCCESS);
             }
 
             m_nNextWorker = (m_nNextWorker + 1) % m_nThreads;
@@ -215,7 +215,7 @@ int CAPEDecompress::GetData(unsigned char * pBuffer, int64 nBlocks, int64 * pBlo
 
 int CAPEDecompress::Seek(int64 nBlockOffset)
 {
-    RETURN_ON_ERROR(InitializeDecompressor())
+    APE_RETURN_ON_ERROR(InitializeDecompressor())
 
     // cancel frames
     for (int i = 0; i < m_nThreads; i++)
@@ -233,7 +233,7 @@ int CAPEDecompress::Seek(int64 nBlockOffset)
         CAPEDecompressCore * pWorker = m_spAPEDecompressCore[m_nNextWorker];
 
         pWorker->WaitUntilReady();
-        pWorker->SetErrorState(ERROR_SUCCESS);
+        pWorker->SetErrorState(APE_ERROR_SUCCESS);
 
         m_nNextWorker = (m_nNextWorker + 1) % m_nThreads;
     }
@@ -262,15 +262,15 @@ int CAPEDecompress::Seek(int64 nBlockOffset)
 
         CSmartPtr<unsigned char> spTempBuffer(nBytesToSkip);
         if (spTempBuffer == APE_NULL)
-            return ERROR_INSUFFICIENT_MEMORY;
+            return APE_ERROR_INSUFFICIENT_MEMORY;
 
         int64 nBlocksRetrieved = 0;
         GetData(spTempBuffer, nBlocksToSkip, &nBlocksRetrieved, APE_NULL);
         if (nBlocksRetrieved != nBlocksToSkip)
-            return ERROR_UNDEFINED;
+            return APE_ERROR_UNDEFINED;
     }
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 /**************************************************************************************************
@@ -285,18 +285,18 @@ int CAPEDecompress::ScheduleFrameDecode(CAPEDecompressCore * pWorker, int64 nFra
 
     int64 nBytesRead = 0;
     int nResult = m_spIO->Seek(GetInfo(APE_INFO_SEEK_BYTE, nFrameIndex) - nSeekRemainder, SeekFileBegin);
-    if (nResult != ERROR_SUCCESS)
+    if (nResult != APE_ERROR_SUCCESS)
         return pWorker->SetErrorState(nResult);
 
     nResult = m_spIO->Read(pFrameBuffer, nFrameBytes, &nBytesRead);
-    if (nResult != ERROR_SUCCESS)
+    if (nResult != APE_ERROR_SUCCESS)
         return pWorker->SetErrorState(nResult);
 
     if (nBytesRead < (static_cast<int64>(nFrameBytes) - 4))
-        return pWorker->SetErrorState(ERROR_INPUT_FILE_TOO_SMALL);
+        return pWorker->SetErrorState(APE_ERROR_INPUT_FILE_TOO_SMALL);
 
     pWorker->DecodeFrame(static_cast<int>(nSeekRemainder), GetInfo(APE_INFO_FRAME_BLOCKS, nFrameIndex));
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 /**************************************************************************************************

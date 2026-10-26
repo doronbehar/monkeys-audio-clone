@@ -21,7 +21,7 @@ CFLACTag::CFLACTag(const TCHAR * pFilename)
     // open the file
     CSmartPtr<APE::IAPEIO> m_spIO;
     m_spIO.Assign(CreateIAPEIO());
-    if (m_spIO->Open(pFilename) == ERROR_SUCCESS)
+    if (m_spIO->Open(pFilename) == APE_ERROR_SUCCESS)
     {
         // read FLAC header
         char cFLAC[5] = { 0 };
@@ -36,7 +36,7 @@ CFLACTag::CFLACTag(const TCHAR * pFilename)
             {
                 // read the buffer
                 unsigned char cBuffer[4] = { 0 };
-                if (m_spIO->Read(cBuffer, 4) != ERROR_SUCCESS)
+                if (m_spIO->Read(cBuffer, 4) != APE_ERROR_SUCCESS)
                     break;
 
                 // buffer size

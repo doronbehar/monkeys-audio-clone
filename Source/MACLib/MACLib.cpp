@@ -21,11 +21,11 @@
 
 using namespace APE;
 
-#define UNMAC_DECODER_OUTPUT_NONE       0
-#define UNMAC_DECODER_OUTPUT_WAV        1
-#define UNMAC_DECODER_OUTPUT_APE        2
+#define APE_DECODER_OUTPUT_NONE       0
+#define APE_DECODER_OUTPUT_WAV        1
+#define APE_DECODER_OUTPUT_APE        2
 
-#define BLOCKS_PER_DECODE               9216
+#define APE_BLOCKS_PER_DECODE         9216
 
 IAPEDecompress * CreateIAPEDecompressCore(IAPEInfo * pAPEInfo, int nStartBlock, int nFinishBlock, int * pErrorCode);
 int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, int nOutputMode, int nCompressionLevel, APE::CAPEProgressCallbackInfo * pProgressCallback, IAPEDecompress * pDecompress, int nThreads);
@@ -42,7 +42,7 @@ IAPEDecompress * CreateIAPEDecompressCore(IAPEInfo * pAPEInfo, int nStartBlock, 
     if (pAPEInfo != APE_NULL)
     {
         // proceed if there's no error with the info object
-        if (*pErrorCode == ERROR_SUCCESS)
+        if (*pErrorCode == APE_ERROR_SUCCESS)
         {
             try
             {
@@ -59,10 +59,10 @@ IAPEDecompress * CreateIAPEDecompressCore(IAPEInfo * pAPEInfo, int nStartBlock, 
                     spAPEDecompress.Assign(new CAPEDecompressOld(pErrorCode, pAPEInfo, nStartBlock, nFinishBlock));
 #endif
                 else
-                    *pErrorCode = ERROR_UNSUPPORTED_FILE_VERSION;
+                    *pErrorCode = APE_ERROR_UNSUPPORTED_FILE_VERSION;
 
                 // error check
-                if (spAPEDecompress == APE_NULL || *pErrorCode != ERROR_SUCCESS)
+                if (spAPEDecompress == APE_NULL || *pErrorCode != APE_ERROR_SUCCESS)
                 {
                     spAPEDecompress.Delete();
                 }
@@ -70,7 +70,7 @@ IAPEDecompress * CreateIAPEDecompressCore(IAPEInfo * pAPEInfo, int nStartBlock, 
             catch(...)
             {
                 spAPEDecompress.Delete();
-                *pErrorCode = ERROR_UNDEFINED;
+                *pErrorCode = APE_ERROR_UNDEFINED;
             }
         }
         else
@@ -106,12 +106,12 @@ IAPEDecompress * __stdcall CreateIAPEDecompress(const str_utfn * pFilename, int 
     // error check the parameters
     if ((pFilename == APE_NULL) || (wcslen(pFilename) == 0))
     {
-        if (pErrorCode) *pErrorCode = ERROR_BAD_PARAMETER;
+        if (pErrorCode) *pErrorCode = APE_ERROR_BAD_PARAMETER;
         return APE_NULL;
     }
 
     // variables
-    int nErrorCode = ERROR_UNDEFINED;
+    int nErrorCode = APE_ERROR_UNDEFINED;
     CAPEInfo * pAPEInfo = APE_NULL;
     int nStartBlock = -1; int nFinishBlock = -1;
 
@@ -128,7 +128,7 @@ IAPEDecompress * __stdcall CreateIAPEDecompress(const str_utfn * pFilename, int 
         if (APELink.GetIsLinkFile())
         {
             pAPEInfo = new CAPEInfo(&nErrorCode, APELink.GetImageFilename(), new CAPETag(pFilename, true), true);
-            if (nErrorCode != ERROR_SUCCESS)
+            if (nErrorCode != APE_ERROR_SUCCESS)
             {
                 APE_SAFE_DELETE(pAPEInfo)
                 if (pErrorCode) *pErrorCode = nErrorCode;
@@ -141,7 +141,7 @@ IAPEDecompress * __stdcall CreateIAPEDecompress(const str_utfn * pFilename, int 
     {
         // plain .ape file (we assume data coming in from a pipe is this type)
         pAPEInfo = new CAPEInfo(&nErrorCode, pFilename, APE_NULL, false, bReadOnly, bAnalyzeTagNow, bReadWholeFile);
-        if (nErrorCode != ERROR_SUCCESS)
+        if (nErrorCode != APE_ERROR_SUCCESS)
         {
             APE_SAFE_DELETE(pAPEInfo)
             if (pErrorCode) *pErrorCode = nErrorCode;
@@ -152,12 +152,12 @@ IAPEDecompress * __stdcall CreateIAPEDecompress(const str_utfn * pFilename, int 
     // fail if we couldn't get the file information
     if (pAPEInfo == APE_NULL)
     {
-        if (pErrorCode) *pErrorCode = ERROR_INVALID_INPUT_FILE;
+        if (pErrorCode) *pErrorCode = APE_ERROR_INVALID_INPUT_FILE;
         return APE_NULL;
     }
 
     // create
-    nErrorCode = ERROR_SUCCESS;
+    nErrorCode = APE_ERROR_SUCCESS;
     IAPEDecompress * pAPEDecompress = CreateIAPEDecompressCore(pAPEInfo, nStartBlock, nFinishBlock, &nErrorCode);
     if (pErrorCode) *pErrorCode = nErrorCode;
 
@@ -168,7 +168,7 @@ IAPEDecompress * __stdcall CreateIAPEDecompress(const str_utfn * pFilename, int 
 IAPEDecompress * __stdcall CreateIAPEDecompressEx(IAPEIO * pIO, int * pErrorCode)
 {
     // create info
-    int nErrorCode = ERROR_UNDEFINED;
+    int nErrorCode = APE_ERROR_UNDEFINED;
     CAPEInfo * pAPEInfo = new CAPEInfo(&nErrorCode, pIO);
 
     // create decompress core
@@ -181,7 +181,7 @@ IAPEDecompress * __stdcall CreateIAPEDecompressEx(IAPEIO * pIO, int * pErrorCode
 
 IAPEDecompress * __stdcall CreateIAPEDecompressEx2(IAPEInfo * pAPEInfo, int nStartBlock, int nFinishBlock, int * pErrorCode)
 {
-    int nErrorCode = ERROR_SUCCESS;
+    int nErrorCode = APE_ERROR_SUCCESS;
     IAPEDecompress * pAPEDecompress = CreateIAPEDecompressCore(pAPEInfo, nStartBlock, nFinishBlock, &nErrorCode);
     if (pErrorCode) *pErrorCode = nErrorCode;
 
@@ -192,7 +192,7 @@ IAPEDecompress * __stdcall CreateIAPEDecompressEx2(IAPEInfo * pAPEInfo, int nSta
 IAPECompress * __stdcall CreateIAPECompress(int * pErrorCode)
 {
     if (pErrorCode)
-        *pErrorCode = ERROR_SUCCESS;
+        *pErrorCode = APE_ERROR_SUCCESS;
 
     return new CAPECompress();
 }
@@ -233,7 +233,7 @@ int __stdcall FillWaveFormatEx(APE::WAVEFORMATEX * pWaveFormatEx, int nFormatTag
     pWaveFormatEx->nBlockAlign = static_cast<WORD>((pWaveFormatEx->wBitsPerSample / 8) * pWaveFormatEx->nChannels);
     pWaveFormatEx->nAvgBytesPerSec = pWaveFormatEx->nBlockAlign * pWaveFormatEx->nSamplesPerSec;
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int __stdcall FillWaveHeader(WAVE_HEADER * pWAVHeader, APE::int64 nAudioBytes, const APE::WAVEFORMATEX * pWaveFormatEx, APE::intn nTerminatingBytes)
@@ -259,9 +259,9 @@ int __stdcall FillWaveHeader(WAVE_HEADER * pWAVHeader, APE::int64 nAudioBytes, c
         else
             pWAVHeader->nDataBytes = static_cast<unsigned int>(nAudioBytes);
 
-        return ERROR_SUCCESS;
+        return APE_ERROR_SUCCESS;
     }
-    catch(...) { return ERROR_UNDEFINED; }
+    catch(...) { return APE_ERROR_UNDEFINED; }
 }
 
 int __stdcall FillRF64Header(RF64_HEADER * pWAVHeader, APE::int64 nAudioBytes, const APE::WAVEFORMATEX * pWaveFormatEx)
@@ -297,9 +297,9 @@ int __stdcall FillRF64Header(RF64_HEADER * pWAVHeader, APE::int64 nAudioBytes, c
         else
             pWAVHeader->nDataBytes = static_cast<unsigned int>(nAudioBytes);
 
-        return ERROR_SUCCESS;
+        return APE_ERROR_SUCCESS;
     }
-    catch(...) { return ERROR_UNDEFINED; }
+    catch(...) { return APE_ERROR_UNDEFINED; }
 }
 
 int __stdcall GetAPEFileType(const APE::str_utfn * pInputFilename, APE::str_ansi cFileType[8])
@@ -332,7 +332,7 @@ int __stdcall GetAPEFileType(const APE::str_utfn * pInputFilename, APE::str_ansi
         strcpy_s(cFileType, 8, ".wav");
     }
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 void __stdcall GetAPECompressionLevelName(int nCompressionLevel, APE::str_utfn * pCompressionLevel, size_t nBufferCharacters, bool bTitleCase)
@@ -439,7 +439,7 @@ Compress file
 int __stdcall CompressFileW2(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, int nCompressionLevel, APE::CAPEProgressCallbackInfo * pProgressCallback, int nThreads, APE::IID3v2Tag * pTag, bool bReadFullInputForUnknownLength)
 {
     // declare the variables
-    int nFunctionRetVal = ERROR_SUCCESS;
+    int nFunctionRetVal = APE_ERROR_SUCCESS;
     APE::WAVEFORMATEX WaveFormatEx;
     CSmartPtr<CMACProgressHelper> spMACProgressHelper;
     CSmartPtr<unsigned char> spBuffer;
@@ -448,7 +448,7 @@ int __stdcall CompressFileW2(const APE::str_utfn * pInputFilename, const APE::st
     try
     {
         // create the input source
-        int nResult = ERROR_UNDEFINED;
+        int nResult = APE_ERROR_UNDEFINED;
         int64 nAudioBlocks = 0; int64 nHeaderBytes = 0; int64 nTerminatingBytes = 0; int32 nFlags = 0;
         CSmartPtr<CInputSource> spInputSource(CInputSource::CreateInputSource(pInputFilename, &WaveFormatEx, &nAudioBlocks,
             &nHeaderBytes, &nTerminatingBytes, &nFlags, pTag, bReadFullInputForUnknownLength, &nResult));
@@ -457,15 +457,15 @@ int __stdcall CompressFileW2(const APE::str_utfn * pInputFilename, const APE::st
         if ((nHeaderBytes > APE_WAV_HEADER_OR_FOOTER_MAXIMUM_BYTES) ||
             (nTerminatingBytes > APE_WAV_HEADER_OR_FOOTER_MAXIMUM_BYTES))
         {
-            throw static_cast<intn>(ERROR_INPUT_FILE_TOO_LARGE);
+            throw static_cast<intn>(APE_ERROR_INPUT_FILE_TOO_LARGE);
         }
 
-        if ((spInputSource == APE_NULL) || (nResult != ERROR_SUCCESS))
+        if ((spInputSource == APE_NULL) || (nResult != APE_ERROR_SUCCESS))
             throw static_cast<intn>(nResult);
 
         // create the compressor
         spAPECompress.Assign(CreateIAPECompress());
-        if (spAPECompress == APE_NULL) throw static_cast<intn>(ERROR_UNDEFINED);
+        if (spAPECompress == APE_NULL) throw static_cast<intn>(APE_ERROR_UNDEFINED);
 
         // set the threads
         spAPECompress->SetNumberOfThreads(nThreads);
@@ -473,16 +473,16 @@ int __stdcall CompressFileW2(const APE::str_utfn * pInputFilename, const APE::st
         // figure the audio bytes
         int64 nAudioBytes = static_cast<int64>(nAudioBlocks) * static_cast<int64>(WaveFormatEx.nBlockAlign);
         if (spInputSource->GetUnknownLengthFile())
-            nAudioBytes = MAX_AUDIO_BYTES_UNKNOWN;
-        if ((nAudioBytes <= 0) && (nAudioBytes != MAX_AUDIO_BYTES_UNKNOWN))
-            throw static_cast<intn>(ERROR_INPUT_FILE_TOO_SMALL);
+            nAudioBytes = APE_MAX_AUDIO_BYTES_UNKNOWN;
+        if ((nAudioBytes <= 0) && (nAudioBytes != APE_MAX_AUDIO_BYTES_UNKNOWN))
+            throw static_cast<intn>(APE_ERROR_INPUT_FILE_TOO_SMALL);
 
         // get the header data
         if (nHeaderBytes > 0) spBuffer.AllocateArray(nHeaderBytes);
-        THROW_ON_ERROR(spInputSource->GetHeaderData(spBuffer.GetPtr()))
+        APE_THROW_ON_ERROR(spInputSource->GetHeaderData(spBuffer.GetPtr()))
 
         // start the encoder
-        THROW_ON_ERROR(spAPECompress->Start(pOutputFilename, &WaveFormatEx, spInputSource->GetFloat(), nAudioBytes, nCompressionLevel, spBuffer.GetPtr(), nHeaderBytes, nFlags))
+        APE_THROW_ON_ERROR(spAPECompress->Start(pOutputFilename, &WaveFormatEx, spInputSource->GetFloat(), nAudioBytes, nCompressionLevel, spBuffer.GetPtr(), nHeaderBytes, nFlags))
         spBuffer.Delete();
 
         // set-up the progress
@@ -496,9 +496,9 @@ int __stdcall CompressFileW2(const APE::str_utfn * pInputFilename, const APE::st
             // add data
             int64 nBytesAdded = 0;
             const int64 nRetVal = spAPECompress->AddDataFromInputSource(spInputSource.GetPtr(), nBytesLeft, &nBytesAdded);
-            if (bUnknownLengthFile && (nRetVal == ERROR_IO_READ))
+            if (bUnknownLengthFile && (nRetVal == APE_ERROR_IO_READ))
                 break; // this means we reached the end of the file
-            else if (nRetVal != ERROR_SUCCESS)
+            else if (nRetVal != APE_ERROR_SUCCESS)
                 throw(static_cast<intn>(nRetVal));
             nBytesLeft -= nBytesAdded;
 
@@ -507,28 +507,28 @@ int __stdcall CompressFileW2(const APE::str_utfn * pInputFilename, const APE::st
                 spMACProgressHelper->UpdateProgress(nAudioBytes - nBytesLeft);
 
             // process the kill flag
-            if (spMACProgressHelper->ProcessKillFlag() != ERROR_SUCCESS)
-                throw(static_cast<intn>(ERROR_USER_STOPPED_PROCESSING));
+            if (spMACProgressHelper->ProcessKillFlag() != APE_ERROR_SUCCESS)
+                throw(static_cast<intn>(APE_ERROR_USER_STOPPED_PROCESSING));
         }
 
         // finalize the file
         if (nTerminatingBytes > 0)
         {
             spBuffer.AllocateArray(nTerminatingBytes);
-            THROW_ON_ERROR(spInputSource->GetTerminatingData(spBuffer.GetPtr()))
+            APE_THROW_ON_ERROR(spInputSource->GetTerminatingData(spBuffer.GetPtr()))
         }
-        THROW_ON_ERROR(spAPECompress->Finish(spBuffer.GetPtr(), nTerminatingBytes, nTerminatingBytes))
+        APE_THROW_ON_ERROR(spAPECompress->Finish(spBuffer.GetPtr(), nTerminatingBytes, nTerminatingBytes))
 
         // update the progress to 100%
         spMACProgressHelper->UpdateProgressComplete();
     }
     catch (const intn nErrorCode)
     {
-        nFunctionRetVal = (nErrorCode == 0) ? ERROR_UNDEFINED : static_cast<int>(nErrorCode);
+        nFunctionRetVal = (nErrorCode == 0) ? APE_ERROR_UNDEFINED : static_cast<int>(nErrorCode);
     }
     catch (...)
     {
-        nFunctionRetVal = ERROR_UNDEFINED;
+        nFunctionRetVal = APE_ERROR_UNDEFINED;
     }
 
     // return
@@ -544,11 +544,11 @@ int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, CAPEProgressCal
     // error check the function parameters
     if (pInputFilename == APE_NULL)
     {
-        return ERROR_INVALID_FUNCTION_PARAMETER;
+        return APE_ERROR_INVALID_FUNCTION_PARAMETER;
     }
 
     // return value
-    int nResult = ERROR_UNDEFINED;
+    int nResult = APE_ERROR_UNDEFINED;
 
     // see if we can quick verify
     CSmartPtr<IAPEDecompress> spAPEDecompress;
@@ -557,21 +557,21 @@ int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, CAPEProgressCal
         try
         {
             // create decompress core
-            int nFunctionRetVal = ERROR_SUCCESS;
+            int nFunctionRetVal = APE_ERROR_SUCCESS;
             spAPEDecompress.Assign(CreateIAPEDecompress(pInputFilename, &nFunctionRetVal, true, false, true));
-            if (spAPEDecompress == APE_NULL || nFunctionRetVal != ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
+            if (spAPEDecompress == APE_NULL || nFunctionRetVal != APE_ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
 
             // if we're an APL file, we need to slow verify since we're just a little chunk in a big file
             // in the past we would just check the whole file with a quick verify, but slow verify seems better in this case
             if (spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_APL))
-                throw(static_cast<intn>(ERROR_UNSUPPORTED_FILE_TYPE));
+                throw(static_cast<intn>(APE_ERROR_UNSUPPORTED_FILE_TYPE));
 
             // get info object from the decompress core
             const APE_FILE_INFO * pInfo = spAPEDecompress->GetFileInfo();
 
             // check version
             if ((pInfo->nVersionEncoder < 3980) || (pInfo->spAPEDescriptor == APE_NULL))
-                throw(static_cast<intn>(ERROR_UNSUPPORTED_FILE_VERSION));
+                throw(static_cast<intn>(APE_ERROR_UNSUPPORTED_FILE_VERSION));
 
             // set the threads
             spAPEDecompress->SetNumberOfThreads(nThreads);
@@ -586,7 +586,7 @@ int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, CAPEProgressCal
     if (bQuickVerifyIfPossible)
     {
         // variable declares
-        int nFunctionRetVal = ERROR_SUCCESS;
+        int nFunctionRetVal = APE_ERROR_SUCCESS;
 
         // run the quick verify
         try
@@ -598,22 +598,22 @@ int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, CAPEProgressCal
             const APE_FILE_INFO * pInfo = spAPEDecompress->GetFileInfo();
 
             if ((pInfo->nVersionEncoder < 3980) || (pInfo->spAPEDescriptor == APE_NULL))
-                throw(static_cast<intn>(ERROR_UNSUPPORTED_FILE_VERSION));
+                throw(static_cast<intn>(APE_ERROR_UNSUPPORTED_FILE_VERSION));
 
             // read APE header
             CSmartPtr<unsigned char> spAPEHeader(pInfo->spAPEDescriptor->nHeaderBytes);
             pIO->Seek(static_cast<int64>(pInfo->nJunkHeaderBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nDescriptorBytes), SeekFileBegin);
-            THROW_ON_ERROR(pIO->Read(spAPEHeader, pInfo->spAPEDescriptor->nHeaderBytes, &nBytesRead))
+            APE_THROW_ON_ERROR(pIO->Read(spAPEHeader, pInfo->spAPEDescriptor->nHeaderBytes, &nBytesRead))
 
             // read seek table
             CSmartPtr<unsigned char> spSeekTable(pInfo->spAPEDescriptor->nSeekTableBytes);
             ASSERT(pIO->GetPosition() == (static_cast<int64>(pInfo->nJunkHeaderBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nDescriptorBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nHeaderBytes)));
-            THROW_ON_ERROR(pIO->Read(spSeekTable, pInfo->spAPEDescriptor->nSeekTableBytes, &nBytesRead))
+            APE_THROW_ON_ERROR(pIO->Read(spSeekTable, pInfo->spAPEDescriptor->nSeekTableBytes, &nBytesRead))
 
             // read header data
             CSmartPtr<unsigned char> spHeader(pInfo->spAPEDescriptor->nHeaderDataBytes);
             ASSERT(pIO->GetPosition() == (static_cast<int64>(pInfo->nJunkHeaderBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nDescriptorBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nHeaderBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nSeekTableBytes)));
-            THROW_ON_ERROR(pIO->Read(spHeader, pInfo->spAPEDescriptor->nHeaderDataBytes, &nBytesRead))
+            APE_THROW_ON_ERROR(pIO->Read(spHeader, pInfo->spAPEDescriptor->nHeaderDataBytes, &nBytesRead))
 
             // seek to the data (we should already be there)
             ASSERT(pIO->GetPosition() == (static_cast<int64>(pInfo->nJunkHeaderBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nDescriptorBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nHeaderBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nSeekTableBytes) + static_cast<int64>(pInfo->spAPEDescriptor->nHeaderDataBytes)));
@@ -634,20 +634,20 @@ int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, CAPEProgressCal
             while ((nBytesLeft > 0) && (nBytesRead > 0))
             {
                 const int64 nBytesToRead = APE_MIN<int64>(16384, nBytesLeft);
-                if (pIO->Read(spBuffer, nBytesToRead, &nBytesRead) != ERROR_SUCCESS)
-                    throw(static_cast<intn>(ERROR_IO_READ));
+                if (pIO->Read(spBuffer, nBytesToRead, &nBytesRead) != APE_ERROR_SUCCESS)
+                    throw(static_cast<intn>(APE_ERROR_IO_READ));
 
                 MD5Helper.AddData(spBuffer, nBytesRead);
                 spMACProgressHelper->UpdateProgress(nBytesLeftOriginal - nBytesLeft);
 
                 nBytesLeft -= nBytesRead;
 
-                if (spMACProgressHelper->ProcessKillFlag() != ERROR_SUCCESS)
-                    throw(static_cast<intn>(ERROR_USER_STOPPED_PROCESSING));
+                if (spMACProgressHelper->ProcessKillFlag() != APE_ERROR_SUCCESS)
+                    throw(static_cast<intn>(APE_ERROR_USER_STOPPED_PROCESSING));
             }
 
             if (nBytesLeft != 0)
-                throw(static_cast<intn>(ERROR_IO_READ));
+                throw(static_cast<intn>(APE_ERROR_IO_READ));
 
             // add the header and seek table
             MD5Helper.AddData(spAPEHeader, pInfo->spAPEDescriptor->nHeaderBytes);
@@ -665,11 +665,11 @@ int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, CAPEProgressCal
         }
         catch (const intn nErrorCode)
         {
-            nFunctionRetVal = (nErrorCode == 0) ? ERROR_UNDEFINED : static_cast<int>(nErrorCode);
+            nFunctionRetVal = (nErrorCode == 0) ? APE_ERROR_UNDEFINED : static_cast<int>(nErrorCode);
         }
         catch (...)
         {
-            nFunctionRetVal = ERROR_UNDEFINED;
+            nFunctionRetVal = APE_ERROR_UNDEFINED;
         }
 
         // return value
@@ -677,7 +677,7 @@ int __stdcall VerifyFileW2(const APE::str_utfn * pInputFilename, CAPEProgressCal
     }
     else
     {
-        nResult = DecompressCore(pInputFilename, APE_NULL, UNMAC_DECODER_OUTPUT_NONE, -1, pProgressCallback, spAPEDecompress, nThreads);
+        nResult = DecompressCore(pInputFilename, APE_NULL, APE_DECODER_OUTPUT_NONE, -1, pProgressCallback, spAPEDecompress, nThreads);
     }
 
     return nResult;
@@ -691,7 +691,7 @@ int __stdcall DecompressFileW2(const APE::str_utfn * pInputFilename, const APE::
     if (pOutputFilename == APE_NULL)
         return VerifyFileW2(pInputFilename, pProgressCallback);
     else
-        return DecompressCore(pInputFilename, pOutputFilename, UNMAC_DECODER_OUTPUT_WAV, -1, pProgressCallback, APE_NULL, nThreads);
+        return DecompressCore(pInputFilename, pOutputFilename, APE_DECODER_OUTPUT_WAV, -1, pProgressCallback, APE_NULL, nThreads);
 }
 
 /**************************************************************************************************
@@ -699,7 +699,7 @@ Convert file
 **************************************************************************************************/
 int __stdcall ConvertFileW2(const APE::str_utfn * pInputFilename, const APE::str_utfn * pOutputFilename, int nCompressionLevel, APE::CAPEProgressCallbackInfo * pProgressCallback, int nThreads)
 {
-    return DecompressCore(pInputFilename, pOutputFilename, UNMAC_DECODER_OUTPUT_APE, nCompressionLevel, pProgressCallback, APE_NULL, nThreads);
+    return DecompressCore(pInputFilename, pOutputFilename, APE_DECODER_OUTPUT_APE, nCompressionLevel, pProgressCallback, APE_NULL, nThreads);
 }
 
 /**************************************************************************************************
@@ -710,11 +710,11 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
     // error check the function parameters
     if (pInputFilename == APE_NULL)
     {
-        return ERROR_INVALID_FUNCTION_PARAMETER;
+        return APE_ERROR_INVALID_FUNCTION_PARAMETER;
     }
 
     // variable declares
-    int nFunctionRetVal = ERROR_SUCCESS;
+    int nFunctionRetVal = APE_ERROR_SUCCESS;
     CSmartPtr<IAPEIO> spioOutput;
     CSmartPtr<IAPECompress> spAPECompress;
     CSmartPtr<IAPEDecompress> spAPEDecompress;
@@ -733,33 +733,33 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
         {
             spAPEDecompress.Assign(CreateIAPEDecompress(pInputFilename, &nFunctionRetVal, true, true, false));
         }
-        if (spAPEDecompress == APE_NULL || nFunctionRetVal != ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
+        if (spAPEDecompress == APE_NULL || nFunctionRetVal != APE_ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
 
         // set the threads
         spAPEDecompress->SetNumberOfThreads(nThreads);
 
         // get the input format
-        THROW_ON_ERROR(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAVEFORMATEX, APE_POINTER_TO_INT64(&wfeInput)))
+        APE_THROW_ON_ERROR(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAVEFORMATEX, APE_POINTER_TO_INT64(&wfeInput)))
 
         // allocate space for the header
         spTempBuffer.AllocateArray(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_HEADER_BYTES));
-        if (spTempBuffer == APE_NULL) throw(static_cast<intn>(ERROR_INSUFFICIENT_MEMORY));
+        if (spTempBuffer == APE_NULL) throw(static_cast<intn>(APE_ERROR_INSUFFICIENT_MEMORY));
 
         // get the header
         const int64 nHeaderBytes = spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_HEADER_BYTES);
-        THROW_ON_ERROR(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_HEADER_DATA, APE_POINTER_TO_INT64(spTempBuffer.GetPtr()), nHeaderBytes))
+        APE_THROW_ON_ERROR(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_HEADER_DATA, APE_POINTER_TO_INT64(spTempBuffer.GetPtr()), nHeaderBytes))
 
         // initialize the output
-        if (nOutputMode == UNMAC_DECODER_OUTPUT_WAV)
+        if (nOutputMode == APE_DECODER_OUTPUT_WAV)
         {
             // create the file
-            spioOutput.Assign(CreateIAPEIO()); THROW_ON_ERROR(spioOutput->Create(pOutputFilename))
+            spioOutput.Assign(CreateIAPEIO()); APE_THROW_ON_ERROR(spioOutput->Create(pOutputFilename))
 
             // output the header
-            THROW_ON_ERROR(spioOutput->Write(spTempBuffer, spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_HEADER_BYTES)))
+            APE_THROW_ON_ERROR(spioOutput->Write(spTempBuffer, spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_HEADER_BYTES)))
         }
 #ifdef APE_SUPPORT_COMPRESS
-        else if (nOutputMode == UNMAC_DECODER_OUTPUT_APE)
+        else if (nOutputMode == APE_DECODER_OUTPUT_APE)
         {
             // quit if there is nothing to do
             // no longer check when processing an APL since converting an APL to APE should work no matter what
@@ -767,7 +767,7 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
                 (spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_COMPRESSION_LEVEL) == nCompressionLevel) &&
                 (spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_APL) == false))
             {
-                throw(static_cast<intn>(ERROR_SKIPPED));
+                throw(static_cast<intn>(APE_ERROR_SKIPPED));
             }
 
             // flags
@@ -780,35 +780,35 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
 
             // create and start the compressor
             spAPECompress.Assign(CreateIAPECompress());
-            THROW_ON_ERROR(spAPECompress->Start(pOutputFilename, &wfeInput, spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_FLOATING_POINT,
+            APE_THROW_ON_ERROR(spAPECompress->Start(pOutputFilename, &wfeInput, spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FORMAT_FLAGS) & APE_FORMAT_FLAG_FLOATING_POINT,
                 (spAPEDecompress->GetInfo(IAPEDecompress::APE_DECOMPRESS_TOTAL_BLOCKS) * spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BLOCK_ALIGN)),
                 nCompressionLevel, spTempBuffer, spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_HEADER_BYTES), nFlags))
         }
 #endif
 
         // allocate space for decompression
-        spTempBuffer.AllocateArray(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BLOCK_ALIGN) * BLOCKS_PER_DECODE);
-        if (spTempBuffer == APE_NULL) throw(static_cast<intn>(ERROR_INSUFFICIENT_MEMORY));
+        spTempBuffer.AllocateArray(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BLOCK_ALIGN) * APE_BLOCKS_PER_DECODE);
+        if (spTempBuffer == APE_NULL) throw(static_cast<intn>(APE_ERROR_INSUFFICIENT_MEMORY));
 
         int64 nBlocksLeft = static_cast<intn>(spAPEDecompress->GetInfo(IAPEDecompress::APE_DECOMPRESS_TOTAL_BLOCKS));
 
         // create the progress helper
-        spMACProgressHelper.Assign(new CMACProgressHelper(nBlocksLeft / BLOCKS_PER_DECODE, pProgressCallback));
+        spMACProgressHelper.Assign(new CMACProgressHelper(nBlocksLeft / APE_BLOCKS_PER_DECODE, pProgressCallback));
 
         // processing flags
-        IAPEDecompress::APE_GET_DATA_PROCESSING Processing = { true, (nOutputMode != UNMAC_DECODER_OUTPUT_APE), (nOutputMode != UNMAC_DECODER_OUTPUT_APE) };
+        IAPEDecompress::APE_GET_DATA_PROCESSING Processing = { true, (nOutputMode != APE_DECODER_OUTPUT_APE), (nOutputMode != APE_DECODER_OUTPUT_APE) };
 
         // main decoding loop
         while (nBlocksLeft > 0)
         {
             // decode data
             int64 nBlocksDecoded = -1;
-            const int nResult = spAPEDecompress->GetData(spTempBuffer, BLOCKS_PER_DECODE, &nBlocksDecoded, &Processing);
-            if (nResult != ERROR_SUCCESS)
+            const int nResult = spAPEDecompress->GetData(spTempBuffer, APE_BLOCKS_PER_DECODE, &nBlocksDecoded, &Processing);
+            if (nResult != APE_ERROR_SUCCESS)
                 throw(static_cast<intn>(nResult));
 
             // handle the output
-            if (nOutputMode == UNMAC_DECODER_OUTPUT_WAV)
+            if (nOutputMode == APE_DECODER_OUTPUT_WAV)
             {
 #if APE_BYTE_ORDER == APE_BIG_ENDIAN
                 if (wfeInput.wBitsPerSample >= 16)
@@ -816,12 +816,12 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
 #endif
                 const int64 nBytesToWrite = nBlocksDecoded * spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BLOCK_ALIGN);
                 const int nWriteResult = spioOutput->Write(spTempBuffer, nBytesToWrite);
-                if (nWriteResult != ERROR_SUCCESS)
-                    throw(static_cast<intn>(ERROR_IO_WRITE));
+                if (nWriteResult != APE_ERROR_SUCCESS)
+                    throw(static_cast<intn>(APE_ERROR_IO_WRITE));
             }
-            else if (nOutputMode == UNMAC_DECODER_OUTPUT_APE)
+            else if (nOutputMode == APE_DECODER_OUTPUT_APE)
             {
-                THROW_ON_ERROR(spAPECompress->AddData(spTempBuffer, (nBlocksDecoded * spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BLOCK_ALIGN))))
+                APE_THROW_ON_ERROR(spAPECompress->AddData(spTempBuffer, (nBlocksDecoded * spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_BLOCK_ALIGN))))
             }
 
             // update amount remaining
@@ -829,27 +829,27 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
 
             // update progress and kill flag
             spMACProgressHelper->UpdateProgress();
-            if (spMACProgressHelper->ProcessKillFlag() != ERROR_SUCCESS)
-                throw(static_cast<intn>(ERROR_USER_STOPPED_PROCESSING));
+            if (spMACProgressHelper->ProcessKillFlag() != APE_ERROR_SUCCESS)
+                throw(static_cast<intn>(APE_ERROR_USER_STOPPED_PROCESSING));
         }
 
         // terminate the output
-        if (nOutputMode == UNMAC_DECODER_OUTPUT_WAV)
+        if (nOutputMode == APE_DECODER_OUTPUT_WAV)
         {
             // write any terminating WAV data
             if (spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES) > 0)
             {
                 spTempBuffer.AllocateArray(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES));
-                if (spTempBuffer == APE_NULL) throw(static_cast<intn>(ERROR_INSUFFICIENT_MEMORY));
-                THROW_ON_ERROR(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_DATA, APE_POINTER_TO_INT64(spTempBuffer.GetPtr()), spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES)))
+                if (spTempBuffer == APE_NULL) throw(static_cast<intn>(APE_ERROR_INSUFFICIENT_MEMORY));
+                APE_THROW_ON_ERROR(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_DATA, APE_POINTER_TO_INT64(spTempBuffer.GetPtr()), spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES)))
 
                 const int64 nBytesToWrite = spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES);
                 const int nResult = spioOutput->Write(spTempBuffer, nBytesToWrite);
-                if (nResult != ERROR_SUCCESS)
-                    throw(static_cast<intn>(ERROR_IO_WRITE));
+                if (nResult != APE_ERROR_SUCCESS)
+                    throw(static_cast<intn>(APE_ERROR_IO_WRITE));
             }
         }
-        else if (nOutputMode == UNMAC_DECODER_OUTPUT_APE)
+        else if (nOutputMode == APE_DECODER_OUTPUT_APE)
         {
             // write the WAV data and any tag
             IAPETag * pAPETag = spAPEDecompress->GetTag();
@@ -861,22 +861,22 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
             if (nTerminatingBytes > 0)
             {
                 spTempBuffer.AllocateArray(nTerminatingBytes);
-                if (spTempBuffer == APE_NULL) throw(static_cast<intn>(ERROR_INSUFFICIENT_MEMORY));
+                if (spTempBuffer == APE_NULL) throw(static_cast<intn>(APE_ERROR_INSUFFICIENT_MEMORY));
 
-                THROW_ON_ERROR(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_DATA, APE_POINTER_TO_INT64(spTempBuffer.GetPtr()), nTerminatingBytes))
+                APE_THROW_ON_ERROR(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_DATA, APE_POINTER_TO_INT64(spTempBuffer.GetPtr()), nTerminatingBytes))
 
                 if (bHasTag)
                 {
                     IAPEIO * pIO = spAPEDecompress->GetIO();
-                    THROW_ON_ERROR(pIO->Seek(-nTagBytes, SeekFileEnd))
-                    THROW_ON_ERROR(pIO->Read(&spTempBuffer[spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES)], nTagBytes))
+                    APE_THROW_ON_ERROR(pIO->Seek(-nTagBytes, SeekFileEnd))
+                    APE_THROW_ON_ERROR(pIO->Read(&spTempBuffer[spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES)], nTagBytes))
                 }
 
-                THROW_ON_ERROR(spAPECompress->Finish(spTempBuffer, nTerminatingBytes, static_cast<int>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES))))
+                APE_THROW_ON_ERROR(spAPECompress->Finish(spTempBuffer, nTerminatingBytes, static_cast<int>(spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_WAV_TERMINATING_BYTES))))
             }
             else
             {
-                THROW_ON_ERROR(spAPECompress->Finish(APE_NULL, 0, 0))
+                APE_THROW_ON_ERROR(spAPECompress->Finish(APE_NULL, 0, 0))
             }
         }
 
@@ -889,11 +889,11 @@ int DecompressCore(const APE::str_utfn * pInputFilename, const APE::str_utfn * p
     catch (const intn nErrorCode)
     {
         spAPEDecompress.Delete(); // delete explicitly (to avoid a crash on 2/23/2019 in release)
-        nFunctionRetVal = (nErrorCode == 0) ? ERROR_UNDEFINED : static_cast<int>(nErrorCode);
+        nFunctionRetVal = (nErrorCode == 0) ? APE_ERROR_UNDEFINED : static_cast<int>(nErrorCode);
     }
     catch (...)
     {
-        nFunctionRetVal = ERROR_UNDEFINED;
+        nFunctionRetVal = APE_ERROR_UNDEFINED;
     }
 
     // return

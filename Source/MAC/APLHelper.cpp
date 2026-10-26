@@ -226,10 +226,10 @@ int64 CAPLHelper::GetAPESampleRate(const CString & strFilename)
     CSmartPtr<IAPEDecompress> spAPEDecompress;
     try
     {
-        int nFunctionRetVal = ERROR_SUCCESS;
+        int nFunctionRetVal = APE_ERROR_SUCCESS;
 
         spAPEDecompress.Assign(CreateIAPEDecompress(strFilename, &nFunctionRetVal, true, false, false));
-        if (spAPEDecompress == APE_NULL || nFunctionRetVal != ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
+        if (spAPEDecompress == APE_NULL || nFunctionRetVal != APE_ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
 
         nSampleRate = spAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_SAMPLE_RATE);
     }

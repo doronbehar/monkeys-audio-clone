@@ -61,7 +61,7 @@ int CMACProgressHelper::ProcessKillFlag()
 
         if ((nKill != APE_KILL_FLAG_CONTINUE) && (nKill != APE_KILL_FLAG_PAUSE))
         {
-            return ERROR_UNDEFINED;
+            return APE_ERROR_UNDEFINED;
         }
     }
     else if (m_pProgressCallback && m_pProgressCallback->m_KillCallback)
@@ -75,11 +75,11 @@ int CMACProgressHelper::ProcessKillFlag()
 
         if ((nKill != APE_KILL_FLAG_CONTINUE) && (nKill != APE_KILL_FLAG_PAUSE))
         {
-            return ERROR_UNDEFINED;
+            return APE_ERROR_UNDEFINED;
         }
     }
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 }

@@ -53,11 +53,11 @@ __declspec(dllexport) BOOL FAR PASCAL FilterUnderstandsFormat(LPSTR filename)
     APE_CATCH_ERRORS
     (
         CSmartPtr<str_utfn> spFilenameUTFN(CAPECharacterHelper::GetUTFNFromANSI(filename), true);
-        int nErrorCode = ERROR_SUCCESS;
+        int nErrorCode = APE_ERROR_SUCCESS;
         CSmartPtr<IAPEDecompress> spAPEDecompress(CreateIAPEDecompress(spFilenameUTFN, &nErrorCode, true, true, false));
         if (spAPEDecompress != APE_NULL)
         {
-            if (nErrorCode == ERROR_SUCCESS)
+            if (nErrorCode == APE_ERROR_SUCCESS)
             {
                 bValid = true;
             }

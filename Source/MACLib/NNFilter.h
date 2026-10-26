@@ -3,7 +3,7 @@
 #include "All.h"
 #include "RollBuffer.h"
 
-#define NN_WINDOW_ELEMENTS 512
+#define APE_NN_WINDOW_ELEMENTS 512
 
 namespace APE
 {
@@ -64,8 +64,8 @@ public:
     const int m_nOneShiftedByShift;
     const APE_VERSION m_Version;
     DATATYPE * m_paryM;
-    CRollBuffer<DATATYPE, NN_WINDOW_ELEMENTS> m_rbInput;
-    CRollBuffer<DATATYPE, NN_WINDOW_ELEMENTS> m_rbDeltaM;
+    CRollBuffer<DATATYPE, APE_NN_WINDOW_ELEMENTS> m_rbInput;
+    CRollBuffer<DATATYPE, APE_NN_WINDOW_ELEMENTS> m_rbDeltaM;
     INTTYPE m_nRunningAverage;
 
 private:

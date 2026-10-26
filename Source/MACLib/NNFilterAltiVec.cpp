@@ -40,7 +40,7 @@ bool GetAltiVecAvailable()
 
 #ifdef APE_USE_ALTIVEC_INTRINSICS
 
-#define ADAPT_ALTIVEC_SIMD_SHORT_ADD                         \
+#define APE_ADAPT_ALTIVEC_SIMD_SHORT_ADD                     \
 {                                                            \
     const int16x8_p avM = vec_ld(0, &pM[z + n]);             \
     const int16x8_p avAdapt = vec_ldu_short(&pAdapt[z + n]); \
@@ -48,7 +48,7 @@ bool GetAltiVecAvailable()
     vec_st(avNew, 0, &pM[z + n]);                            \
 }
 
-#define ADAPT_ALTIVEC_SIMD_SHORT_SUB                         \
+#define APE_ADAPT_ALTIVEC_SIMD_SHORT_SUB                     \
 {                                                            \
     const int16x8_p avM = vec_ld(0, &pM[z + n]);             \
     const int16x8_p avAdapt = vec_ldu_short(&pAdapt[z + n]); \
@@ -68,16 +68,16 @@ static void AdaptAltiVec(short * pM, const short * pAdapt, int32 nDirection, int
     if (nDirection < 0)
     {
         for (z = 0; z < nOrder; z += 16)
-            EXPAND_SIMD_2(n, 8, ADAPT_ALTIVEC_SIMD_SHORT_ADD)
+            APE_EXPAND_SIMD_2(n, 8, APE_ADAPT_ALTIVEC_SIMD_SHORT_ADD)
     }
     else if (nDirection > 0)
     {
         for (z = 0; z < nOrder; z += 16)
-            EXPAND_SIMD_2(n, 8, ADAPT_ALTIVEC_SIMD_SHORT_SUB)
+            APE_EXPAND_SIMD_2(n, 8, APE_ADAPT_ALTIVEC_SIMD_SHORT_SUB)
     }
 }
 
-#define ADAPT_ALTIVEC_SIMD_INT_ADD                       \
+#define APE_ADAPT_ALTIVEC_SIMD_INT_ADD                   \
 {                                                        \
     const int32x4_p avM = vec_ld(0, &pM[z + n]);         \
     const int32x4_p avAdapt = vec_xl(0, &pAdapt[z + n]); \
@@ -85,7 +85,7 @@ static void AdaptAltiVec(short * pM, const short * pAdapt, int32 nDirection, int
     vec_st(avNew, 0, &pM[z + n]);                        \
 }
 
-#define ADAPT_ALTIVEC_SIMD_INT_SUB                       \
+#define APE_ADAPT_ALTIVEC_SIMD_INT_SUB                   \
 {                                                        \
     const int32x4_p avM = vec_ld(0, &pM[z + n]);         \
     const int32x4_p avAdapt = vec_xl(0, &pAdapt[z + n]); \
@@ -106,12 +106,12 @@ static void AdaptAltiVec(int * pM, const int * pAdapt, int64 nDirection, int nOr
     if (nDirection < 0)
     {
         for (z = 0; z < nOrder; z += 16)
-            EXPAND_SIMD_4(n, 4, ADAPT_ALTIVEC_SIMD_INT_ADD)
+            APE_EXPAND_SIMD_4(n, 4, APE_ADAPT_ALTIVEC_SIMD_INT_ADD)
     }
     else if (nDirection > 0)
     {
         for (z = 0; z < nOrder; z += 16)
-            EXPAND_SIMD_4(n, 4, ADAPT_ALTIVEC_SIMD_INT_SUB)
+            APE_EXPAND_SIMD_4(n, 4, APE_ADAPT_ALTIVEC_SIMD_INT_SUB)
     }
 #else
     return Adapt(pM, pAdapt, nDirection, nOrder);
@@ -213,7 +213,7 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::C
     AdaptAltiVec(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nOutput, m_nOrder);
 
     // update delta
-    UPDATE_DELTA_NEW(nInput)
+    APE_UPDATE_DELTA_NEW(nInput)
 
     // convert the input to a short and store it
     m_rbInput[0] = GetSaturatedShortFromInt(nInput);
@@ -246,7 +246,7 @@ template <class INTTYPE, class DATATYPE> INTTYPE CNNFilter<INTTYPE, DATATYPE>::D
     AdaptAltiVec(&m_paryM[0], &m_rbDeltaM[-m_nOrder], nInput, m_nOrder);
 
     // update delta
-    UPDATE_DELTA_NEW(nOutput)
+    APE_UPDATE_DELTA_NEW(nOutput)
 
     // update the input buffer
     m_rbInput[0] = GetSaturatedShortFromInt(nOutput);

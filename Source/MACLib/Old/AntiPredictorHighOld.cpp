@@ -418,15 +418,15 @@ void CAntiPredictorHigh3800To3929::AntiPredict(int * pInputArray, int * pOutputA
 
         if (*ip > 0)
         {
-            EXPAND_16_TIMES(nDotProduct += *pip * *pbm; *pbm++ += ((*pip++ >> 30) & 2) - 1;)
+            APE_EXPAND_16_TIMES(nDotProduct += *pip * *pbm; *pbm++ += ((*pip++ >> 30) & 2) - 1;)
         }
         else if (*ip < 0)
         {
-            EXPAND_16_TIMES(nDotProduct += *pip * *pbm; *pbm++ -= ((*pip++ >> 30) & 2) - 1;)
+            APE_EXPAND_16_TIMES(nDotProduct += *pip * *pbm; *pbm++ -= ((*pip++ >> 30) & 2) - 1;)
         }
         else
         {
-            EXPAND_16_TIMES(nDotProduct += *pip++ * *pbm++;)
+            APE_EXPAND_16_TIMES(nDotProduct += *pip++ * *pbm++;)
         }
 
         *ip -= (nDotProduct >> 9);

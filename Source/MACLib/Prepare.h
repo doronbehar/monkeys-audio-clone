@@ -3,10 +3,10 @@
 namespace APE
 {
 
-#define SPECIAL_FRAME_MONO_SILENCE              1
-#define SPECIAL_FRAME_LEFT_SILENCE              1
-#define SPECIAL_FRAME_RIGHT_SILENCE             2
-#define SPECIAL_FRAME_PSEUDO_STEREO             4
+#define APE_SPECIAL_FRAME_MONO_SILENCE              1
+#define APE_SPECIAL_FRAME_LEFT_SILENCE              1
+#define APE_SPECIAL_FRAME_RIGHT_SILENCE             2
+#define APE_SPECIAL_FRAME_PSEUDO_STEREO             4
 
 /**************************************************************************************************
 Manage the preparation stage of compression and decompression

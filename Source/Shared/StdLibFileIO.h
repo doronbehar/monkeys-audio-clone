@@ -36,11 +36,10 @@ public:
     // attributes
     int64 GetPosition();
     int64 GetSize();
-    int GetName(str_utfn (&rpBuffer)[APE_MAX_PATH]);
     int GetHandle();
 
 private:
-    str_utfn m_cFileName[APE_MAX_PATH];
+    CSmartPtr<str_utfn> m_spFileName;
     bool m_bReadOnly;
     bool m_bPipe;
     FILE * m_pFile;

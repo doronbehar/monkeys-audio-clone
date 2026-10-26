@@ -155,7 +155,7 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
     pInfo->m_pFormat = theApp.GetFormatArray()->GetFormat(pInfo);
     pInfo->CalculateFilenames();
 
-    int nRetVal = ERROR_UNDEFINED;
+    int nRetVal = APE_ERROR_UNDEFINED;
     bool bMakesOutput = (pInfo->m_Mode == MODE_COMPRESS) || (pInfo->m_Mode == MODE_DECOMPRESS) || (pInfo->m_Mode == MODE_CONVERT);
     bool bSkip = false;
     if (bMakesOutput)
@@ -219,7 +219,7 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
                 nRetVal = theApp.GetFormatArray()->Process(pInfo);
 
                 // compress if we succeed
-                if (nRetVal == ERROR_SUCCESS)
+                if (nRetVal == APE_ERROR_SUCCESS)
                 {
                     pInfo->m_pFormat = pStartFormat;
                     pInfo->m_strInputFilename = pInfo->m_strWorkingFilename; // use the working output from the last stage as the input
@@ -256,10 +256,10 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
         {
             CAPLHelper APLHelper;
             bool bRetVal = APLHelper.GenerateLinkFiles(pInfo->m_strInputFilename, theApp.GetSettings()->m_strAPLFilenameTemplate);
-            nRetVal = bRetVal ? ERROR_SUCCESS : ERROR_UNDEFINED;
+            nRetVal = bRetVal ? APE_ERROR_SUCCESS : APE_ERROR_UNDEFINED;
         }
 
-        if (bMakesOutput && (nRetVal == ERROR_SUCCESS))
+        if (bMakesOutput && (nRetVal == APE_ERROR_SUCCESS))
         {
             // analyze if the input and output are the same
             bool bInputOutputSame = (pInfo->m_strInputFilename.CompareNoCase(pInfo->m_strOutputFilename) == 0);
@@ -277,20 +277,20 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
                 // move the working file to the final location
                 if (MoveFile(pInfo->m_strWorkingFilename, pInfo->m_strOutputFilename, true) != false)
                 {
-                    nRetVal = ERROR_SUCCESS;
+                    nRetVal = APE_ERROR_SUCCESS;
                     break;
                 }
                 else
                 {
-                    nRetVal = ERROR_INVALID_OUTPUT_FILE;
+                    nRetVal = APE_ERROR_INVALID_OUTPUT_FILE;
                 }
             }
 
             // mirror time stamp if specified
-            if ((nRetVal == ERROR_SUCCESS) && theApp.GetSettings()->m_bOutputMirrorTimeStamp)
+            if ((nRetVal == APE_ERROR_SUCCESS) && theApp.GetSettings()->m_bOutputMirrorTimeStamp)
                 CopyFileTime(pInfo->m_strInputFilename, pInfo->m_strOutputFilename);
 
-            if ((nRetVal == ERROR_SUCCESS) && (pInfo->GetOutputExtension() == _T(".ape")) && (pInfo->m_strInputFilename.Right(3).CompareNoCase(_T(".wv")) == 0))
+            if ((nRetVal == APE_ERROR_SUCCESS) && (pInfo->GetOutputExtension() == _T(".ape")) && (pInfo->m_strInputFilename.Right(3).CompareNoCase(_T(".wv")) == 0))
             {
                 // copy tags from WavPack to APE files
                 CSmartPtr<APE::IAPETag> spAPETag(new CAPETag(pInfo->m_strInputFilename, true));
@@ -307,7 +307,7 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
                     spAPETagNew->Save(false);
                 }
             }
-            else if ((nRetVal == ERROR_SUCCESS) && (pInfo->GetOutputExtension() == _T(".ape")) && (pInfo->m_strInputFilename.Right(5).CompareNoCase(_T(".flac")) == 0))
+            else if ((nRetVal == APE_ERROR_SUCCESS) && (pInfo->GetOutputExtension() == _T(".ape")) && (pInfo->m_strInputFilename.Right(5).CompareNoCase(_T(".flac")) == 0))
             {
                 // copy tags from FLAC to APE files
                 CSmartPtr<CFLACTag> spFLACTag(new CFLACTag(pInfo->m_strInputFilename));
@@ -388,7 +388,7 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
                     spAPETagNew->Save(false);
                 }
             }
-            else if ((nRetVal == ERROR_SUCCESS) && (pInfo->GetOutputExtension() == _T(".ape")) && (pInfo->m_Tag.m_bFoundTag != false))
+            else if ((nRetVal == APE_ERROR_SUCCESS) && (pInfo->GetOutputExtension() == _T(".ape")) && (pInfo->m_Tag.m_bFoundTag != false))
             {
                 // copy tags from WAV, AIFF, etc to APE files
                 CSmartPtr<APE::IAPETag> spAPETagNew(new CAPETag(pInfo->m_strOutputFilename, true));
@@ -437,7 +437,7 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
             }
 
             // verify (if necessary)
-            if (bVerifyWhenDone && (nRetVal == ERROR_SUCCESS))
+            if (bVerifyWhenDone && (nRetVal == APE_ERROR_SUCCESS))
             {
                 CString strInputFilename = pInfo->m_strInputFilename;
                 CString strOutputFilename = pInfo->m_strOutputFilename;
@@ -455,7 +455,7 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
             }
 
             // delete / recycle input file if specified
-            if ((nRetVal == ERROR_SUCCESS) && (bInputOutputSame == false))
+            if ((nRetVal == APE_ERROR_SUCCESS) && (bInputOutputSame == false))
             {
                 if (theApp.GetSettings()->m_nOutputDeleteAfterSuccessMode == OUTPUT_DELETE_AFTER_SUCCESS_MODE_RECYCLE_SOURCE)
                 {
@@ -471,7 +471,7 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
             pInfo->m_dOutputFileBytes = GetFileBytes(pInfo->m_strOutputFilename);
         }
 
-        if (nRetVal != ERROR_SUCCESS)
+        if (nRetVal != APE_ERROR_SUCCESS)
         {
             // cleanup the working file on failure
             DeleteFileEx(pInfo->m_strWorkingFilename);
@@ -479,7 +479,7 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
     }
     else
     {
-        nRetVal = ERROR_SKIPPED;
+        nRetVal = APE_ERROR_SKIPPED;
     }
 
     pInfo->m_nProcessingElapsedMS = pInfo->m_ProcessingDuration.GetElapsedMS();
@@ -488,8 +488,8 @@ void CMACProcessFiles::ProcessFileThread(MAC_FILE * pInfo)
     pInfo->m_bNeedsUpdate = true;
 
     // update the status to be user cancelled if we stopped
-    if ((pInfo->m_nRetVal == ERROR_UNDEFINED) && (pInfo->m_nKillFlag == APE_KILL_FLAG_STOP))
-        pInfo->m_nRetVal = ERROR_USER_STOPPED_PROCESSING;
+    if ((pInfo->m_nRetVal == APE_ERROR_UNDEFINED) && (pInfo->m_nKillFlag == APE_KILL_FLAG_STOP))
+        pInfo->m_nRetVal = APE_ERROR_USER_STOPPED_PROCESSING;
 
     // reset thread state
     SetThreadExecutionState(ES_CONTINUOUS);

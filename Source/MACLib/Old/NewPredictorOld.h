@@ -40,6 +40,6 @@ protected:
     CSmartPtr<CNNFilterThis> m_spNNFilter;
     CSmartPtr<CNNFilterThis> m_spNNFilter1;
 };
-#endif
+#endif // #ifdef APE_BACKWARDS_COMPATIBILITY
 
 }

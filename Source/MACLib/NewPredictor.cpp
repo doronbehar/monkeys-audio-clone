@@ -41,7 +41,7 @@ template <class INTTYPE, class DATATYPE> CPredictorCompress<INTTYPE, DATATYPE>::
     }
     else
     {
-        throw(static_cast<intn>(ERROR_UNDEFINED));
+        throw(static_cast<intn>(APE_ERROR_UNDEFINED));
     }
 }
 
@@ -72,13 +72,13 @@ template <class INTTYPE, class DATATYPE> int CPredictorCompress<INTTYPE, DATATYP
 
     m_nCurrentIndex = 0;
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 template <class INTTYPE, class DATATYPE> int64 CPredictorCompress<INTTYPE, DATATYPE>::CompressValue(int _nA, int _nB)
 {
     // roll the buffers if necessary
-    if (m_nCurrentIndex == WINDOW_BLOCKS)
+    if (m_nCurrentIndex == APE_NEW_PREDICTOR_WINDOW_BLOCKS)
     {
         m_rbPrediction.Roll(); m_rbAdapt.Roll();
         m_nCurrentIndex = 0;
@@ -119,7 +119,7 @@ template <class INTTYPE, class DATATYPE> int64 CPredictorCompress<INTTYPE, DATAT
     m_rbAdapt[-5] = (m_rbPrediction[-6]) ? ((m_rbPrediction[-6] >> 30) & 2) - 1 : 0;
 
     INTTYPE * pM = &paryM[-8]; INTTYPE * pAdapt = &m_rbAdapt[-8];
-    EXPAND_9_TIMES(*pM++ += *pAdapt++ * ((nOutput < 0) - (nOutput > 0));)
+    APE_EXPAND_9_TIMES(*pM++ += *pAdapt++ * ((nOutput < 0) - (nOutput > 0));)
 
     // stage 3: NNFilters
     if (m_spNNFilter)
@@ -183,7 +183,7 @@ template <class INTTYPE, class DATATYPE> CPredictorDecompress3950toCurrent<INTTY
     }
     else
     {
-        throw(static_cast<intn>(ERROR_UNDEFINED));
+        throw(static_cast<intn>(APE_ERROR_UNDEFINED));
     }
 }
 
@@ -220,12 +220,12 @@ template <class INTTYPE, class DATATYPE> int CPredictorDecompress3950toCurrent<I
 
     m_nCurrentIndex = 0;
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 template <class INTTYPE, class DATATYPE> int CPredictorDecompress3950toCurrent<INTTYPE, DATATYPE>::DecompressValue(int64 _nA, int64 _nB)
 {
-    if (m_nCurrentIndex == WINDOW_BLOCKS)
+    if (m_nCurrentIndex == APE_NEW_PREDICTOR_WINDOW_BLOCKS)
     {
         // copy forward and adjust pointers
         m_rbPredictionA.Roll(); m_rbPredictionB.Roll();

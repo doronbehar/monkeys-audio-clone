@@ -13,7 +13,6 @@ namespace APE
 CWinFileIO::CWinFileIO()
 {
     m_hFile = INVALID_HANDLE_VALUE;
-    APE_CLEAR(m_cFileName);
     m_bReadOnly = false;
     m_bPipe = false;
 }
@@ -28,9 +27,6 @@ int CWinFileIO::Open(const str_utfn * pName, bool bOpenReadOnly)
     Close();
 
     size_t nNameLength = wcslen(pName);
-
-    if (nNameLength >= APE_MAX_PATH)
-        return ERROR_UNDEFINED;
 
     #ifdef _UNICODE
         str_utfn * pCopy = new str_utfn [nNameLength + 1];
@@ -51,7 +47,7 @@ int CWinFileIO::Open(const str_utfn * pName, bool bOpenReadOnly)
         m_hFile = GetStdHandle(STD_INPUT_HANDLE);
         m_bReadOnly = true;
         if (m_hFile == INVALID_HANDLE_VALUE)
-            return ERROR_INVALID_INPUT_FILE;
+            return APE_ERROR_INVALID_INPUT_FILE;
     }
     else
     {
@@ -68,12 +64,12 @@ int CWinFileIO::Open(const str_utfn * pName, bool bOpenReadOnly)
                 if (dwError == ERROR_SHARING_VIOLATION)
                 {
                     // file in use
-                    return ERROR_OPENING_FILE_IN_USE;
+                    return APE_ERROR_OPENING_FILE_IN_USE;
                 }
                 else
                 {
                     // dwError of 2 means not found
-                    return ERROR_INVALID_INPUT_FILE;
+                    return APE_ERROR_INVALID_INPUT_FILE;
                 }
             }
             else
@@ -87,16 +83,17 @@ int CWinFileIO::Open(const str_utfn * pName, bool bOpenReadOnly)
         }
     }
 
-    wcscpy_s(m_cFileName, APE_MAX_PATH, pName);
+    m_spFileName.AllocateArray(static_cast<int>(_tcslen(pName)) + 1);
+    memcpy(m_spFileName.GetPtr(), pName, (_tcslen(pName) + 1) * sizeof(str_utfn));
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int CWinFileIO::Close()
 {
     APE_SAFE_FILE_CLOSE(m_hFile)
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int CWinFileIO::Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead)
@@ -110,7 +107,7 @@ int CWinFileIO::Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead)
     // error out if we try to read more than the Windows API allows with one call
     // we could also loop and read over and over, but nothing uses that today so we just error
     if (static_cast<unsigned long>(nBytesToRead) != nBytesToRead)
-        return ERROR_UNDEFINED;
+        return APE_ERROR_UNDEFINED;
 
     // loop and read until we read all the data or have a failure
     while ((nBytesLeft > 0) && bRetVal)
@@ -135,7 +132,7 @@ int CWinFileIO::Read(void * pBuffer, int64 nBytesToRead, int64 * pBytesRead)
     if (pBytesRead != APE_NULL)
         *pBytesRead = nTotalBytesRead;
 
-    return bRetVal ? ERROR_SUCCESS : ERROR_IO_READ;
+    return bRetVal ? APE_ERROR_SUCCESS : APE_ERROR_IO_READ;
 }
 
 int CWinFileIO::Write(const void * pBuffer, int64 nBytesToWrite, int64 * pBytesWritten)
@@ -144,16 +141,16 @@ int CWinFileIO::Write(const void * pBuffer, int64 nBytesToWrite, int64 * pBytesW
     // we could loop and write over and over, but nothing uses this today so we'll just error
     unsigned long nBytesToWriteCast = static_cast<unsigned long>(nBytesToWrite);
     if (nBytesToWriteCast != nBytesToWrite)
-        return ERROR_UNDEFINED;
+        return APE_ERROR_UNDEFINED;
 
     unsigned long nBytesWritten = 0;
     const bool bRetVal = WriteFile(m_hFile, pBuffer, nBytesToWriteCast, &nBytesWritten, APE_NULL) ? true : false;
     if (pBytesWritten != APE_NULL)
         *pBytesWritten = static_cast<unsigned int>(nBytesWritten);
     if ((bRetVal == 0) || (nBytesWritten != nBytesToWrite))
-        return ERROR_IO_WRITE;
+        return APE_ERROR_IO_WRITE;
     else
-        return ERROR_SUCCESS;
+        return APE_ERROR_SUCCESS;
 }
 
 int CWinFileIO::Seek(int64 nPosition, SeekMethod nMethod)
@@ -178,13 +175,13 @@ int CWinFileIO::Seek(int64 nPosition, SeekMethod nMethod)
 
     DWORD dwResult = SetFilePointer(m_hFile, Low, &High, dwMoveMethod);
 
-    return (dwResult == INVALID_SET_FILE_POINTER) ? ERROR_UNDEFINED : ERROR_SUCCESS;
+    return (dwResult == INVALID_SET_FILE_POINTER) ? APE_ERROR_UNDEFINED : APE_ERROR_SUCCESS;
 }
 
 int CWinFileIO::SetEOF()
 {
     // set the file EOF
-    return SetEndOfFile(m_hFile) ? ERROR_SUCCESS : ERROR_UNDEFINED;
+    return SetEndOfFile(m_hFile) ? APE_ERROR_SUCCESS : APE_ERROR_UNDEFINED;
 }
 
 int64 CWinFileIO::GetPosition()
@@ -211,9 +208,6 @@ int CWinFileIO::Create(const str_utfn * pName)
 
     size_t nNameLength = wcslen(pName);
 
-    if (nNameLength >= APE_MAX_PATH)
-        return ERROR_UNDEFINED;
-
     #ifdef _UNICODE
         str_utfn * pCopy = new str_utfn [nNameLength + 1];
         memcpy(pCopy, pName, sizeof(str_utfn) * nNameLength);
@@ -227,7 +221,7 @@ int CWinFileIO::Create(const str_utfn * pName)
     {
         m_hFile = GetStdHandle(STD_OUTPUT_HANDLE);
         if (m_hFile == INVALID_HANDLE_VALUE)
-            return ERROR_INVALID_OUTPUT_FILE;
+            return APE_ERROR_INVALID_OUTPUT_FILE;
 
         m_bReadOnly = false;
     }
@@ -238,17 +232,18 @@ int CWinFileIO::Create(const str_utfn * pName)
         {
             DWORD dwError = GetLastError();
             if (dwError == ERROR_ACCESS_DENIED)
-                return ERROR_UAC_PERMISSION;
+                return APE_ERROR_UAC_PERMISSION;
             else
-                return ERROR_INVALID_OUTPUT_FILE;
+                return APE_ERROR_INVALID_OUTPUT_FILE;
         }
 
         m_bReadOnly = false;
     }
 
-    wcscpy_s(m_cFileName, APE_MAX_PATH, pName);
+    m_spFileName.AllocateArray(static_cast<int>(_tcslen(pName)) + 1);
+    memcpy(m_spFileName.GetPtr(), pName, (_tcslen(pName) + 1) * sizeof(str_utfn));
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int CWinFileIO::Delete()
@@ -256,13 +251,13 @@ int CWinFileIO::Delete()
     Close();
 
     #ifdef _UNICODE
-        CSmartPtr<str_utfn> spName(m_cFileName, true, false);
+        CSmartPtr<str_utfn> spName(m_spFileName, true, false);
     #else
-        CSmartPtr<char> spName(CAPECharacterHelper::GetANSIFromUTFN(m_cFileName), true);
+        CSmartPtr<char> spName(CAPECharacterHelper::GetANSIFromUTFN(m_spFileName), true);
     #endif
 
     SetFileAttributes(spName, FILE_ATTRIBUTE_NORMAL);
-    return DeleteFile(spName) ? ERROR_SUCCESS : ERROR_UNDEFINED;
+    return DeleteFile(spName) ? APE_ERROR_SUCCESS : APE_ERROR_UNDEFINED;
 }
 
 }

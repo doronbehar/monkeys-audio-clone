@@ -8,8 +8,8 @@
 namespace APE
 {
 
-#define WINDOW_BLOCKS           256
-#define M_COUNT                 8
+#define APE_NEW_PREDICTOR_WINDOW_BLOCKS           256
+#define APE_NEW_PREDICTOR_M_COUNT                 8
 
 /**************************************************************************************************
 CPredictorCompress
@@ -25,8 +25,8 @@ public:
 
 protected:
     // buffer information
-    CRollBufferFast<INTTYPE, WINDOW_BLOCKS, 10> m_rbPrediction;
-    CRollBufferFast<INTTYPE, WINDOW_BLOCKS, 9> m_rbAdapt;
+    CRollBufferFast<INTTYPE, APE_NEW_PREDICTOR_WINDOW_BLOCKS, 10> m_rbPrediction;
+    CRollBufferFast<INTTYPE, APE_NEW_PREDICTOR_WINDOW_BLOCKS, 9> m_rbAdapt;
 
     CScaledFirstOrderFilter<INTTYPE, 31, 5> m_Stage1FilterA;
     CScaledFirstOrderFilter<INTTYPE, 31, 5> m_Stage1FilterB;
@@ -57,11 +57,11 @@ public:
 
 protected:
     // buffer pointers
-    CRollBufferFast<INTTYPE, WINDOW_BLOCKS, 8> m_rbPredictionA;
-    CRollBufferFast<INTTYPE, WINDOW_BLOCKS, 8> m_rbPredictionB;
+    CRollBufferFast<INTTYPE, APE_NEW_PREDICTOR_WINDOW_BLOCKS, 8> m_rbPredictionA;
+    CRollBufferFast<INTTYPE, APE_NEW_PREDICTOR_WINDOW_BLOCKS, 8> m_rbPredictionB;
 
-    CRollBufferFast<INTTYPE, WINDOW_BLOCKS, 8> m_rbAdaptA;
-    CRollBufferFast<INTTYPE, WINDOW_BLOCKS, 8> m_rbAdaptB;
+    CRollBufferFast<INTTYPE, APE_NEW_PREDICTOR_WINDOW_BLOCKS, 8> m_rbAdaptA;
+    CRollBufferFast<INTTYPE, APE_NEW_PREDICTOR_WINDOW_BLOCKS, 8> m_rbAdaptB;
 
     CScaledFirstOrderFilter<INTTYPE, 31, 5> m_Stage1FilterA;
     CScaledFirstOrderFilter<INTTYPE, 31, 5> m_Stage1FilterB;
@@ -73,8 +73,8 @@ protected:
     CSmartPtr<CNNFilterThis> m_spNNFilter2;
 
     // adaption
-    INTTYPE m_aryMA[M_COUNT];
-    INTTYPE m_aryMB[M_COUNT];
+    INTTYPE m_aryMA[APE_NEW_PREDICTOR_M_COUNT];
+    INTTYPE m_aryMB[APE_NEW_PREDICTOR_M_COUNT];
 
     // other
     INTTYPE m_nLastValueA;

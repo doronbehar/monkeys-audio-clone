@@ -10,6 +10,46 @@ using namespace APE;
 
 #define IDC_AUTO_SIZE_ALL 1000
 
+/**************************************************************************************************
+CMACDropTarget
+**************************************************************************************************/
+BOOL CMACDropTarget::OnDrop(CWnd * /*pWnd*/, COleDataObject * pDataObject, DROPEFFECT /*dropEffect*/, CPoint /*point*/)
+{
+    STGMEDIUM medium;
+    if (pDataObject->GetData(CF_HDROP, &medium))
+    {
+        HDROP hDrop = static_cast<HDROP>(GlobalLock(medium.hGlobal));
+        if (hDrop)
+        {
+            m_pOwnerCtrl->StartFileInsertion(false);
+
+            UINT nFileCount = DragQueryFileW(hDrop, 0xFFFFFFFF, nullptr, 0);
+            for (UINT i = 0; i < nFileCount; ++i)
+            {
+                // dynamically query length to support paths > 260 characters
+                UINT nPathLength = DragQueryFileW(hDrop, i, nullptr, 0);
+                if (nPathLength > 0)
+                {
+                    CStringW strPath;
+                    DragQueryFileW(hDrop, i, strPath.GetBuffer(static_cast<int>(nPathLength)), nPathLength + 1);
+                    strPath.ReleaseBuffer();
+                    m_pOwnerCtrl->AddFileInternal(strPath);
+                }
+            }
+
+            m_pOwnerCtrl->FinishFileInsertion();
+
+            GlobalUnlock(medium.hGlobal);
+        }
+        ReleaseStgMedium(&medium);
+        return TRUE;
+    }
+    return FALSE;
+}
+
+/**************************************************************************************************
+CMACListCtrl
+**************************************************************************************************/
 // statics
 CMACListCtrl * CMACListCtrl::s_pThis = APE_NULL;
 
@@ -41,11 +81,14 @@ bool CMACListCtrl::Initialize(CMACDlg * pParent, MAC_FILE_ARRAY * paryFiles)
     m_pParent = pParent;
     m_paryFiles = paryFiles;
 
+    // register for drag and drop
+    // use a local variable so Register() can assign to m_pDropTarget natively
+    CMACDropTarget * pNewDropTarget = new CMACDropTarget(this);
+    if (pNewDropTarget != APE_NULL)
+        pNewDropTarget->Register(this); // this successfully sets pWnd->m_pDropTarget internally
+
     // set the style
     SetExtendedStyle(GetExtendedStyle() | LVS_EX_HEADERDRAGDROP | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP);
-
-    // accept drag-n-drop
-    DragAcceptFiles(true);
 
     // build the columns
     InsertColumn(COLUMN_FILENAME, _T("File Name"));
@@ -234,6 +277,21 @@ bool CMACListCtrl::AddFolder(CString strPath)
 
 bool CMACListCtrl::AddFileInternal(CString strInputFilename)
 {
+    // get the required buffer size (includes space for the null-terminator)
+    DWORD dwRequiredSize = GetLongPathNameW(strInputFilename, NULL, 0);
+
+    // expand the filename
+    CSmartPtr<TCHAR> spLongFilename(dwRequiredSize, true);
+    if (GetLongPathName(strInputFilename, spLongFilename.GetPtr(), dwRequiredSize) > 0)
+        strInputFilename = spLongFilename.GetPtr();
+    
+    // prefix long paths
+    if ((strInputFilename.GetLength() >= MAX_PATH) &&
+        (strInputFilename.Left(4) != _T("\\\\?\\")))
+    {
+        strInputFilename = _T("\\\\?\\") + strInputFilename;
+    }
+
     // make sure the file exists
     WIN32_FIND_DATA WFD;
     HANDLE hFind = FindFirstFile(strInputFilename, &WFD);
@@ -247,18 +305,6 @@ bool CMACListCtrl::AddFileInternal(CString strInputFilename)
     }
     else
     {
-        // expand the filename
-        TCHAR * pLongFilename = new TCHAR [APE_MAX_PATH];
-        pLongFilename[0] = 0;
-        if (GetLongPathName(strInputFilename, pLongFilename, APE_MAX_PATH) > 0)
-            strInputFilename = pLongFilename;
-        APE_SAFE_ARRAY_DELETE(pLongFilename)
-        if ((strInputFilename.GetLength() >= MAX_PATH) &&
-            (strInputFilename.Left(4) != _T("\\\\?\\")))
-        {
-            strInputFilename = _T("\\\\?\\") + strInputFilename;
-        }
-
         // split the path
         CString strExtension = GetExtension(strInputFilename);
 
@@ -340,6 +386,14 @@ void CMACListCtrl::OnDestroy()
     CreateDirectoryEx(strFileListsFolder);
     SaveFileList(strFileListsFolder + _T("Current.m3u"));
 
+    // revoke and delete MFC's built-in drop target pointer
+    if (m_pDropTarget != APE_NULL)
+    {
+        m_pDropTarget->Revoke();
+        delete m_pDropTarget;
+        m_pDropTarget = APE_NULL;
+    }
+
     // base class
     CListCtrl::OnDestroy();
 }
@@ -359,48 +413,48 @@ CString CMACListCtrl::GetStatus(const MAC_FILE & File)
     if (File.m_bDone)
     {
         // lookup the error text
-        if (File.m_nRetVal == ERROR_SUCCESS)
+        if (File.m_nRetVal == APE_ERROR_SUCCESS)
         {
             strValue = _T("OK");
         }
-        else if (File.m_nRetVal == ERROR_SKIPPED)
+        else if (File.m_nRetVal == APE_ERROR_SKIPPED)
         {
             strValue = _T("Skipped");
         }
         else
         {
-            struct MAC_ERROR_EXPLANATION
+            struct MAC_APE_ERROR_EXPLANATION
             {
                 int nErrorCode;
                 LPCTSTR pDescription;
             };
-            const MAC_ERROR_EXPLANATION MACErrorExplanations[] = {
-                { ERROR_IO_READ                               , _T("I/O read error") },                         \
-                { ERROR_IO_WRITE                              , _T("I/O write error") },                        \
-                { ERROR_INVALID_INPUT_FILE                    , _T("invalid input file") },                     \
-                { ERROR_INVALID_OUTPUT_FILE                   , _T("invalid output file") },                    \
-                { ERROR_INPUT_FILE_TOO_LARGE                  , _T("input file file too large") },              \
-                { ERROR_INPUT_FILE_UNSUPPORTED_BIT_DEPTH      , _T("input file unsupported bit depth") },       \
-                { ERROR_INPUT_FILE_UNSUPPORTED_SAMPLE_RATE    , _T("input file unsupported sample rate") },     \
-                { ERROR_INPUT_FILE_UNSUPPORTED_CHANNEL_COUNT  , _T("input file unsupported channel count") },   \
-                { ERROR_INPUT_FILE_TOO_SMALL                  , _T("input file too small") },                   \
-                { ERROR_INVALID_CHECKSUM                      , _T("invalid checksum") },                       \
-                { ERROR_DECOMPRESSING_FRAME                   , _T("decompressing frame") },                    \
-                { ERROR_INITIALIZING_UNMAC                    , _T("initializing unmac") },                     \
-                { ERROR_INVALID_FUNCTION_PARAMETER            , _T("invalid function parameter") },             \
-                { ERROR_UNSUPPORTED_FILE_TYPE                 , _T("unsupported file type") },                  \
-                { ERROR_INSUFFICIENT_MEMORY                   , _T("insufficient memory") },                    \
-                { ERROR_LOADING_APE_DLL                       , _T("loading MAC.dll") },                        \
-                { ERROR_LOADING_APE_INFO_DLL                  , _T("loading MACinfo.dll") },                    \
-                { ERROR_LOADING_UNMAC_DLL                     , _T("loading UnMAC.dll") },                      \
-                { ERROR_USER_STOPPED_PROCESSING               , _T("user stopped") },                           \
-                { ERROR_SKIPPED                               , _T("skipped") },                                \
-                { ERROR_BAD_PARAMETER                         , _T("bad parameter") },                          \
-                { ERROR_APE_COMPRESS_TOO_MUCH_DATA            , _T("APE compress too much data") },             \
-                { ERROR_UNSUPPORTED_FILE_VERSION              , _T("unsupported file version") },               \
-                { ERROR_OPENING_FILE_IN_USE                   , _T("file in use") },                            \
-                { ERROR_UAC_PERMISSION                        , _T("UAC permission") },                         \
-                { ERROR_UNDEFINED                             , _T("undefined") }
+            const MAC_APE_ERROR_EXPLANATION MACErrorExplanations[] = {
+                { APE_ERROR_IO_READ                               , _T("I/O read error") },                         \
+                { APE_ERROR_IO_WRITE                              , _T("I/O write error") },                        \
+                { APE_ERROR_INVALID_INPUT_FILE                    , _T("invalid input file") },                     \
+                { APE_ERROR_INVALID_OUTPUT_FILE                   , _T("invalid output file") },                    \
+                { APE_ERROR_INPUT_FILE_TOO_LARGE                  , _T("input file file too large") },              \
+                { APE_ERROR_INPUT_FILE_UNSUPPORTED_BIT_DEPTH      , _T("input file unsupported bit depth") },       \
+                { APE_ERROR_INPUT_FILE_UNSUPPORTED_SAMPLE_RATE    , _T("input file unsupported sample rate") },     \
+                { APE_ERROR_INPUT_FILE_UNSUPPORTED_CHANNEL_COUNT  , _T("input file unsupported channel count") },   \
+                { APE_ERROR_INPUT_FILE_TOO_SMALL                  , _T("input file too small") },                   \
+                { APE_ERROR_INVALID_CHECKSUM                      , _T("invalid checksum") },                       \
+                { APE_ERROR_DECOMPRESSING_FRAME                   , _T("decompressing frame") },                    \
+                { APE_ERROR_INITIALIZING_UNMAC                    , _T("initializing unmac") },                     \
+                { APE_ERROR_INVALID_FUNCTION_PARAMETER            , _T("invalid function parameter") },             \
+                { APE_ERROR_UNSUPPORTED_FILE_TYPE                 , _T("unsupported file type") },                  \
+                { APE_ERROR_INSUFFICIENT_MEMORY                   , _T("insufficient memory") },                    \
+                { APE_ERROR_LOADING_APE_DLL                       , _T("loading MAC.dll") },                        \
+                { APE_ERROR_LOADING_APE_INFO_DLL                  , _T("loading MACinfo.dll") },                    \
+                { APE_ERROR_LOADING_UNMAC_DLL                     , _T("loading UnMAC.dll") },                      \
+                { APE_ERROR_USER_STOPPED_PROCESSING               , _T("user stopped") },                           \
+                { APE_ERROR_SKIPPED                               , _T("skipped") },                                \
+                { APE_ERROR_BAD_PARAMETER                         , _T("bad parameter") },                          \
+                { APE_ERROR_APE_COMPRESS_TOO_MUCH_DATA            , _T("APE compress too much data") },             \
+                { APE_ERROR_UNSUPPORTED_FILE_VERSION              , _T("unsupported file version") },               \
+                { APE_ERROR_OPENING_FILE_IN_USE                   , _T("file in use") },                            \
+                { APE_ERROR_UAC_PERMISSION                        , _T("UAC permission") },                         \
+                { APE_ERROR_UNDEFINED                             , _T("undefined") }
             };
 
             CString strError; strError.Format(_T("unknown (%d)"), File.m_nRetVal);
@@ -485,11 +539,13 @@ void CMACListCtrl::OnGetdispinfo(NMHDR * pNMHDR, LRESULT * pResult)
         {
             MAC_FILE & File = *m_paryFiles->ElementAt(nRow);
             CString strValue;
+            CString * pstrValue = APE_NULL;
             switch (nColumn)
             {
                 case COLUMN_FILENAME:
                 {
-                    strValue = File.m_strInputFilename;
+                    // use the pointer so extra long strings can show
+                    pstrValue = &File.m_strInputFilename;
                     break;
                 }
                 case COLUMN_EXTENSION:
@@ -534,31 +590,19 @@ void CMACListCtrl::OnGetdispinfo(NMHDR * pNMHDR, LRESULT * pResult)
                     break;
             }
 
-            _tcsncpy_s(pDispInfo->item.pszText, pDispInfo->item.cchTextMax, strValue, APE_MAX(0, int(pDispInfo->item.cchTextMax - 1)));
-            pDispInfo->item.pszText[pDispInfo->item.cchTextMax - 1] = 0;
+            if (pstrValue != APE_NULL)
+            {
+                pDispInfo->item.pszText = const_cast<LPTSTR>(pstrValue->GetString());
+            }
+            else
+            {
+                _tcsncpy_s(pDispInfo->item.pszText, pDispInfo->item.cchTextMax, strValue, APE_MAX(static_cast<size_t>(0), static_cast<size_t>(pDispInfo->item.cchTextMax - 1)));
+                pDispInfo->item.pszText[pDispInfo->item.cchTextMax - 1] = 0;
+            }
         }
     }
 
     *pResult = 0;
-}
-
-void CMACListCtrl::OnDropFiles(HDROP hDropInfo)
-{
-    StartFileInsertion(false);
-
-    const int nFiles = DragQueryFile(hDropInfo, 0xFFFFFFFF, APE_NULL, 0);
-    TCHAR * pFilename = new TCHAR [APE_MAX_PATH];
-    for (int z = 0; z < nFiles; z++)
-    {
-        pFilename[0] = 0;
-        DragQueryFile(hDropInfo, z, pFilename, APE_MAX_PATH);
-        AddFileInternal(pFilename);
-    }
-    APE_SAFE_ARRAY_DELETE(pFilename)
-
-    FinishFileInsertion();
-
-    CListCtrl::OnDropFiles(hDropInfo);
 }
 
 void CMACListCtrl::OnBegindrag(NMHDR *, LRESULT *)

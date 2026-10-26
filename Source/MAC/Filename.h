@@ -39,16 +39,25 @@ public:
     {
         m_strFilename = lpszFilename;
 
-        TCHAR cDrive[_MAX_DRIVE] = { 0 };
-        TCHAR cDir[_MAX_DIR] = { 0 };
-        TCHAR cName[_MAX_FNAME] = { 0 };
-        TCHAR cExt[_MAX_EXT] = { 0 };
-        _tsplitpath_s(m_strFilename, cDrive, _MAX_DRIVE, cDir, _MAX_DIR, cName, _MAX_FNAME, cExt, _MAX_EXT);
+        // measure the length of the filename
+        int nFilenameCharacters = static_cast<int>(_tcslen(lpszFilename));
 
-        m_strDrive = cDrive;
-        m_strDirectory = cDir;
-        m_strName = cName;
-        m_strExtension = cExt;
+        // allocate the length of the filename plus a little squish
+        const int nBufferPieceCharacters = nFilenameCharacters + 64;
+
+        // we used to use _tsplitpath_s but it fails on long paths using _MAX_DRIVE, _MAX_DIR, _MAX_FNAME, etc.
+        // so we're trying to just use bigger buffers
+        // allocate buffers on the heap (because otherwise Clang warns)
+        APE::CSmartPtr<TCHAR> spDrive(nBufferPieceCharacters, true);
+        APE::CSmartPtr<TCHAR> spDir(nBufferPieceCharacters, true);
+        APE::CSmartPtr<TCHAR> spName(nBufferPieceCharacters, true);
+        APE::CSmartPtr<TCHAR> spExt(nBufferPieceCharacters, true);
+        _tsplitpath_s(m_strFilename, spDrive.GetPtr(), nBufferPieceCharacters, spDir.GetPtr(), nBufferPieceCharacters, spName.GetPtr(), nBufferPieceCharacters, spExt.GetPtr(), nBufferPieceCharacters);
+
+        m_strDrive = spDrive.GetPtr();
+        m_strDirectory = spDir.GetPtr();
+        m_strName = spName.GetPtr();
+        m_strExtension = spExt.GetPtr();
     }
 
     /**************************************************************************************************

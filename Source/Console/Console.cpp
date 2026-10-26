@@ -12,23 +12,22 @@ Pretty simple and straightforward console front end.
 #include "CharacterHelper.h"
 #include "APETicks.h"
 #ifdef PLATFORM_WINDOWS
-    #include <iostream>
     #include <io.h>
     #include <fcntl.h>
 #endif
 using namespace APE;
 
 // defines
-#define COMPRESS_MODE               (0)
-#define DECOMPRESS_MODE             (1)
-#define VERIFY_MODE                 (2)
-#define CONVERT_MODE                (3)
-#define TAG_MODE                    (4)
-#define VERIFY_FULL_MODE            (5)
-#define REMOVE_TAG_MODE             (6)
-#define CONVERT_TAG_TO_LEGACY_MODE  (7)
-#define TAG_DUMP_MODE               (8)
-#define UNDEFINED_MODE              (-1)
+#define APE_MODE_COMPRESS               (0)
+#define APE_MODE_DECOMPRESS             (1)
+#define APE_MODE_VERIFY                 (2)
+#define APE_MODE_CONVERT                (3)
+#define APE_MODE_TAG                    (4)
+#define APE_MODE_VERIFY_FULL            (5)
+#define APE_MODE_REMOVE_TAG             (6)
+#define APE_MODE_CONVERT_TAG_TO_LEGACY  (7)
+#define APE_MODE_TAG_DUMP               (8)
+#define APE_MODE_UNDEFINED              (-1)
 
 // global variables (we get Clang warnings if the variable is just global, but this works around that)
 static CAPEDuration & GetProcessingDuration()
@@ -140,7 +139,7 @@ public:
     void GetOptions(int & rnMode, int & rnCompressionLevel, int & rnThreads, bool & rbReadFullInput, APE::CSmartPtr<APE::str_utfn> & rspTagSwitch, APE::CSmartPtr<APE::str_utfn> & rspInputFilename, APE::CSmartPtr<APE::str_utfn> & rspOutputFilename) const
     {
         // defaults (these are already set by the caller, but just here for good form)
-        rnMode = UNDEFINED_MODE;
+        rnMode = APE_MODE_UNDEFINED;
         rnCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL;
         rnThreads = 1;
         rbReadFullInput = false;
@@ -169,44 +168,44 @@ public:
             }
             else if (_wcsnicmp(spOption, L"-tagdump", 8) == 0)
             {
-                rnMode = TAG_DUMP_MODE;
+                rnMode = APE_MODE_TAG_DUMP;
             }
             else if (_wcsnicmp(spOption, L"-c", 2) == 0)
             {
-                rnMode = COMPRESS_MODE;
+                rnMode = APE_MODE_COMPRESS;
                 rnCompressionLevel = _wtoi(&spOption[2]);
             }
             else if (_wcsnicmp(spOption, L"-d", 2) == 0)
             {
-                rnMode = DECOMPRESS_MODE;
+                rnMode = APE_MODE_DECOMPRESS;
             }
             else if (wcsncmp(spOption, L"-V", 2) == 0)
             {
-                rnMode = VERIFY_FULL_MODE;
+                rnMode = APE_MODE_VERIFY_FULL;
             }
             else if (wcsncmp(spOption, L"-v", 2) == 0)
             {
-                rnMode = VERIFY_MODE;
+                rnMode = APE_MODE_VERIFY;
             }
             else if (_wcsnicmp(spOption, L"-n", 2) == 0)
             {
-                rnMode = CONVERT_MODE;
+                rnMode = APE_MODE_CONVERT;
                 rnCompressionLevel = _wtoi(&spOption[2]);
             }
             else if (_wcsnicmp(spOption, L"-r", 2) == 0)
             {
-                rnMode = REMOVE_TAG_MODE;
+                rnMode = APE_MODE_REMOVE_TAG;
             }
             else if (_wcsnicmp(spOption, L"-t", 2) == 0)
             {
-                if (rnMode == UNDEFINED_MODE)
-                    rnMode = TAG_MODE;
+                if (rnMode == APE_MODE_UNDEFINED)
+                    rnMode = APE_MODE_TAG;
                 GetArgument(z + 1, rspTagSwitch);
                 z++;
             }
             else if (_wcsnicmp(spOption, L"-L", 2) == 0)
             {
-                rnMode = CONVERT_TAG_TO_LEGACY_MODE;
+                rnMode = APE_MODE_CONVERT_TAG_TO_LEGACY;
             }
             else if (rspInputFilename == APE_NULL)
             {
@@ -369,24 +368,24 @@ static int Tag(const str_utfn * pFilename, const str_utfn * pTagString)
 {
     // check for NULL
     if ((pFilename == APE_NULL) || (pTagString == APE_NULL))
-        return ERROR_INVALID_FUNCTION_PARAMETER;
+        return APE_ERROR_INVALID_FUNCTION_PARAMETER;
 
-    int nRetVal = ERROR_UNDEFINED;
+    int nRetVal = APE_ERROR_UNDEFINED;
 
     // create the decoder
-    int nFunctionRetVal = ERROR_SUCCESS;
+    int nFunctionRetVal = APE_ERROR_SUCCESS;
     CSmartPtr<IAPEDecompress> spAPEDecompress;
     try
     {
         spAPEDecompress.Assign(CreateIAPEDecompress(pFilename, &nFunctionRetVal, false, true, false));
-        if (spAPEDecompress == APE_NULL || nFunctionRetVal != ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
+        if (spAPEDecompress == APE_NULL || nFunctionRetVal != APE_ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
 
         // get the input format
         APE::IAPETag * pTag = APE_NULL;
         pTag = spAPEDecompress->GetTag();
 
         if (pTag == APE_NULL)
-            throw(ERROR_UNDEFINED);
+            throw(APE_ERROR_UNDEFINED);
 
         fwprintf(stderr, L"%s\r\n", pTagString);
 
@@ -416,7 +415,7 @@ static int Tag(const str_utfn * pFilename, const str_utfn * pTagString)
                 {
                     // open the file
                     APE::CSmartPtr<IAPEIO> spIO(CreateIAPEIO());
-                    if (spIO->Open(spRight) == ERROR_SUCCESS)
+                    if (spIO->Open(spRight) == APE_ERROR_SUCCESS)
                     {
                         // get the extension
                         const str_utfn * pExtension = &spRight[wcslen(spRight)];
@@ -447,14 +446,14 @@ static int Tag(const str_utfn * pFilename, const str_utfn * pTagString)
         }
 
         // save
-        if (pTag->Save(false) == ERROR_SUCCESS)
+        if (pTag->Save(false) == APE_ERROR_SUCCESS)
         {
-            nRetVal = ERROR_SUCCESS;
+            nRetVal = APE_ERROR_SUCCESS;
         }
     }
     catch (...)
     {
-        nRetVal = ERROR_UNDEFINED;
+        nRetVal = APE_ERROR_UNDEFINED;
     }
 
     return nRetVal;
@@ -465,30 +464,30 @@ Remove tags
 **************************************************************************************************/
 static int RemoveTags(const str_utfn * pFilename)
 {
-    int nRetVal = ERROR_UNDEFINED;
+    int nRetVal = APE_ERROR_UNDEFINED;
 
     // create the decoder
-    int nFunctionRetVal = ERROR_SUCCESS;
+    int nFunctionRetVal = APE_ERROR_SUCCESS;
     CSmartPtr<IAPEDecompress> spAPEDecompress;
     try
     {
         spAPEDecompress.Assign(CreateIAPEDecompress(pFilename, &nFunctionRetVal, false, true, false));
-        if (spAPEDecompress == APE_NULL || nFunctionRetVal != ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
+        if (spAPEDecompress == APE_NULL || nFunctionRetVal != APE_ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
 
         // get the input format
         APE::IAPETag * pTag = spAPEDecompress->GetTag();
         if (pTag == APE_NULL)
-            throw(ERROR_UNDEFINED);
+            throw(APE_ERROR_UNDEFINED);
 
         // remove the tag
-        if (pTag->Remove(true) == ERROR_SUCCESS)
+        if (pTag->Remove(true) == APE_ERROR_SUCCESS)
         {
-            nRetVal = ERROR_SUCCESS;
+            nRetVal = APE_ERROR_SUCCESS;
         }
     }
     catch (...)
     {
-        nRetVal = ERROR_UNDEFINED;
+        nRetVal = APE_ERROR_UNDEFINED;
     }
 
     return nRetVal;
@@ -499,59 +498,59 @@ Convert to legacy
 **************************************************************************************************/
 static int ConvertTagsToLegacy(const str_utfn * pFilename)
 {
-    int nRetVal = ERROR_UNDEFINED;
+    int nRetVal = APE_ERROR_UNDEFINED;
 
     // create the decoder
-    int nFunctionRetVal = ERROR_SUCCESS;
+    int nFunctionRetVal = APE_ERROR_SUCCESS;
     CSmartPtr<IAPEDecompress> spAPEDecompress;
     try
     {
         spAPEDecompress.Assign(CreateIAPEDecompress(pFilename, &nFunctionRetVal, false, true, false));
-        if (spAPEDecompress == APE_NULL || nFunctionRetVal != ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
+        if (spAPEDecompress == APE_NULL || nFunctionRetVal != APE_ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
 
         // get the input format
         APE::IAPETag * pTag = spAPEDecompress->GetTag();
         if (pTag == APE_NULL)
-            throw(static_cast<intn>(ERROR_UNDEFINED));
+            throw(static_cast<intn>(APE_ERROR_UNDEFINED));
 
         if (pTag->GetHasID3Tag())
         {
             // already done
-            nRetVal = ERROR_SUCCESS;
+            nRetVal = APE_ERROR_SUCCESS;
         }
-        else if (pTag->Save(true) == ERROR_SUCCESS)
+        else if (pTag->Save(true) == APE_ERROR_SUCCESS)
         {
             // converted the tag
-            nRetVal = ERROR_SUCCESS;
+            nRetVal = APE_ERROR_SUCCESS;
         }
     }
     catch (...)
     {
-        nRetVal = ERROR_UNDEFINED;
+        nRetVal = APE_ERROR_UNDEFINED;
     }
 
     return nRetVal;
 }
 
 /**************************************************************************************************
-Convert to legacy
+Tag dump
 **************************************************************************************************/
 static int TagDump(const str_utfn * pFilename)
 {
-    int nRetVal = ERROR_UNDEFINED;
+    int nRetVal = APE_ERROR_UNDEFINED;
 
     // create the decoder
-    int nFunctionRetVal = ERROR_SUCCESS;
+    int nFunctionRetVal = APE_ERROR_SUCCESS;
     CSmartPtr<IAPEDecompress> spAPEDecompress;
     try
     {
         spAPEDecompress.Assign(CreateIAPEDecompress(pFilename, &nFunctionRetVal, false, true, false));
-        if (spAPEDecompress == APE_NULL || nFunctionRetVal != ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
+        if (spAPEDecompress == APE_NULL || nFunctionRetVal != APE_ERROR_SUCCESS) throw(static_cast<intn>(nFunctionRetVal));
 
         // get the input format
         APE::IAPETag * pTag = spAPEDecompress->GetTag();
         if (pTag == APE_NULL)
-            throw(static_cast<intn>(ERROR_UNDEFINED));
+            throw(static_cast<intn>(APE_ERROR_UNDEFINED));
 
         // dump tag
         str_utfn cTag[4096];
@@ -562,15 +561,16 @@ static int TagDump(const str_utfn * pFilename)
         fwprintf(stderr, L"%s", cTag);
 
         // success
-        nRetVal = ERROR_SUCCESS;
+        nRetVal = APE_ERROR_SUCCESS;
     }
     catch (...)
     {
-        nRetVal = ERROR_UNDEFINED;
+        nRetVal = APE_ERROR_UNDEFINED;
     }
 
     return nRetVal;
 }
+
 
 /**************************************************************************************************
 Handle auto for an output filename
@@ -582,8 +582,9 @@ static void HandleAuto(CSmartPtr<str_utfn> & rspInputFilename, CSmartPtr<str_utf
     if ((rspOutputFilename == APE_NULL) || (wcslen(rspOutputFilename) == 0) || (_wcsicmp(rspOutputFilename, AUTO) == 0))
     {
         // build the output filename
-        rspOutputFilename.AllocateArray(APE_MAX_PATH);
-        wcscpy_s(rspOutputFilename, APE_MAX_PATH, rspInputFilename);
+        const size_t nOutputNameLength = wcslen(rspInputFilename) + 32; // length of extension added is eight characters at most
+        rspOutputFilename.AllocateArray(static_cast<int>(nOutputNameLength));
+        wcscpy_s(rspOutputFilename, nOutputNameLength, rspInputFilename);
 
         // remove the extension
         str_utfn * pExtension = wcsrchr(rspOutputFilename, '.');
@@ -594,7 +595,7 @@ static void HandleAuto(CSmartPtr<str_utfn> & rspInputFilename, CSmartPtr<str_utf
         if (bAPEType)
         {
             // add the .ape extension
-            wcscat_s(rspOutputFilename, APE_MAX_PATH, L".ape");
+            wcscat_s(rspOutputFilename, nOutputNameLength, L".ape");
         }
         else
         {
@@ -604,7 +605,7 @@ static void HandleAuto(CSmartPtr<str_utfn> & rspInputFilename, CSmartPtr<str_utf
             CSmartPtr<APE::str_utfn> spFileTypeUTFN(CAPECharacterHelper::GetUTFNFromANSI(cFileType), true);
 
             // put together and fill spOutputFilename
-            wcscat_s(rspOutputFilename, APE_MAX_PATH, spFileTypeUTFN);
+            wcscat_s(rspOutputFilename, nOutputNameLength, spFileTypeUTFN);
         }
     }
 }
@@ -619,7 +620,7 @@ int _tmain(int argc, TCHAR * argv[])
 #endif
 {
     // variable declares
-    int nRetVal = ERROR_UNDEFINED;
+    int nRetVal = APE_ERROR_UNDEFINED;
 
     // initialize
     #ifdef PLATFORM_WINDOWS
@@ -632,7 +633,7 @@ int _tmain(int argc, TCHAR * argv[])
     CArguments Arguments(argc, argv);
 
     // output the header
-    fwprintf(stderr, CONSOLE_NAME);
+    fwprintf(stderr, APE_CONSOLE_NAME);
 
     // make sure there are at least four arguments
     if (argc < 3)
@@ -642,7 +643,7 @@ int _tmain(int argc, TCHAR * argv[])
     }
 
     // get the arguments
-    int nMode = UNDEFINED_MODE;
+    int nMode = APE_MODE_UNDEFINED;
     int nCompressionLevel = APE_COMPRESSION_LEVEL_NORMAL;
     int nThreads = 1;
     bool bReadFullInput = false;
@@ -659,14 +660,14 @@ int _tmain(int argc, TCHAR * argv[])
     }
 
     // error check the mode
-    if (nMode == UNDEFINED_MODE)
+    if (nMode == APE_MODE_UNDEFINED)
     {
         DisplayProperUsage(stderr);
         exit(-1);
     }
 
     // get and error check the compression level
-    if (nMode == COMPRESS_MODE || nMode == CONVERT_MODE)
+    if (nMode == APE_MODE_COMPRESS || nMode == APE_MODE_CONVERT)
     {
         if (nCompressionLevel != APE_COMPRESSION_LEVEL_FAST &&
             nCompressionLevel != APE_COMPRESSION_LEVEL_NORMAL &&
@@ -675,7 +676,7 @@ int _tmain(int argc, TCHAR * argv[])
             nCompressionLevel != APE_COMPRESSION_LEVEL_INSANE)
         {
             DisplayProperUsage(stderr);
-            return ERROR_UNDEFINED;
+            return APE_ERROR_UNDEFINED;
         }
     }
 
@@ -684,7 +685,7 @@ int _tmain(int argc, TCHAR * argv[])
 
     // process
 #ifdef APE_SUPPORT_COMPRESS
-    if (nMode == COMPRESS_MODE)
+    if (nMode == APE_MODE_COMPRESS)
     {
         str_utfn cCompressionLevel[16]; APE_CLEAR(cCompressionLevel);
         GetAPECompressionLevelName(nCompressionLevel, cCompressionLevel, 16, false);
@@ -698,7 +699,7 @@ int _tmain(int argc, TCHAR * argv[])
         nRetVal = CompressFileW(spInputFilename, spOutputFilename, nCompressionLevel, &s_CallbackInfo, nThreads, APE_NULL, bReadFullInput);
 
         // tag
-        if ((nRetVal == ERROR_SUCCESS) && (spTagSwitch != APE_NULL))
+        if ((nRetVal == APE_ERROR_SUCCESS) && (spTagSwitch != APE_NULL))
         {
             fwprintf(stderr, L"\nTagging...\n");
 
@@ -707,7 +708,7 @@ int _tmain(int argc, TCHAR * argv[])
     }
     else
 #endif
-    if (nMode == DECOMPRESS_MODE)
+    if (nMode == APE_MODE_DECOMPRESS)
     {
         fwprintf(stderr, L"Decompressing...\n");
 
@@ -717,43 +718,43 @@ int _tmain(int argc, TCHAR * argv[])
         // decompress
         nRetVal = DecompressFileW(spInputFilename, spOutputFilename, &s_CallbackInfo, nThreads);
     }
-    else if (nMode == VERIFY_MODE)
+    else if (nMode == APE_MODE_VERIFY)
     {
         fwprintf(stderr, L"Verifying...\n");
         nRetVal = VerifyFileW(spInputFilename, &s_CallbackInfo, true, nThreads);
     }
-    else if (nMode == VERIFY_FULL_MODE)
+    else if (nMode == APE_MODE_VERIFY_FULL)
     {
         fwprintf(stderr, L"Full verifying...\n");
         nRetVal = VerifyFileW(spInputFilename, &s_CallbackInfo, false, nThreads);
     }
-    else if (nMode == CONVERT_MODE)
+    else if (nMode == APE_MODE_CONVERT)
     {
         fwprintf(stderr, L"Converting...\n");
         nRetVal = ConvertFileW(spInputFilename, spOutputFilename, nCompressionLevel, &s_CallbackInfo, nThreads);
     }
-    else if (nMode == TAG_MODE)
+    else if (nMode == APE_MODE_TAG)
     {
         fwprintf(stderr, L"Tagging...\n");
         nRetVal = Tag(spInputFilename, spTagSwitch);
     }
-    else if (nMode == REMOVE_TAG_MODE)
+    else if (nMode == APE_MODE_REMOVE_TAG)
     {
         fwprintf(stderr, L"Removing tags...\n");
         nRetVal = RemoveTags(spInputFilename);
     }
-    else if (nMode == CONVERT_TAG_TO_LEGACY_MODE)
+    else if (nMode == APE_MODE_CONVERT_TAG_TO_LEGACY)
     {
         fwprintf(stderr, L"Converting tag to ID3v1...\n");
         nRetVal = ConvertTagsToLegacy(spInputFilename);
     }
-    else if (nMode == TAG_DUMP_MODE)
+    else if (nMode == APE_MODE_TAG_DUMP)
     {
         fwprintf(stderr, L"Dumping tags...\n");
         nRetVal = TagDump(spInputFilename);
     }
 
-    if (nRetVal == ERROR_SUCCESS)
+    if (nRetVal == APE_ERROR_SUCCESS)
         fwprintf(stderr, L"\nSuccess\n");
     else
         fwprintf(stderr, L"\nError: %i\n", nRetVal);

@@ -71,7 +71,7 @@ int CAPECompressCore::EncodeFrame(const void * pInputData, int nInputBytes)
     m_semProcess.Post();
 
     // return success
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 int CAPECompressCore::Encode(const void * pInputData, int nInputBytes)
@@ -84,7 +84,7 @@ int CAPECompressCore::Encode(const void * pInputData, int nInputBytes)
     m_spBitArray->ResetBitArray();
 
     // do the preparation stage
-    RETURN_ON_ERROR(Prepare(pInputData, nInputBytes, &nSpecialCodes))
+    APE_RETURN_ON_ERROR(Prepare(pInputData, nInputBytes, &nSpecialCodes))
 
     for (int z = 0; z < APE_MAXIMUM_CHANNELS; z++)
     {
@@ -101,14 +101,14 @@ int CAPECompressCore::Encode(const void * pInputData, int nInputBytes)
         bool bEncodeX = true;
         bool bEncodeY = true;
 
-        if ((nSpecialCodes & SPECIAL_FRAME_LEFT_SILENCE) &&
-            (nSpecialCodes & SPECIAL_FRAME_RIGHT_SILENCE))
+        if ((nSpecialCodes & APE_SPECIAL_FRAME_LEFT_SILENCE) &&
+            (nSpecialCodes & APE_SPECIAL_FRAME_RIGHT_SILENCE))
         {
             bEncodeX = false;
             bEncodeY = false;
         }
 
-        if (nSpecialCodes & SPECIAL_FRAME_PSEUDO_STEREO)
+        if (nSpecialCodes & APE_SPECIAL_FRAME_PSEUDO_STEREO)
         {
             bEncodeY = false;
         }
@@ -128,24 +128,24 @@ int CAPECompressCore::Encode(const void * pInputData, int nInputBytes)
         {
             for (int z = 0; z < nInputBlocks; z++)
             {
-                RETURN_ON_ERROR(m_spBitArray->EncodeValue(m_aryPredictors[0]->CompressValue(m_spData[z]), m_aryBitArrayStates[0]))
+                APE_RETURN_ON_ERROR(m_spBitArray->EncodeValue(m_aryPredictors[0]->CompressValue(m_spData[z]), m_aryBitArrayStates[0]))
             }
         }
         else if (bEncodeY)
         {
             for (int z = 0; z < nInputBlocks; z++)
             {
-                RETURN_ON_ERROR(m_spBitArray->EncodeValue(m_aryPredictors[1]->CompressValue(m_spData[m_nMaxFrameBlocks + z]), m_aryBitArrayStates[1]))
+                APE_RETURN_ON_ERROR(m_spBitArray->EncodeValue(m_aryPredictors[1]->CompressValue(m_spData[m_nMaxFrameBlocks + z]), m_aryBitArrayStates[1]))
             }
         }
     }
     else if (m_wfeInput.nChannels == 1)
     {
-        if (!(nSpecialCodes & SPECIAL_FRAME_MONO_SILENCE))
+        if (!(nSpecialCodes & APE_SPECIAL_FRAME_MONO_SILENCE))
         {
             for (int z = 0; z < nInputBlocks; z++)
             {
-                RETURN_ON_ERROR(m_spBitArray->EncodeValue(m_aryPredictors[0]->CompressValue(m_spData[z]), m_aryBitArrayStates[0]))
+                APE_RETURN_ON_ERROR(m_spBitArray->EncodeValue(m_aryPredictors[0]->CompressValue(m_spData[z]), m_aryBitArrayStates[0]))
             }
         }
     }
@@ -164,7 +164,7 @@ int CAPECompressCore::Encode(const void * pInputData, int nInputBytes)
     m_spBitArray->AdvanceToByteBoundary();
 
     // return success
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 unsigned char * CAPECompressCore::GetFrameBuffer()
@@ -184,19 +184,19 @@ int CAPECompressCore::Prepare(const void * pInputData, int nInputBytes, int * pS
     unsigned int nCRC = 0;
 
     // do the preparation
-    RETURN_ON_ERROR(m_spPrepare->Prepare(static_cast<const unsigned char *>(pInputData), nInputBytes, &m_wfeInput, m_spData, m_nMaxFrameBlocks,
+    APE_RETURN_ON_ERROR(m_spPrepare->Prepare(static_cast<const unsigned char *>(pInputData), nInputBytes, &m_wfeInput, m_spData, m_nMaxFrameBlocks,
         &nCRC, pSpecialCodes))
 
     // store the CRC
-    RETURN_ON_ERROR(m_spBitArray->EncodeUnsignedLong(nCRC))
+    APE_RETURN_ON_ERROR(m_spBitArray->EncodeUnsignedLong(nCRC))
 
     // store any special codes
     if (*pSpecialCodes != 0)
     {
-        RETURN_ON_ERROR(m_spBitArray->EncodeUnsignedLong(static_cast<unsigned int>(*pSpecialCodes)))
+        APE_RETURN_ON_ERROR(m_spBitArray->EncodeUnsignedLong(static_cast<unsigned int>(*pSpecialCodes)))
     }
 
-    return ERROR_SUCCESS;
+    return APE_ERROR_SUCCESS;
 }
 
 void CAPECompressCore::WaitUntilReady()
