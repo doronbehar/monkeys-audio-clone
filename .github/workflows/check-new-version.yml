@@ -1,0 +1,124 @@
+name: Check for a new upstream version
+
+on:
+  schedule:
+    # Once a day. Offset off the hour so we are not competing with the rest of
+    # GitHub's cron traffic for a runner.
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Import this exact version instead of asking Repology
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  issues: write
+
+# Two runs pushing version commits at once would race on the default branch.
+concurrency:
+  group: import-upstream
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # Version commits are built on top of the full history, and the
+          # importer checks the existing tags before doing any work.
+          fetch-depth: 0
+
+      - name: Work out which version we should have
+        id: upstream
+        env:
+          # Passed through the environment rather than interpolated into the
+          # script; tools/common.sh rejects anything that is not <major>.<nn>.
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "${REQUESTED_VERSION:-}" ]; then
+            version=$REQUESTED_VERSION
+            echo "Manually requested version: $version"
+          else
+            version=$(tools/latest-upstream-version.sh)
+            echo "Repology's newest version: $version"
+          fi
+
+          mirrored=$(git tag --list 'v*' | sed 's/^v//' | sort -V | tail -1)
+          echo "Mirror is at: $mirrored"
+
+          if git rev-parse -q --verify "refs/tags/v$version" >/dev/null; then
+            verdict=up-to-date
+          elif [ -z "${REQUESTED_VERSION:-}" ] &&
+               [ "$(printf '%s\n%s\n' "$version" "$mirrored" | sort -V | tail -1)" = "$mirrored" ]; then
+            # Repology's data lags its member repositories, so a version older
+            # than ours is normal for a day or two after we import one.
+            verdict=behind
+          else
+            verdict=new
+          fi
+          echo "Verdict: $verdict"
+
+          {
+            echo "version=$version"
+            echo "mirrored=$mirrored"
+            echo "verdict=$verdict"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Summarise
+        env:
+          VERDICT: ${{ steps.upstream.outputs.verdict }}
+          VERSION: ${{ steps.upstream.outputs.version }}
+          MIRRORED: ${{ steps.upstream.outputs.mirrored }}
+        run: |
+          set -euo pipefail
+          case $VERDICT in
+            up-to-date) echo "Mirror is current at \`$MIRRORED\`." ;;
+            behind)     echo "Repology reports \`$VERSION\`, not newer than our \`$MIRRORED\`. Nothing to do." ;;
+            new)        echo "\`$VERSION\` is new; the mirror is at \`$MIRRORED\`." ;;
+            *)          echo "Unexpected verdict \`$VERDICT\`."; exit 1 ;;
+          esac >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Import the new version
+        if: steps.upstream.outputs.verdict == 'new'
+        env:
+          VERSION: ${{ steps.upstream.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          tools/import-upstream-zip.sh "$VERSION"
+          git push origin "HEAD:$GITHUB_REF_NAME" "refs/tags/v$VERSION"
+
+      - name: Open an issue if the import failed
+        if: failure() && steps.upstream.outputs.verdict == 'new'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.upstream.outputs.version }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          title="Failed to import monkeys-audio $VERSION"
+          existing=$(gh issue list --state open --search "$title in:title" --json number --jq '.[].number')
+          if [ -n "$existing" ]; then
+            echo "Already tracked by issue #$existing."
+            exit 0
+          fi
+          cat > /tmp/issue-body.md <<BODY
+          Repology reports monkeys-audio **$VERSION**, but importing it failed.
+
+          The usual cause is that \`https://monkeysaudio.com/files/MAC_${VERSION//./}_SDK.zip\`
+          is not reachable under that name. Check it against
+          <https://monkeysaudio.com/versionhistory.html>, then re-run this workflow
+          manually, or import the version locally with:
+
+          \`\`\`
+          tools/import-upstream-zip.sh $VERSION
+          \`\`\`
+
+          Run log: $RUN_URL
+          BODY
+          gh issue create --title "$title" --body-file /tmp/issue-body.md
