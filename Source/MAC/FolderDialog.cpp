@@ -25,9 +25,8 @@ CFolderDialog::CFolderDialog(LPCTSTR lpszFolderName, DWORD dwFlags, CWnd * pPare
 {
     // initialize
     m_hDialogBox = APE_NULL;
-    APE_CLEAR(m_szDisplayName);
-    APE_CLEAR(m_szPath);
-
+    m_strDisplayName.Empty();
+    
     // Use the supplied initial folder if non-null.
     if (lpszFolderName == APE_NULL)
         m_strInitialFolderName = _T("");
@@ -43,7 +42,7 @@ CFolderDialog::CFolderDialog(LPCTSTR lpszFolderName, DWORD dwFlags, CWnd * pPare
 
     // Fill in the rest of the structure
     m_bi.pidlRoot = APE_NULL;
-    m_bi.pszDisplayName = m_szDisplayName;
+    m_bi.pszDisplayName = m_strDisplayName.GetBuffer(APE_MAX_PATH);
     m_bi.lpszTitle = _T("Choose Folder");
     m_bi.ulFlags = dwFlags;
     m_bi.lpfn = BrowseDirectoryCallback;
@@ -82,17 +81,12 @@ int CFolderDialog::DoModal()
     ITEMIDLIST * piid = reinterpret_cast<ITEMIDLIST *>(::SHBrowseForFolder(&m_bi));
 
     // process the result
-    if (piid && ::SHGetPathFromIDList(piid, m_szPath))
-    {
-        m_strFinalFolderName = m_szPath;
+    nReturn = IDCANCEL;
+    if (piid && ::SHGetPathFromIDList(piid, m_strFinalFolderName.GetBuffer(APE_MAX_PATH)))
         nReturn = IDOK;
-    }
-    else
-    {
-        nReturn = IDCANCEL;
-    }
+    m_strFinalFolderName.ReleaseBuffer();
 
-    // Release the ITEMIDLIST if we got one
+    // release the ITEMIDLIST if we got one
     if (piid)
     {
         LPMALLOC lpMalloc;
@@ -153,7 +147,7 @@ void CFolderDialog::OnInitDialog()
 
 void CFolderDialog::OnSelChanged(ITEMIDLIST * pIdl)
 {
-    ::SHGetPathFromIDList(pIdl, m_szPath);
-    m_strFinalFolderName = m_szPath;
+    ::SHGetPathFromIDList(pIdl, m_strFinalFolderName.GetBuffer(APE_MAX_PATH));
+    m_strFinalFolderName.ReleaseBuffer();
     SetStatusText(ShortName(m_strFinalFolderName));
 }

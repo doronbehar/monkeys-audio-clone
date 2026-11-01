@@ -228,7 +228,7 @@ int CPrepare::Prepare(const unsigned char * pRawData, int nBytes, const WAVEFORM
                 }
 
                 // remaining channels
-                const int nStartChannel = (pWaveFormatEx->nChannels == 7) ? 7 : 8;
+                const int nStartChannel = (pWaveFormatEx->nChannels == 7) ? 6 : 8;
                 for (int nChannel = nStartChannel; nChannel < pWaveFormatEx->nChannels; nChannel++)
                 {
                     int nValue = 0;
@@ -383,7 +383,7 @@ int CPrepare::Prepare(const unsigned char * pRawData, int nBytes, const WAVEFORM
                 }
 
                 // remaining
-                const int nStartChannel = (pWaveFormatEx->nChannels == 7) ? 7 : 8;
+                const int nStartChannel = (pWaveFormatEx->nChannels == 7) ? 6 : 8;
                 for (int nChannel = nStartChannel; nChannel < pWaveFormatEx->nChannels; nChannel++)
                 {
                     // get the value
@@ -611,7 +611,7 @@ void CPrepare::Unprepare(int * paryValues, const WAVEFORMATEX * pWaveFormatEx, u
                     *pOutput++ = static_cast<unsigned char>((nTempR >> APE_24_SHIFT_3RD) & 0xFF);
                 }
 
-                const int nStartChannel = (pWaveFormatEx->nChannels == 7) ? 7 : 8;
+                const int nStartChannel = (pWaveFormatEx->nChannels == 7) ? 6 : 8;
                 for (int nChannel = nStartChannel; nChannel < pWaveFormatEx->nChannels; nChannel++)
                 {
                     const int nValue = static_cast<int>(paryValues[nChannel]);
@@ -736,7 +736,7 @@ void CPrepare::Unprepare(int * paryValues, const WAVEFORMATEX * pWaveFormatEx, u
                 }
 
                 // remaining
-                const int nStartChannel = (pWaveFormatEx->nChannels == 7) ? 7 : 8;
+                const int nStartChannel = (pWaveFormatEx->nChannels == 7) ? 6 : 8;
                 for (int nChannel = nStartChannel; nChannel < pWaveFormatEx->nChannels; nChannel++)
                 {
                     int nValue = static_cast<int>(paryValues[nChannel]);

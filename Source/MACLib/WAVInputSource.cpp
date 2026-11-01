@@ -1017,7 +1017,7 @@ CW64InputSource - wraps working with W64 files
 **************************************************************************************************/
 struct CW64InputSource::W64ChunkHeader
 {
-    GUID guidIdentifier; // the identifier of the chunk
+    APE_GUID guidIdentifier; // the identifier of the chunk
     uint64 nBytes; // the size of the chunk
 };
 
@@ -1033,12 +1033,12 @@ struct CW64InputSource::WAVFormatChunkData
 
 /*static*/ bool CW64InputSource::GetHeaderMatches(BYTE aryHeader[64])
 {
-    static const GUID guidRIFF = { ConvertU32LE(0x66666972), ConvertU16LE(0x912E), ConvertU16LE(0x11CF), { 0xA5, 0xD6, 0x28, 0xDB, 0x04, 0xC1, 0x00, 0x00 } };
-    static const GUID guidWAVE = { ConvertU32LE(0x65766177), ConvertU16LE(0xACF3), ConvertU16LE(0x11D3), { 0x8C, 0xD1, 0x00, 0xC0, 0x4F, 0x8E, 0xDB, 0x8A } };
+    static const APE_GUID guidRIFF = { ConvertU32LE(0x66666972), ConvertU16LE(0x912E), ConvertU16LE(0x11CF), { 0xA5, 0xD6, 0x28, 0xDB, 0x04, 0xC1, 0x00, 0x00 } };
+    static const APE_GUID guidWAVE = { ConvertU32LE(0x65766177), ConvertU16LE(0xACF3), ConvertU16LE(0x11D3), { 0x8C, 0xD1, 0x00, 0xC0, 0x4F, 0x8E, 0xDB, 0x8A } };
     bool bW64 = (memcmp(aryHeader, &guidRIFF, sizeof(guidRIFF)) == 0);
     if (bW64)
     {
-        if (memcmp(&aryHeader[24], &guidWAVE, sizeof(GUID)) != 0)
+        if (memcmp(&aryHeader[24], &guidWAVE, sizeof(APE_GUID)) != 0)
         {
             bW64 = false;
         }
@@ -1086,10 +1086,10 @@ CW64InputSource::~CW64InputSource()
 int CW64InputSource::AnalyzeSource()
 {
     // chunk identifiers
-    static const GUID guidRIFF = { ConvertU32LE(0x66666972), ConvertU16LE(0x912E), ConvertU16LE(0x11CF), { 0xA5, 0xD6, 0x28, 0xDB, 0x04, 0xC1, 0x00, 0x00 } };
-    static const GUID guidWAVE = { ConvertU32LE(0x65766177), ConvertU16LE(0xACF3), ConvertU16LE(0x11D3), { 0x8C, 0xD1, 0x00, 0xC0, 0x4F, 0x8E, 0xDB, 0x8A } };
-    static const GUID guidDATA = { ConvertU32LE(0x61746164), ConvertU16LE(0xACF3), ConvertU16LE(0x11D3), { 0x8C, 0xD1, 0x00, 0xC0, 0x4F, 0x8E, 0xDB, 0x8A } };
-    static const GUID guidFMT = { ConvertU32LE(0x20746D66), ConvertU16LE(0xACF3), ConvertU16LE(0x11D3), { 0x8C, 0xD1, 0x00, 0xC0, 0x4F, 0x8E, 0xDB, 0x8A } };
+    static const APE_GUID guidRIFF = { ConvertU32LE(0x66666972), ConvertU16LE(0x912E), ConvertU16LE(0x11CF), { 0xA5, 0xD6, 0x28, 0xDB, 0x04, 0xC1, 0x00, 0x00 } };
+    static const APE_GUID guidWAVE = { ConvertU32LE(0x65766177), ConvertU16LE(0xACF3), ConvertU16LE(0x11D3), { 0x8C, 0xD1, 0x00, 0xC0, 0x4F, 0x8E, 0xDB, 0x8A } };
+    static const APE_GUID guidDATA = { ConvertU32LE(0x61746164), ConvertU16LE(0xACF3), ConvertU16LE(0x11D3), { 0x8C, 0xD1, 0x00, 0xC0, 0x4F, 0x8E, 0xDB, 0x8A } };
+    static const APE_GUID guidFMT = { ConvertU32LE(0x20746D66), ConvertU16LE(0xACF3), ConvertU16LE(0x11D3), { 0x8C, 0xD1, 0x00, 0xC0, 0x4F, 0x8E, 0xDB, 0x8A } };
     const bool bReadMetadataChunks = false;
 
     // read the riff header
@@ -1104,13 +1104,13 @@ int CW64InputSource::AnalyzeSource()
     RIFFHeader.nBytes = ConvertU64LE(RIFFHeader.nBytes);
     RIFFHeader.nBytes = APE_ALIGN_8_BYTE(RIFFHeader.nBytes);
 
-    if ((memcmp(&RIFFHeader.guidIdentifier, &guidRIFF, sizeof(GUID)) == 0) && (RIFFHeader.nBytes == static_cast<uint64>(m_nFileBytes)))
+    if ((memcmp(&RIFFHeader.guidIdentifier, &guidRIFF, sizeof(APE_GUID)) == 0) && (RIFFHeader.nBytes == static_cast<uint64>(m_nFileBytes)))
     {
         // read and verify the wave data type header
-        GUID DataHeader;
+        APE_GUID DataHeader;
         const int64 nDataHeaderSize = sizeof(DataHeader);
         m_spIO->Read(&DataHeader, nDataHeaderSize, &nBytesRead);
-        if (memcmp(&DataHeader, &guidWAVE, sizeof(GUID)) == 0)
+        if (memcmp(&DataHeader, &guidWAVE, sizeof(APE_GUID)) == 0)
         {
             // for now, we only need to process these two chunks besides 'fmt ' chunk above -
             // "data", and "id3 "/"tag "
@@ -1133,7 +1133,7 @@ int CW64InputSource::AnalyzeSource()
                     break;
 
                 // switched based on the chunk type
-                if ((memcmp(&Header.guidIdentifier, &guidFMT, sizeof(GUID)) == 0) &&
+                if ((memcmp(&Header.guidIdentifier, &guidFMT, sizeof(APE_GUID)) == 0) &&
                     (nChunkRemainingBytes >= static_cast<APE::int64>(sizeof(WAVFormatChunkData))))
                 {
                     // read data
@@ -1179,7 +1179,7 @@ int CW64InputSource::AnalyzeSource()
                     if (!bReadMetadataChunks && (bFormatChunkRead && bDataChunkRead))
                         break;
                 }
-                else if (memcmp(&Header.guidIdentifier, &guidDATA, sizeof(GUID)) == 0)
+                else if (memcmp(&Header.guidIdentifier, &guidDATA, sizeof(APE_GUID)) == 0)
                 {
                     // 'data' chunk
 
