@@ -49,10 +49,10 @@ public:
 
 private:
     // data members
-    uint32 * m_paryBitArray;
     uint32 m_nBitArrayBytes;
     uint32 m_nRefillThreshold;
     uint32 m_nCurrentBitIndex;
+    uint32 * m_paryBitArray;
     RANGE_CODER_STRUCT_COMPRESS m_RangeCoderInfo;
 
     // increase bit array size

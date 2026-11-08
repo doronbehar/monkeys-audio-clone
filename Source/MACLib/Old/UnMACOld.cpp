@@ -13,15 +13,13 @@ namespace APE
 /**************************************************************************************************
 CUnMACOld class construction
 **************************************************************************************************/
-CUnMACOld::CUnMACOld()
+CUnMACOld::CUnMACOld() :
+    m_LastDecodedFrameIndex(-1),
+    m_nBlocksProcessed(0),
+    m_nCRC(0),
+    m_nStoredCRC(0),
+    m_bInitialized(false)
 {
-    // initialize member variables
-    m_bInitialized = false;
-    m_LastDecodedFrameIndex = -1;
-
-    m_nBlocksProcessed = 0;
-    m_nCRC = 0;
-    m_nStoredCRC = 0;
 }
 
 /**************************************************************************************************

@@ -12,12 +12,13 @@ namespace APE
 #define APE_LINK_START_BLOCK_TAG        "Start Block="
 #define APE_LINK_FINISH_BLOCK_TAG       "Finish Block="
 
-CAPELink::CAPELink(const str_utfn * pFilename)
+CAPELink::CAPELink(const str_utfn * pFilename) :
+    m_nStartBlock(0),
+    m_nFinishBlock(0),
+    m_cImageFilename{0},
+    m_bIsLinkFile(false)
 {
     // empty
-    m_bIsLinkFile = false;
-    m_nStartBlock = 0;
-    m_nFinishBlock = 0;
     m_cImageFilename[0] = 0;
 
     // open the file

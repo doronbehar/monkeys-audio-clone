@@ -16,7 +16,7 @@ class CAPECompress : public IAPECompress
 {
 public:
     CAPECompress();
-    virtual ~CAPECompress() APE_OVERRIDE;
+    APE_DESTRUCTOR(CAPECompress);
 
     // configuration
     int SetNumberOfThreads(int nThreads) APE_OVERRIDE;

@@ -11,7 +11,7 @@ class CAPEInfoFormatDlg : public CDialog
 
 public:
     CAPEInfoFormatDlg(CMACDlg * pMACDlg, CWnd * pParent = APE_NULL);
-    virtual ~CAPEInfoFormatDlg() APE_OVERRIDE;
+    APE_DESTRUCTOR(CAPEInfoFormatDlg);
 
     void Layout();
     bool SetFiles(CStringArray & aryFiles);

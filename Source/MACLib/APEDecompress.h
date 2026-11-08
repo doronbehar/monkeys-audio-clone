@@ -13,8 +13,11 @@ class IPredictorDecompress;
 class CAPEDecompress : public IAPEDecompress
 {
 public:
-    CAPEDecompress(int * pErrorCode, IAPEInfo * pAPEInfo, int64 nStartBlock = -1, int64 nFinishBlock = -1);
+    CAPEDecompress();
     ~CAPEDecompress() APE_OVERRIDE;
+
+    // initialization
+    int Initialize(IAPEInfo * pAPEInfo, int64 nStartBlock, int64 nFinishBlock) APE_OVERRIDE;
 
     // configuration
     int SetNumberOfThreads(int nThreads) APE_OVERRIDE;

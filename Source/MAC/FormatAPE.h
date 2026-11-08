@@ -26,7 +26,7 @@ class CFormatAPE : public IFormat
 {
 public:
     CFormatAPE(int nIndex);
-    virtual ~CFormatAPE() APE_OVERRIDE;
+    APE_DESTRUCTOR(CFormatAPE);
 
     virtual bool GetValid() APE_OVERRIDE { return true; }
     virtual CString GetName() APE_OVERRIDE;

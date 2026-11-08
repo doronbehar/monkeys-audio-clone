@@ -4,12 +4,13 @@
 namespace APE
 {
 
-CThread::CThread()
+CThread::CThread() 
+#ifdef PLATFORM_WINDOWS
+    : m_hThread(APE_NULL)
+#endif
 {
 #ifdef PLATFORM_WINDOWS
     InitializeCriticalSection(&m_hMutex);
-
-    m_hThread = APE_NULL;
 #else
     pthread_mutex_init(&m_hMutex, APE_NULL);
 

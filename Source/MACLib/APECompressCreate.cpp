@@ -9,22 +9,18 @@
 namespace APE
 {
 
-CAPECompressCreate::CAPECompressCreate()
+CAPECompressCreate::CAPECompressCreate() :
+    m_nMaxFrames(0),
+    m_nThreads(1),
+    m_nNextWorker(0),
+    m_nFinalWord(0),
+    m_nFinalBytes(0),
+    m_nCompressionLevel(0),
+    m_nBlocksPerFrame(0),
+    m_nFrameIndex(0),
+    m_nLastFrameBlocks(0),
+    m_bTooMuchData(false)
 {
-    m_nMaxFrames = 0;
-    m_bTooMuchData = false;
-
-    m_nThreads = 1;
-    m_nNextWorker = 0;
-
-    m_nFinalWord = 0;
-    m_nFinalBytes = 0;
-
-    // initialize to avoid warnings
-    m_nCompressionLevel = 0;
-    m_nBlocksPerFrame = 0;
-    m_nFrameIndex = 0;
-    m_nLastFrameBlocks = 0;
 }
 
 CAPECompressCreate::~CAPECompressCreate()

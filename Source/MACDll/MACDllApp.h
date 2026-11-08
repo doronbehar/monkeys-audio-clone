@@ -6,7 +6,7 @@ class CMACDllApp : public CWinApp
 {
 public:
     CMACDllApp() noexcept;
-    virtual ~CMACDllApp() APE_OVERRIDE;
+    APE_DESTRUCTOR(CMACDllApp);
 
     virtual BOOL InitInstance() APE_OVERRIDE;
 

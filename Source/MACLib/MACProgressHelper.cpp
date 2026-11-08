@@ -5,14 +5,12 @@
 namespace APE
 {
 
-CMACProgressHelper::CMACProgressHelper(int64 nTotalSteps, CAPEProgressCallbackInfo * pProgressCallback)
+CMACProgressHelper::CMACProgressHelper(int64 nTotalSteps, CAPEProgressCallbackInfo * pProgressCallback) :
+    m_nTotalSteps(nTotalSteps),
+    m_nCurrentStep(0),
+    m_nLastCallbackFiredPercentageDone(0),
+    m_pProgressCallback(pProgressCallback)
 {
-    m_pProgressCallback = pProgressCallback;
-
-    m_nTotalSteps = nTotalSteps;
-    m_nCurrentStep = 0;
-    m_nLastCallbackFiredPercentageDone = 0;
-
     UpdateProgress(0);
 }
 

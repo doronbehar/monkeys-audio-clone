@@ -33,7 +33,7 @@ class CFormatPlugin : public IFormat
 {
 public:
     CFormatPlugin(CMACDlg * pMACDlg, int nIndex);
-    virtual ~CFormatPlugin() APE_OVERRIDE;
+    APE_DESTRUCTOR(CFormatPlugin);
 
     bool Load(const CString & strAPXFilename);
 

@@ -9,8 +9,10 @@ namespace APE
 class CAPEDecompressOld : public IAPEDecompress
 {
 public:
-    CAPEDecompressOld(int * pErrorCode, IAPEInfo * pAPEInfo, int nStartBlock = -1, int nFinishBlock = -1);
+    CAPEDecompressOld();
     ~CAPEDecompressOld() APE_OVERRIDE;
+
+    int Initialize(IAPEInfo * pAPEInfo, int64 nStartBlock, int64 nFinishBlock) APE_OVERRIDE;
 
     int SetNumberOfThreads(int nThreads) APE_OVERRIDE;
 

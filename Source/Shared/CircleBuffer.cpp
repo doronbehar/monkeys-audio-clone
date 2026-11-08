@@ -8,13 +8,13 @@
 namespace APE
 {
 
-CCircleBuffer::CCircleBuffer()
+CCircleBuffer::CCircleBuffer() :
+    m_nTotal(0),
+    m_nMaxDirectWriteBytes(0),
+    m_nEndCap(0),
+    m_nHead(0),
+    m_nTail(0)
 {
-    m_nTotal = 0;
-    m_nHead = 0;
-    m_nTail = 0;
-    m_nEndCap = 0;
-    m_nMaxDirectWriteBytes = 0;
 }
 
 CCircleBuffer::~CCircleBuffer()

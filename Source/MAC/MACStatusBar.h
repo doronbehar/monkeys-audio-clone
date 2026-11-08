@@ -7,7 +7,7 @@ class CMACStatusBar : public CStatusBar
 {
 public:
     CMACStatusBar(CMACDlg * pMACDlg);
-    virtual ~CMACStatusBar() APE_OVERRIDE;
+    APE_DESTRUCTOR(CMACStatusBar);
 
     bool UpdateProgress(double dProgress, double dSecondsLeft);
     bool UpdateFiles(MAC_FILE_ARRAY * paryFiles);

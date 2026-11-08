@@ -243,7 +243,7 @@ class IID3v2Tag
 {
 public:
     // destructor (needed so implementation's destructor will be called)
-    IID3v2Tag() { m_bFoundTag = false; }
+    IID3v2Tag() : m_bFoundTag(false) { }
     virtual ~IID3v2Tag() { }
 
     // analyze
@@ -354,7 +354,12 @@ class IAPEDecompress : public IAPEInfo
 {
 public:
     // destructor (needed so implementation's destructor will be called)
-    virtual ~IAPEDecompress() APE_OVERRIDE { }
+    APE_DESTRUCTOR(IAPEDecompress) { }
+
+    /**************************************************************************************************
+    * Initialization
+    **************************************************************************************************/
+    virtual int Initialize(IAPEInfo * pAPEInfo, int64 nStartBlock, int64 nFinishBlock) = 0;
 
     /**************************************************************************************************
     * Decompress / Seek

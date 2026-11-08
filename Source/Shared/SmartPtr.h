@@ -14,24 +14,24 @@ public:
     bool m_bArray;
     bool m_bDelete;
 
-    APE_INLINE CSmartPtr()
+    APE_INLINE CSmartPtr() :
+        m_pObject(APE_NULL),
+        m_bArray(false),
+        m_bDelete(true)
     {
-        m_bDelete = true;
-        m_pObject = APE_NULL;
-        m_bArray = false;
     }
-    APE_INLINE explicit CSmartPtr(TYPE * pObject, bool bArray = false, bool bDelete = true)
+    APE_INLINE explicit CSmartPtr(TYPE * pObject, bool bArray = false, bool bDelete = true) :
+        m_pObject(APE_NULL),
+        m_bArray(false),
+        m_bDelete(true)
     {
-        m_bDelete = true;
-        m_pObject = APE_NULL;
-        m_bArray = false;
         Assign(pObject, bArray, bDelete);
     }
-    APE_INLINE explicit CSmartPtr(int64 nElements, bool bEmpty = false)
+    APE_INLINE explicit CSmartPtr(int64 nElements, bool bEmpty = false) :
+        m_pObject(APE_NULL),
+        m_bArray(false),
+        m_bDelete(true)
     {
-        m_bDelete = true;
-        m_pObject = APE_NULL;
-        m_bArray = false;
         AllocateArray(nElements, bEmpty);
     }
 

@@ -6,9 +6,9 @@
 namespace APE
 {
 
-CAPEHeader::CAPEHeader(IAPEIO * pIO)
+CAPEHeader::CAPEHeader(IAPEIO * pIO) :
+    m_pIO(pIO)
 {
-    m_pIO = pIO;
 }
 
 CAPEHeader::~CAPEHeader()

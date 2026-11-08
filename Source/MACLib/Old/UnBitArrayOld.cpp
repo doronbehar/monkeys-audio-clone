@@ -19,12 +19,10 @@ const uint32 K_SUM_MAX_BOUNDARY[32] = {32,64,128,256,512,1024,2048,4096,8192,163
 CUnBitArrayOld
 **************************************************************************************************/
 CUnBitArrayOld::CUnBitArrayOld(IAPEDecompress * pAPEDecompress, intn nVersion, int64 nFurthestReadByte) :
-    CUnBitArrayBase(nFurthestReadByte)
+    CUnBitArrayBase(nFurthestReadByte),
+    m_nK(0),
+    m_nKSum(0)
 {
-    // initialize (to avoid warnings)
-    m_nKSum = 0;
-    m_nK = 0;
-
     // bit array size
     intn nBitArrayBytes = 262144;
 

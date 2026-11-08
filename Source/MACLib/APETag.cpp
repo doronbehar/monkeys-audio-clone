@@ -11,7 +11,9 @@ namespace APE
 /**************************************************************************************************
 CAPETagField
 **************************************************************************************************/
-CAPETagField::CAPETagField(const str_utfn * pFieldName, const void * pFieldValue, int nFieldBytes, int nFlags)
+CAPETagField::CAPETagField(const str_utfn * pFieldName, const void * pFieldValue, int nFieldBytes, int nFlags) :
+    m_nFieldFlags(nFlags),
+    m_nFieldValueBytes(APE_MAX(nFieldBytes, 0))
 {
     // field name
     size_t nFieldNameLength = wcslen(pFieldName);
@@ -19,13 +21,9 @@ CAPETagField::CAPETagField(const str_utfn * pFieldName, const void * pFieldValue
     memcpy(m_spFieldNameUTFN, pFieldName, (nFieldNameLength + 1) * sizeof(m_spFieldNameUTFN[0]));
 
     // data (we'll always allocate two extra bytes and memset to 0 so we're safely NULL terminated)
-    m_nFieldValueBytes = APE_MAX(nFieldBytes, 0);
     m_spFieldValue.AllocateArray(static_cast<int64>(m_nFieldValueBytes) + 2, true);
     if (m_nFieldValueBytes > 0)
         memcpy(m_spFieldValue, pFieldValue, static_cast<size_t>(m_nFieldValueBytes));
-
-    // flags
-    m_nFieldFlags = nFlags;
 }
 
 CAPETagField::~CAPETagField()
@@ -119,39 +117,38 @@ const str_utfn * CAPETag::s_aryID3GenreNames[CAPETag::s_nID3GenreCount] =
     L"Crossover", L"Contemporary C", L"Christian Rock", L"Merengue", L"Salsa", L"Thrash Metal", L"Anime", L"JPop", L"SynthPop"
 };
 
-CAPETag::CAPETag(const str_utfn * pFilename, bool bAnalyze)
+CAPETag::CAPETag(const str_utfn * pFilename, bool bAnalyze) : 
+    m_nTagBytes(0),
+    m_nAPETagVersion(-1),
+    m_nFields(0),
+    m_nAllocatedFields(0),
+    m_aryFields(APE_NULL),
+    m_bAnalyzed(false),
+    m_bHasAPETag(false),
+    m_bHasID3Tag(false),
+    m_bIgnoreReadOnly(false),
+    m_bCheckForID3v1(true)
 {
     m_spIO.Assign(CreateIAPEIO());
     m_spIO->Open(pFilename);
-
-    m_aryFields = APE_NULL;
-    m_nTagBytes = 0;
-    m_nAPETagVersion = -1;
-    m_nFields = 0;
-    m_nAllocatedFields = 0;
-    m_bAnalyzed = false;
-    m_bHasAPETag = false;
-    m_bHasID3Tag = false;
-    m_bIgnoreReadOnly = false;
-    m_bCheckForID3v1 = true;
 
     if (bAnalyze)
         Analyze();
 }
 
-CAPETag::CAPETag(IAPEIO * pIO, bool bAnalyze, bool bCheckForID3v1)
+CAPETag::CAPETag(IAPEIO * pIO, bool bAnalyze, bool bCheckForID3v1) :
+    m_nTagBytes(0),
+    m_nAPETagVersion(-1),
+    m_nFields(0),
+    m_nAllocatedFields(0),
+    m_aryFields(APE_NULL),
+    m_bAnalyzed(false),
+    m_bHasAPETag(false),
+    m_bHasID3Tag(false),
+    m_bIgnoreReadOnly(false),
+    m_bCheckForID3v1(bCheckForID3v1)
 {
     m_spIO.Assign(pIO, false, false); // we don't own the IO source
-    m_bAnalyzed = false;
-    m_nFields = 0;
-    m_nAllocatedFields = 0;
-    m_aryFields = APE_NULL;
-    m_nTagBytes = 0;
-    m_bIgnoreReadOnly = false;
-    m_bHasAPETag = false;
-    m_bHasID3Tag = false;
-    m_nAPETagVersion = -1;
-    m_bCheckForID3v1 = bCheckForID3v1;
 
     if (bAnalyze)
     {

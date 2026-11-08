@@ -18,7 +18,7 @@ class CPredictorDecompressInterim : public CPredictorDecompress3950toCurrent<int
 {
 public:
     CPredictorDecompressInterim(int nCompressionLevel, APE_VERSION Version, int nBitsPerSample);
-    virtual ~CPredictorDecompressInterim() APE_OVERRIDE;
+    APE_DESTRUCTOR(CPredictorDecompressInterim);
 
     int DecompressValue(int64 _nA, int64 _nB = 0) APE_OVERRIDE;
 };

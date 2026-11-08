@@ -18,7 +18,7 @@ class CPredictorDecompress3930to3950 : public IPredictorDecompress
 {
 public:
     CPredictorDecompress3930to3950(int nCompressionLevel, APE_VERSION Version);
-    virtual ~CPredictorDecompress3930to3950() APE_OVERRIDE;
+    APE_DESTRUCTOR(CPredictorDecompress3930to3950);
 
     int DecompressValue(int64 nInput, int64) APE_OVERRIDE;
     int Flush() APE_OVERRIDE;

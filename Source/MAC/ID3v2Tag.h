@@ -9,7 +9,7 @@ class CID3v2Tag : public APE::IID3v2Tag
 {
 public:
     CID3v2Tag();
-    virtual ~CID3v2Tag() APE_OVERRIDE;
+    APE_DESTRUCTOR(CID3v2Tag);
 
     // IID3v2Tag
     virtual bool Analyze(unsigned char * pTagData, int nTagBytes) APE_OVERRIDE;

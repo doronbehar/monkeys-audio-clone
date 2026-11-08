@@ -8,10 +8,32 @@
 namespace APE
 {
 
-CAPEDecompress::CAPEDecompress(int * pErrorCode, IAPEInfo * pAPEInfo, int64 nStartBlock, int64 nFinishBlock)
+CAPEDecompress::CAPEDecompress() : 
+    m_nBlockAlign(0),
+    m_nCurrentFrame(0),
+    m_nThreads(1),
+    m_nNextWorker(0),
+    m_nStartBlock(0),
+    m_nFinishBlock(0),
+    m_nCurrentBlock(0),
+    m_bIsRanged(false),
+    m_bDecompressorInitialized(false)
 {
-    *pErrorCode = APE_ERROR_SUCCESS;
+}
 
+CAPEDecompress::~CAPEDecompress()
+{
+    // check if we have anything to do
+    if (!m_bDecompressorInitialized)
+        return;
+
+    // finish threads
+    for (int i = 0; i < m_nThreads; i++)
+        m_spAPEDecompressCore[i].Delete();
+}
+
+int CAPEDecompress::Initialize(IAPEInfo * pAPEInfo, int64 nStartBlock, int64 nFinishBlock)
+{
     // initialize
     m_nThreads = 1;
     m_nNextWorker = 0;
@@ -39,23 +61,13 @@ CAPEDecompress::CAPEDecompress(int * pErrorCode, IAPEInfo * pAPEInfo, int64 nSta
     // we do this after setting all the variables or else we get compile warnings
     if (m_spAPEInfo->GetInfo(APE_INFO_FILE_VERSION) < 3930)
     {
-        *pErrorCode = APE_ERROR_UNDEFINED;
-        return;
+        return APE_ERROR_UNDEFINED;
     }
 
     // create a frame buffer
     m_cbFrameBuffer.CreateBuffer(static_cast<uint32>(m_spAPEInfo->GetInfo(APE_INFO_BLOCKS_PER_FRAME) * static_cast<uint32>(m_nBlockAlign)), static_cast<uint32>(m_nBlockAlign * 64));
-}
 
-CAPEDecompress::~CAPEDecompress()
-{
-    // check if we have anything to do
-    if (!m_bDecompressorInitialized)
-        return;
-
-    // finish threads
-    for (int i = 0; i < m_nThreads; i++)
-        m_spAPEDecompressCore[i].Delete();
+    return APE_ERROR_SUCCESS;
 }
 
 int CAPEDecompress::SetNumberOfThreads(int nThreads)

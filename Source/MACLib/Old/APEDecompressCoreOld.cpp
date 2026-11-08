@@ -10,10 +10,9 @@
 namespace APE
 {
 
-CAPEDecompressCoreOld::CAPEDecompressCoreOld(IAPEDecompress * pAPEDecompress)
+CAPEDecompressCoreOld::CAPEDecompressCoreOld(IAPEDecompress * pAPEDecompress) :
+    m_pAPEDecompress(pAPEDecompress)
 {
-    m_pAPEDecompress = pAPEDecompress;
-
     // initialize the bit array
     m_spUnBitArray.Assign(CreateUnBitArray(pAPEDecompress, pAPEDecompress->GetIO(), static_cast<intn>(pAPEDecompress->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION))));
 

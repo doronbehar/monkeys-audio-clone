@@ -6,10 +6,9 @@ namespace APE
 template <class INTTYPE, int MULTIPLY, int SHIFT> class CScaledFirstOrderFilter
 {
 public:
-    CScaledFirstOrderFilter()
+    CScaledFirstOrderFilter() :
+        m_nLastValue(0) // initialize (to avoid warnings)
     {
-        // initialize (to avoid warnings)
-        m_nLastValue = 0;
     }
 
     APE_INLINE void Flush()

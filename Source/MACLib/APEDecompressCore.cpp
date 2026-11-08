@@ -10,35 +10,35 @@
 namespace APE
 {
 
-CAPEDecompressCore::CAPEDecompressCore(int * pErrorCode, CAPEDecompress * pDecompress, IAPEInfo * pAPEInfo)
-: m_semProcess(1), m_semReady(1)
+CAPEDecompressCore::CAPEDecompressCore(int * pErrorCode, CAPEDecompress * pDecompress, IAPEInfo * pAPEInfo) :
+    m_semProcess(1), 
+    m_semReady(1),
+    m_nBlockAlign(0),
+    m_nSkipBytes(0),
+    m_nFrameBlocks(0),
+    m_nErrorState(APE_ERROR_SUCCESS),
+    m_bCancelFrame(false),
+    m_pDecompress(pDecompress),
+    m_bDecompressorInitialized(false),
+    m_nCRC(0),
+    m_nStoredCRC(0),
+    m_nSpecialCodes(0),
+    m_pAPEInfo(pAPEInfo),
+    m_nLastX(0),
+    m_nInputBytes(0),
+    m_bErrorDecodingCurrentFrame(false),
+    m_bInterimMode(false),
+    m_bExit(false)
 {
     m_semProcess.Wait();
 
     *pErrorCode = APE_ERROR_SUCCESS;
-
-    // open / analyze the file
-    m_pAPEInfo = pAPEInfo;
-    m_pDecompress = pDecompress;
 
     // get format information
     m_pAPEInfo->GetInfo(IAPEDecompress::APE_INFO_WAVEFORMATEX, APE_POINTER_TO_INT64(&m_wfeInput));
     m_nBlockAlign = static_cast<int>(m_pAPEInfo->GetInfo(IAPEDecompress::APE_INFO_BLOCK_ALIGN));
 
     // initialize other stuff
-    m_nInputBytes = 0;
-    m_nSkipBytes = 0;
-    m_bDecompressorInitialized = false;
-    m_nFrameBlocks = 0;
-    m_bErrorDecodingCurrentFrame = false;
-    m_bInterimMode = false;
-    m_nLastX = 0;
-    m_nSpecialCodes = 0;
-    m_nCRC = 0;
-    m_nStoredCRC = 0;
-    m_nErrorState = APE_ERROR_SUCCESS;
-    m_bCancelFrame = false;
-    m_bExit = false;
     APE_CLEAR(m_aryBitArrayStates);
 
     // channel data

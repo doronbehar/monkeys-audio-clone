@@ -25,8 +25,8 @@ private:
     CMACListCtrl * m_pOwnerCtrl;
 
 public:
-    CMACDropTarget(CMACListCtrl * pOwnerCtrl) : m_pOwnerCtrl(pOwnerCtrl) {}
-    virtual ~CMACDropTarget() APE_OVERRIDE {}
+    CMACDropTarget(CMACListCtrl * pOwnerCtrl) : m_pOwnerCtrl(pOwnerCtrl) { }
+    APE_DESTRUCTOR(CMACDropTarget) { }
 
     // called when dragging files over the control
     virtual DROPEFFECT OnDragEnter(CWnd * /*pWnd*/, COleDataObject * pDataObject, DWORD /*dwKeyState*/, CPoint /*point*/) override
@@ -58,7 +58,7 @@ class CMACListCtrl : public CListCtrl
 {
 public:
     CMACListCtrl();
-    virtual ~CMACListCtrl() APE_OVERRIDE;
+    APE_DESTRUCTOR(CMACListCtrl);
 
     bool Initialize(CMACDlg * pParent, MAC_FILE_ARRAY * paryFiles);
 

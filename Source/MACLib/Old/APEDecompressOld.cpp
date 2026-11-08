@@ -7,10 +7,24 @@
 namespace APE
 {
 
-CAPEDecompressOld::CAPEDecompressOld(int * pErrorCode, IAPEInfo * pAPEInfo, int nStartBlock, int nFinishBlock)
+CAPEDecompressOld::CAPEDecompressOld() : 
+    m_nBufferTail(0),
+    m_nBlockAlign(0),
+    m_nCurrentFrame(0),
+    m_nStartBlock(0),
+    m_nFinishBlock(0),
+    m_nCurrentBlock(0),
+    m_bDecompressorInitialized(false),
+    m_bIsRanged(false)
 {
-    *pErrorCode = APE_ERROR_SUCCESS;
+}
 
+CAPEDecompressOld::~CAPEDecompressOld()
+{
+}
+
+int CAPEDecompressOld::Initialize(IAPEInfo * pAPEInfo, int64 nStartBlock, int64 nFinishBlock)
+{
     // open / analyze the file
     m_spAPEInfo.Assign(pAPEInfo);
 
@@ -24,28 +38,20 @@ CAPEDecompressOld::CAPEDecompressOld(int * pErrorCode, IAPEInfo * pAPEInfo, int 
     m_nCurrentBlock = 0;
 
     // set the "real" start and finish blocks
-    m_nStartBlock = (nStartBlock < 0) ? 0 : APE_MIN(nStartBlock, static_cast<int>(m_spAPEInfo->GetInfo(APE_INFO_TOTAL_BLOCKS)));
-    m_nFinishBlock = (nFinishBlock < 0) ? static_cast<int>(m_spAPEInfo->GetInfo(APE_INFO_TOTAL_BLOCKS)) : APE_MIN(nFinishBlock, static_cast<int>(m_spAPEInfo->GetInfo(APE_INFO_TOTAL_BLOCKS)));
-    m_bIsRanged = (m_nStartBlock != 0) || (m_nFinishBlock != static_cast<int>(m_spAPEInfo->GetInfo(APE_INFO_TOTAL_BLOCKS)));
+    m_nStartBlock = (nStartBlock < 0) ? 0 : APE_MIN(nStartBlock, m_spAPEInfo->GetInfo(APE_INFO_TOTAL_BLOCKS));
+    m_nFinishBlock = (nFinishBlock < 0) ? m_spAPEInfo->GetInfo(APE_INFO_TOTAL_BLOCKS) : APE_MIN(nFinishBlock, m_spAPEInfo->GetInfo(APE_INFO_TOTAL_BLOCKS));
+    m_bIsRanged = (m_nStartBlock != 0) || (m_nFinishBlock != static_cast<int64>(m_spAPEInfo->GetInfo(APE_INFO_TOTAL_BLOCKS)));
 
     // version check (this implementation only works with 3.92 and earlier files)
     // do this after initializing variables or else we get a warning
     if (m_spAPEInfo->GetInfo(APE_INFO_FILE_VERSION) > 3920)
-    {
-        *pErrorCode = APE_ERROR_UNDEFINED;
-        return;
-    }
+        return APE_ERROR_UNDEFINED;
 
     // check block alignment
     if ((m_nBlockAlign <= 0) || (m_nBlockAlign > 32))
-    {
-        *pErrorCode = APE_ERROR_INVALID_INPUT_FILE;
-        return;
-    }
-}
-
-CAPEDecompressOld::~CAPEDecompressOld()
-{
+        return APE_ERROR_INVALID_INPUT_FILE;
+    
+    return APE_ERROR_SUCCESS;
 }
 
 int CAPEDecompressOld::SetNumberOfThreads(int)

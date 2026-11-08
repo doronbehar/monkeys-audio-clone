@@ -9,7 +9,7 @@ class CWinampSettingsDlg : public CDialog
 
 public:
     CWinampSettingsDlg(CWnd * pParent = APE_NULL);
-    virtual ~CWinampSettingsDlg() APE_OVERRIDE;
+    APE_DESTRUCTOR(CWinampSettingsDlg);
 
     bool Show(HWND hwndParent);
 

@@ -4,12 +4,11 @@
 namespace APE
 {
 
-CMemoryIO::CMemoryIO(unsigned char * pBuffer, int nBufferBytes)
+CMemoryIO::CMemoryIO(unsigned char * pBuffer, int nBufferBytes) :
+    m_pBuffer(pBuffer),
+    m_nBufferBytes(nBufferBytes),
+    m_nPosition(0)
 {
-    m_pBuffer = pBuffer;
-    m_nBufferBytes = nBufferBytes;
-
-    m_nPosition = 0;
 }
 
 CMemoryIO::~CMemoryIO()

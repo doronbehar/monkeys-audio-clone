@@ -10,11 +10,12 @@
 namespace APE
 {
 
-CWinFileIO::CWinFileIO()
+CWinFileIO::CWinFileIO() :
+    m_hFile(INVALID_HANDLE_VALUE),
+    m_bReadOnly(false),
+    m_bPipe(false)
+
 {
-    m_hFile = INVALID_HANDLE_VALUE;
-    m_bReadOnly = false;
-    m_bPipe = false;
 }
 
 CWinFileIO::~CWinFileIO()

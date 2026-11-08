@@ -6,11 +6,10 @@
 namespace APE
 {
 
-CID3v2Tag::CID3v2Tag()
+CID3v2Tag::CID3v2Tag() :
+    m_nTagBytes(0),
+    m_nImageBytes(0)
 {
-    m_bFoundTag = false;
-    m_nTagBytes = 0;
-    m_nImageBytes = 0;
 }
 
 CID3v2Tag::~CID3v2Tag()

@@ -109,15 +109,15 @@ CWholeFileIO * CWholeFileIO::CreateWholeFileIO(IAPEIO * pSource, int64 nSize)
     return pIO;
 }
 
-CWholeFileIO::CWholeFileIO(IAPEIO * pSource, unsigned char * pBuffer, int64 nFileBytes)
+CWholeFileIO::CWholeFileIO(IAPEIO * pSource, unsigned char * pBuffer, int64 nFileBytes) :
+    m_nWholeFilePointer(0),
+    m_nWholeFileSize(nFileBytes)
 {
     // store source
     m_spSource.Assign(pSource);
 
     // create a buffer
     m_spWholeFile.Assign(pBuffer, true);
-    m_nWholeFilePointer = 0;
-    m_nWholeFileSize = nFileBytes;
 }
 
 CWholeFileIO::~CWholeFileIO()

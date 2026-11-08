@@ -12,13 +12,13 @@ namespace APE
 /**************************************************************************************************
 CPredictorDecompressNormal3930to3950
 **************************************************************************************************/
-CPredictorDecompress3930to3950::CPredictorDecompress3930to3950(int nCompressionLevel, APE_VERSION Version)
+CPredictorDecompress3930to3950::CPredictorDecompress3930to3950(int nCompressionLevel, APE_VERSION Version) :
+    m_pInputBuffer(APE_NULL),
+    m_nCurrentIndex(0),
+    m_nLastValue(0)
 {
     // initialize (to avoid warnings)
     APE_CLEAR(m_aryM);
-    m_pInputBuffer = APE_NULL;
-    m_nLastValue = 0;
-    m_nCurrentIndex = 0;
 
     m_spBuffer.Assign(new int [HISTORY_ELEMENTS + WINDOW_BLOCKS], true);
 

@@ -18,7 +18,7 @@ template <class INTTYPE, class DATATYPE> class CPredictorCompress : public IPred
 {
 public:
     CPredictorCompress(int nCompressionLevel, int nBitsPerSample);
-    virtual ~CPredictorCompress() APE_OVERRIDE;
+    APE_DESTRUCTOR(CPredictorCompress);
 
     int64 CompressValue(int nA, int nB = 0) APE_OVERRIDE;
     int Flush() APE_OVERRIDE;
@@ -50,7 +50,7 @@ template <class INTTYPE, class DATATYPE> class CPredictorDecompress3950toCurrent
 {
 public:
     CPredictorDecompress3950toCurrent(int nCompressionLevel, APE_VERSION Version, int nBitsPerSample);
-    virtual ~CPredictorDecompress3950toCurrent() APE_OVERRIDE;
+    APE_DESTRUCTOR(CPredictorDecompress3950toCurrent);
 
     int DecompressValue(int64 nA, int64 nB = 0) APE_OVERRIDE;
     int Flush() APE_OVERRIDE;

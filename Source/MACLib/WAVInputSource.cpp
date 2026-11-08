@@ -225,17 +225,16 @@ struct CWAVInputSource::WAV_FORMAT_HEADER
     return false;
 }
 
-CWAVInputSource::CWAVInputSource(IAPEIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, IID3v2Tag * pTag, bool bReadFullInputForUnknownLength, int * pErrorCode)
+CWAVInputSource::CWAVInputSource(IAPEIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, IID3v2Tag * pTag, bool bReadFullInputForUnknownLength, int * pErrorCode) :
+    m_nHeaderBytes(0),
+    m_nTerminatingBytes(0),
+    m_nDataBytes(0),
+    m_nFileBytes(0),
+    m_pTag(pTag),
+    m_bIsValid(false),
+    m_bUnknownLengthFile(false),
+    m_bFloat(false) // we need a boolean instead of just checking WAVE_FORMAT_IEEE_FLOAT since it can be extensible with the format float
 {
-    m_bIsValid = false;
-    m_nDataBytes = 0;
-    m_nTerminatingBytes = 0;
-    m_nFileBytes = 0;
-    m_nHeaderBytes = 0;
-    m_bFloat = false; // we need a boolean instead of just checking WAVE_FORMAT_IEEE_FLOAT since it can be extensible with the format float
-    m_bUnknownLengthFile = false;
-    m_pTag = pTag;
-
     if (pIO == APE_NULL || pwfeSource == APE_NULL)
     {
         if (pErrorCode) *pErrorCode = APE_ERROR_BAD_PARAMETER;
@@ -703,18 +702,17 @@ CAIFFInputSource - wraps working with AIFF files
     return bMatch;
 }
 
-CAIFFInputSource::CAIFFInputSource(IAPEIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, IID3v2Tag * pTag, int * pErrorCode)
+CAIFFInputSource::CAIFFInputSource(IAPEIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, IID3v2Tag * pTag, int * pErrorCode) :
+    m_nHeaderBytes(0),
+    m_nTerminatingBytes(0),
+    m_nDataBytes(0),
+    m_nFileBytes(0),
+    m_pTag(pTag),
+    m_bIsValid(false),
+    m_bLittleEndian(false),
+    m_bFloat(false),
+    m_bSigned8Bit(true)
 {
-    m_bIsValid = false;
-    m_nDataBytes = 0;
-    m_nFileBytes = 0;
-    m_nHeaderBytes = 0;
-    m_nTerminatingBytes = 0;
-    m_bLittleEndian = false;
-    m_bFloat = false;
-    m_bSigned8Bit = true;
-    m_pTag = pTag;
-
     if (pIO == APE_NULL || pwfeSource == APE_NULL)
     {
         if (pErrorCode) *pErrorCode = APE_ERROR_BAD_PARAMETER;
@@ -1047,15 +1045,14 @@ struct CW64InputSource::WAVFormatChunkData
     return bW64;
 }
 
-CW64InputSource::CW64InputSource(IAPEIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode)
+CW64InputSource::CW64InputSource(IAPEIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode) :
+    m_nHeaderBytes(0),
+    m_nTerminatingBytes(0),
+    m_nDataBytes(0),
+    m_nFileBytes(0),
+    m_bIsValid(false),
+    m_bFloat(false)
 {
-    m_bIsValid = false;
-    m_bFloat = false;
-    m_nDataBytes = 0;
-    m_nFileBytes = 0;
-    m_nHeaderBytes = 0;
-    m_nTerminatingBytes = 0;
-
     if ((pIO == APE_NULL) || (pwfeSource == APE_NULL))
     {
         if (pErrorCode) *pErrorCode = APE_ERROR_BAD_PARAMETER;
@@ -1274,15 +1271,14 @@ CSNDInputSource - wraps working with SND files
     return false;
 }
 
-CSNDInputSource::CSNDInputSource(IAPEIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode, int32 * pFlags)
+CSNDInputSource::CSNDInputSource(IAPEIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode, int32 * pFlags) :
+    m_nHeaderBytes(0),
+    m_nTerminatingBytes(0),
+    m_nDataBytes(0),
+    m_nFileBytes(0),
+    m_bIsValid(false),
+    m_bBigEndian(false)
 {
-    m_bIsValid = false;
-    m_nDataBytes = 0;
-    m_nFileBytes = 0;
-    m_nHeaderBytes = 0;
-    m_nTerminatingBytes = 0;
-    m_bBigEndian = false;
-
     if (pIO == APE_NULL || pwfeSource == APE_NULL)
     {
         if (pErrorCode) *pErrorCode = APE_ERROR_BAD_PARAMETER;
@@ -1510,15 +1506,14 @@ struct CCAFInputSource::CAFFileHeader
     return true;
 }
 
-CCAFInputSource::CCAFInputSource(IAPEIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode)
+CCAFInputSource::CCAFInputSource(IAPEIO * pIO, WAVEFORMATEX * pwfeSource, int64 * pTotalBlocks, int64 * pHeaderBytes, int64 * pTerminatingBytes, int * pErrorCode) :
+    m_nHeaderBytes(0),
+    m_nTerminatingBytes(0),
+    m_nDataBytes(0),
+    m_nFileBytes(0),
+    m_bLittleEndian(false),
+    m_bIsValid(false)
 {
-    m_bIsValid = false;
-    m_nDataBytes = 0;
-    m_nFileBytes = 0;
-    m_nHeaderBytes = 0;
-    m_nTerminatingBytes = 0;
-    m_bLittleEndian = false;
-
     if (pIO == APE_NULL || pwfeSource == APE_NULL)
     {
         if (pErrorCode) *pErrorCode = APE_ERROR_BAD_PARAMETER;

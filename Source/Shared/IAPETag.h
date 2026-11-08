@@ -163,14 +163,14 @@ protected:
     char m_cReserved[8];        // reserved for later use (must be zero)
 
 public:
-    APE_TAG_FOOTER(int nFields = 0, int nFieldBytes = 0)
+    APE_TAG_FOOTER(int nFields = 0, int nFieldBytes = 0) :
+        m_nVersion(CURRENT_APE_TAG_VERSION),
+        m_nSize(nFieldBytes + APE_TAG_FOOTER_BYTES),
+        m_nFields(nFields),
+        m_nFlags(APE_TAG_FLAGS_DEFAULT)
     {
         memcpy(m_cID, "APETAGEX", 8);
         APE_CLEAR(m_cReserved);
-        m_nFields = nFields;
-        m_nFlags = APE_TAG_FLAGS_DEFAULT;
-        m_nSize = nFieldBytes + APE_TAG_FOOTER_BYTES;
-        m_nVersion = CURRENT_APE_TAG_VERSION;
     }
 
     APE_INLINE int GetTotalTagBytes() const { return m_nSize + (GetHasHeader() ? APE_TAG_FOOTER_BYTES : 0); }

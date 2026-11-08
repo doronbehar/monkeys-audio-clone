@@ -39,21 +39,14 @@ const uint32 RANGE_WIDTH[64] = {19578,16582,12257,7906,4576,2366,1170,536,261,11
 /**************************************************************************************************
 Constructor
 **************************************************************************************************/
-CBitArray::CBitArray(uint32 nInitialBytes)
+CBitArray::CBitArray(uint32 nInitialBytes) :
+    m_nBitArrayBytes(nInitialBytes / 4 * 4),
+    m_nRefillThreshold(m_nBitArrayBytes * 8 - APE_BITARRAY_MAX_ELEMENT_BITS - APE_BITARRAY_SAFE_ZONE_BITS),
+    m_nCurrentBitIndex(0),
+    m_paryBitArray(static_cast<uint32 *>(calloc(m_nBitArrayBytes, 1)))
 {
-    // ensure initial size is a multiple of 4
-    nInitialBytes = nInitialBytes / 4 * 4;
-
-    // allocate bit array
-    m_paryBitArray = static_cast<uint32 *>(calloc(nInitialBytes, 1));
-    m_nBitArrayBytes = nInitialBytes;
-    m_nRefillThreshold = m_nBitArrayBytes * 8 - APE_BITARRAY_MAX_ELEMENT_BITS - APE_BITARRAY_SAFE_ZONE_BITS;
-
     // empty the range code information
     APE_CLEAR(m_RangeCoderInfo);
-
-    // initialize other variables
-    m_nCurrentBitIndex = 0;
 }
 
 /**************************************************************************************************

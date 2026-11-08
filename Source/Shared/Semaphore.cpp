@@ -5,10 +5,11 @@ namespace APE
 {
 
 CSemaphore::CSemaphore(int count)
-{
 #ifdef PLATFORM_WINDOWS
-    m_hSemaphore = CreateSemaphore(APE_NULL, count, count, APE_NULL);
+    : m_hSemaphore(CreateSemaphore(APE_NULL, count, count, APE_NULL))
+{
 #else
+{
     m_pMutex = new pthread_mutex_t;
     m_pCondition = new pthread_cond_t;
 

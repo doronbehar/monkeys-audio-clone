@@ -11,15 +11,14 @@
 namespace APE
 {
 
-CAPECompress::CAPECompress()
+CAPECompress::CAPECompress() :
+    m_nThreads(1),
+    m_nBufferHead(0),
+    m_nBufferTail(0),
+    m_nBufferSize(0),
+    m_bBufferLocked(false),
+    m_bFloat(false)
 {
-    m_nThreads = 1;
-    m_nBufferHead = 0;
-    m_nBufferTail = 0;
-    m_nBufferSize = 0;
-    m_bBufferLocked = false;
-    m_bFloat = false;
-
     m_spAPECompressCreate.Assign(new CAPECompressCreate());
 }
 

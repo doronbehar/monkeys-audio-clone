@@ -49,17 +49,22 @@ IAPEDecompress * CreateIAPEDecompressCore(IAPEInfo * pAPEInfo, int nStartBlock, 
                 // create
                 const int nVersion = static_cast<int>(pAPEInfo->GetInfo(IAPEDecompress::APE_INFO_FILE_VERSION));
                 if ((nVersion >= 3990) && (nVersion <= APE_FILE_VERSION_NUMBER))
-                    spAPEDecompress.Assign(new CAPEDecompress(pErrorCode, pAPEInfo, nStartBlock, nFinishBlock));
+                    spAPEDecompress.Assign(new CAPEDecompress());
                 else if (nVersion == 4110)
-                    spAPEDecompress.Assign(new CAPEDecompress(pErrorCode, pAPEInfo, nStartBlock, nFinishBlock)); // a few users have mailed me files with this version -- I don't know where they came from but they verify fine using this code
+                    spAPEDecompress.Assign(new CAPEDecompress()); // a few users have mailed me files with this version -- I don't know where they came from but they verify fine using this code
 #ifdef APE_BACKWARDS_COMPATIBILITY
                 else if ((nVersion >= 3930) && (nVersion <= APE_FILE_VERSION_NUMBER))
-                    spAPEDecompress.Assign(new CAPEDecompress(pErrorCode, pAPEInfo, nStartBlock, nFinishBlock));
+                    spAPEDecompress.Assign(new CAPEDecompress());
                 else if (nVersion < 3930)
-                    spAPEDecompress.Assign(new CAPEDecompressOld(pErrorCode, pAPEInfo, nStartBlock, nFinishBlock));
+                    spAPEDecompress.Assign(new CAPEDecompressOld());
 #endif
                 else
                     *pErrorCode = APE_ERROR_UNSUPPORTED_FILE_VERSION;
+
+
+                // initialize
+                if (spAPEDecompress != APE_NULL)
+                    *pErrorCode = spAPEDecompress->Initialize(pAPEInfo, nStartBlock, nFinishBlock);
 
                 // error check
                 if (spAPEDecompress == APE_NULL || *pErrorCode != APE_ERROR_SUCCESS)

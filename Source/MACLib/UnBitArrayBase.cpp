@@ -93,16 +93,16 @@ RangeOverflowTable::~RangeOverflowTable()
 /**************************************************************************************************
 CUnBitArrayBase
 **************************************************************************************************/
-CUnBitArrayBase::CUnBitArrayBase(int64 nFurthestReadByte)
+CUnBitArrayBase::CUnBitArrayBase(int64 nFurthestReadByte) :
+    m_nElements(0),
+    m_nBytes(0),
+    m_nBits(0),
+    m_nGoodBytes(0),
+    m_nVersion(0),
+    m_pIO(APE_NULL),
+    m_nFurthestReadByte(nFurthestReadByte),
+    m_nCurrentBitIndex(0)
 {
-    m_nElements = 0;
-    m_nBytes = 0;
-    m_nBits = 0;
-    m_nGoodBytes = 0;
-    m_nVersion = 0;
-    m_pIO = APE_NULL;
-    m_nFurthestReadByte = nFurthestReadByte;
-    m_nCurrentBitIndex = 0;
 }
 
 CUnBitArrayBase::~CUnBitArrayBase()

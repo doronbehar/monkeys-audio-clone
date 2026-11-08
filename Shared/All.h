@@ -51,8 +51,10 @@ Override (define for C++11)
 **************************************************************************************************/
 #if __cplusplus >= 201103L
 #define APE_OVERRIDE override
+#define APE_DESTRUCTOR(NAME) ~NAME() override
 #else
 #define APE_OVERRIDE
+#define APE_DESTRUCTOR(NAME) virtual ~NAME()
 #endif
 
 /**************************************************************************************************
@@ -332,16 +334,16 @@ namespace APE
         WORD        cbSize;             /* the count in bytes of the size of */
         /* extra information (after cbSize) */
 
-        WAVEFORMATEX()
+        WAVEFORMATEX() :
+            wFormatTag(0),
+            nChannels(0),
+            nSamplesPerSec(0),
+            nAvgBytesPerSec(0),
+            nBlockAlign(0),
+            wBitsPerSample(0),
+            cbSize(0)
         {
             // initialize everything to empty on construction (avoids the need to clear variables separately)
-            wFormatTag = 0;
-            nChannels = 0;
-            nSamplesPerSec = 0;
-            nAvgBytesPerSec = 0;
-            nBlockAlign = 0;
-            wBitsPerSample = 0;
-            cbSize = 0;
         }
     };
     #pragma pack(pop)

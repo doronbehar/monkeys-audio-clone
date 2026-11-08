@@ -16,31 +16,31 @@ namespace APE
 /**************************************************************************************************
 APE_FILE_INFO
 **************************************************************************************************/
-APE_FILE_INFO::APE_FILE_INFO()
+APE_FILE_INFO::APE_FILE_INFO() :
+    nVersionEncoder(0),
+    nVersionProgram(0),
+    nCompressionLevel(0),
+    nFormatFlags(0),
+    nTotalFrames(0),
+    nBlocksPerFrame(0),
+    nFinalFrameBlocks(0),
+    nChannels(0),
+    nSampleRate(0),
+    nBitsPerSample(0),
+    nBytesPerSample(0),
+    nBlockAlign(0),
+    nWAVTerminatingBytes(0),
+    nWAVHeaderBytes(0),
+    nWAVDataBytes(0),
+    nWAVTotalBytes(0),
+    nAPETotalBytes(0),
+    nTotalBlocks(0),
+    nLengthMS(0),
+    nAverageBitrate(0),
+    nDecompressedBitrate(0),
+    nJunkHeaderBytes(0),
+    nSeekTableElements(0)
 {
-    nVersionEncoder = 0;
-    nVersionProgram = 0;
-    nCompressionLevel = 0;
-    nFormatFlags = 0;
-    nTotalFrames = 0;
-    nBlocksPerFrame = 0;
-    nFinalFrameBlocks = 0;
-    nChannels = 0;
-    nSampleRate = 0;
-    nBitsPerSample = 0;
-    nBytesPerSample = 0;
-    nBlockAlign = 0;
-    nWAVTerminatingBytes = 0;
-    nWAVHeaderBytes = 0;
-    nWAVDataBytes = 0;
-    nWAVTotalBytes = 0;
-    nAPETotalBytes = 0;
-    nTotalBlocks = 0;
-    nLengthMS = 0;
-    nAverageBitrate = 0;
-    nDecompressedBitrate = 0;
-    nJunkHeaderBytes = 0;
-    nSeekTableElements = 0;
 }
 
 APE_FILE_INFO::~APE_FILE_INFO()
@@ -50,13 +50,12 @@ APE_FILE_INFO::~APE_FILE_INFO()
 /**************************************************************************************************
 Construction
 **************************************************************************************************/
-CAPEInfo::CAPEInfo(int * pErrorCode, const str_utfn * pFilename, IAPETag * pTag, bool bAPL, bool bReadOnly, bool bAnalyzeTagNow, bool bReadWholeFile)
+CAPEInfo::CAPEInfo(int * pErrorCode, const str_utfn * pFilename, IAPETag * pTag, bool bAPL, bool bReadOnly, bool bAnalyzeTagNow, bool bReadWholeFile) :
+    m_bHasFileInformationLoaded(false),
+    m_bAPL(bAPL)
 {
     *pErrorCode = APE_ERROR_SUCCESS;
     CloseFile();
-
-    // store the APL status
-    m_bAPL = bAPL;
 
     // open the file
     m_spIO.Assign(CreateIAPEIO());
@@ -121,9 +120,10 @@ CAPEInfo::CAPEInfo(int * pErrorCode, const str_utfn * pFilename, IAPETag * pTag,
     }
 }
 
-CAPEInfo::CAPEInfo(int * pErrorCode, IAPEIO * pIO, IAPETag * pTag)
+CAPEInfo::CAPEInfo(int * pErrorCode,  IAPEIO * pIO, IAPETag * pTag) :
+    m_bHasFileInformationLoaded(false),
+    m_bAPL(false)
 {
-    m_bAPL = false;
     *pErrorCode = APE_ERROR_SUCCESS;
     CloseFile();
 

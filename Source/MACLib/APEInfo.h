@@ -72,7 +72,7 @@ public:
     // construction and destruction
     CAPEInfo(int * pErrorCode, const str_utfn * pFilename, IAPETag * pTag = APE_NULL, bool bAPL = false, bool bReadOnly = false, bool bAnalyzeTagNow = true, bool bReadWholeFile = false);
     CAPEInfo(int * pErrorCode, APE::IAPEIO * pIO, IAPETag * pTag = APE_NULL);
-    virtual ~CAPEInfo() APE_OVERRIDE;
+    APE_DESTRUCTOR(CAPEInfo);
 
     // query for information
     int64 GetInfo(IAPEDecompress::APE_INFO_FIELDS Field, int64 nParam1 = 0, int64 nParam2 = 0) APE_OVERRIDE;
