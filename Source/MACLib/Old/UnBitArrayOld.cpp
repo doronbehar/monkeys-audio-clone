@@ -232,7 +232,7 @@ void CUnBitArrayOld::GenerateArrayOld(int * pOutputArray, uint32 nNumberOfElemen
         {
             if (K_Sum < kmin)
             {
-                do 
+                do
                 {
                     k--;
                 } while (K_Sum < K_SUM_MIN_BOUNDARY_OLD[k]);
@@ -242,10 +242,10 @@ void CUnBitArrayOld::GenerateArrayOld(int * pOutputArray, uint32 nNumberOfElemen
                 while (K_SUM_MAX_BOUNDARY_OLD[k + 1])
                 {
                     k++;
-                    if (K_Sum < K_SUM_MAX_BOUNDARY_OLD[k]) 
+                    if (K_Sum < K_SUM_MAX_BOUNDARY_OLD[k])
                         break;
                 }
-            }                
+            }
 
             kmax = K_SUM_MAX_BOUNDARY_OLD[k];
             kmin = K_SUM_MIN_BOUNDARY_OLD[k];
@@ -378,9 +378,9 @@ inline int CUnBitArrayOld::DecodeValueNew(bool bCapOverflow)
 CUnBitArray3891To3989
 **************************************************************************************************/
 CUnBitArray3891To3989::CUnBitArray3891To3989(IAPEIO * pIO, intn nVersion, int64 nFurthestReadByte) :
-    CUnBitArrayBase(nFurthestReadByte)
+    CUnBitArrayBase(nFurthestReadByte),
+    m_RangeCoderInfo{}
 {
-    APE_CLEAR(m_RangeCoderInfo);
     CreateHelper(pIO, 16384, nVersion);
 
     // create the range table

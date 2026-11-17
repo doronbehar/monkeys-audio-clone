@@ -11,8 +11,8 @@ public:
     CFormatAPEProgressCallback(MAC_FILE * pInfo);
 
     // IAPEProgressCallback
-    virtual void Progress(int nPercentageDone) APE_OVERRIDE;
-    virtual int GetKillFlag() APE_OVERRIDE;
+    void Progress(int nPercentageDone) APE_OVERRIDE;
+    int GetKillFlag() APE_OVERRIDE;
 
 protected:
     // data
@@ -28,16 +28,16 @@ public:
     CFormatAPE(int nIndex);
     APE_DESTRUCTOR(CFormatAPE);
 
-    virtual bool GetValid() APE_OVERRIDE { return true; }
-    virtual CString GetName() APE_OVERRIDE;
+    bool GetValid() APE_OVERRIDE { return true; }
+    CString GetName() APE_OVERRIDE;
 
-    virtual int Process(MAC_FILE * pInfo) APE_OVERRIDE;
+    int Process(MAC_FILE * pInfo) APE_OVERRIDE;
 
-    virtual bool BuildMenu(CMenu * pMenu, int nBaseID) APE_OVERRIDE;
-    virtual bool ProcessMenuCommand(int nCommand) APE_OVERRIDE;
+    bool BuildMenu(CMenu * pMenu, int nBaseID) APE_OVERRIDE;
+    bool ProcessMenuCommand(int nCommand) APE_OVERRIDE;
 
-    virtual CString GetInputExtensions(APE::APE_MODES Mode) APE_OVERRIDE;
-    virtual CString GetOutputExtension(APE::APE_MODES Mode, const CString & strInputFilename, int nLevel) APE_OVERRIDE;
+    CString GetInputExtensions(APE::APE_MODES Mode) APE_OVERRIDE;
+    CString GetOutputExtension(APE::APE_MODES Mode, const CString & strInputFilename, int nLevel) APE_OVERRIDE;
 
 protected:
     int m_nIndex;

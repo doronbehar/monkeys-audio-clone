@@ -4,7 +4,7 @@
 namespace APE
 {
 
-CThread::CThread() 
+CThread::CThread()
 #ifdef PLATFORM_WINDOWS
     : m_hThread(APE_NULL)
 #endif

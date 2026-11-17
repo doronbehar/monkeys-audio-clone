@@ -278,13 +278,13 @@ bool CMACListCtrl::AddFolder(CString strPath)
 bool CMACListCtrl::AddFileInternal(CString strInputFilename)
 {
     // get the required buffer size (includes space for the null-terminator)
-    DWORD dwRequiredSize = GetLongPathNameW(strInputFilename, NULL, 0);
+    DWORD dwRequiredSize = GetLongPathNameW(strInputFilename, APE_NULL, 0);
 
     // expand the filename
     CSmartPtr<TCHAR> spLongFilename(dwRequiredSize, true);
     if (GetLongPathName(strInputFilename, spLongFilename.GetPtr(), dwRequiredSize) > 0)
         strInputFilename = spLongFilename.GetPtr();
-    
+
     // prefix long paths
     if ((strInputFilename.GetLength() >= MAX_PATH) &&
         (strInputFilename.Left(4) != _T("\\\\?\\")))

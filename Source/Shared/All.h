@@ -47,14 +47,14 @@ Inline
 #define APE_INLINE inline
 
 /**************************************************************************************************
-Override (define for C++11)
+Destructor and override (define for C++11)
 **************************************************************************************************/
 #if __cplusplus >= 201103L
-#define APE_OVERRIDE override
 #define APE_DESTRUCTOR(NAME) ~NAME() override
+#define APE_OVERRIDE override
 #else
-#define APE_OVERRIDE
 #define APE_DESTRUCTOR(NAME) virtual ~NAME()
+#define APE_OVERRIDE
 #endif
 
 /**************************************************************************************************
@@ -200,11 +200,6 @@ namespace APE
 }
 
 /**************************************************************************************************
-Smart pointer
-**************************************************************************************************/
-#include "SmartPtr.h"
-
-/**************************************************************************************************
 Version object (used to pass file version and flags)
 **************************************************************************************************/
 #define APE_VERSION_FLAG_INTERIM (1 << 0)
@@ -256,6 +251,7 @@ Global macros
     #define DLLEXPORT                                   __declspec(dllexport)
     #define SLEEP(MILLISECONDS)                         ::Sleep(MILLISECONDS)
     #define APE_ODS                                     OutputDebugString
+    #define APE_NO_EXCEPT                               noexcept
     #if !defined(ASSERT)
         #if defined(_DEBUG)
             #define ASSERT(e)                            assert(e)
@@ -281,6 +277,7 @@ Global macros
     #define DLLEXPORT                                   __attribute__ ((visibility ("default")))
     #define SLEEP(MILLISECONDS)                         { struct timespec t; t.tv_sec = (MILLISECONDS) / 1000; t.tv_nsec = (MILLISECONDS) % 1000 * 1000000; nanosleep(&t, NULL); }
     #define APE_ODS                                     printf
+    #define APE_NO_EXCEPT
     #undef  ASSERT
     #define ASSERT(e)
 
@@ -315,6 +312,11 @@ Global macros
         }
     #endif
 #endif
+
+/**************************************************************************************************
+Smart pointer
+**************************************************************************************************/
+#include "SmartPtr.h"
 
 /**************************************************************************************************
 WAVE format descriptor (binary compatible with Windows define, but in the APE namespace)

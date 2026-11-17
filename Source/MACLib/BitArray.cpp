@@ -43,10 +43,9 @@ CBitArray::CBitArray(uint32 nInitialBytes) :
     m_nBitArrayBytes(nInitialBytes / 4 * 4),
     m_nRefillThreshold(m_nBitArrayBytes * 8 - APE_BITARRAY_MAX_ELEMENT_BITS - APE_BITARRAY_SAFE_ZONE_BITS),
     m_nCurrentBitIndex(0),
-    m_paryBitArray(static_cast<uint32 *>(calloc(m_nBitArrayBytes, 1)))
+    m_paryBitArray(static_cast<uint32 *>(calloc(m_nBitArrayBytes, 1))),
+    m_RangeCoderInfo{}
 {
-    // empty the range code information
-    APE_CLEAR(m_RangeCoderInfo);
 }
 
 /**************************************************************************************************

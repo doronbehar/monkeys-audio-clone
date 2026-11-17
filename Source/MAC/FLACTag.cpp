@@ -13,11 +13,9 @@ namespace APE
 /**************************************************************************************************
 CFLACTag
 **************************************************************************************************/
-CFLACTag::CFLACTag(const TCHAR * pFilename)
+CFLACTag::CFLACTag(const TCHAR * pFilename) :
+    m_nPictureBytes(0)
 {
-    // initiliaze
-    m_nPictureBytes = 0;
-
     // open the file
     CSmartPtr<APE::IAPEIO> m_spIO;
     m_spIO.Assign(CreateIAPEIO());

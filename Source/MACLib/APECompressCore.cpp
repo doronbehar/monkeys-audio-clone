@@ -9,22 +9,22 @@
 namespace APE
 {
 
-CAPECompressCore::CAPECompressCore(const WAVEFORMATEX * pwfeInput, int nMaxFrameBlocks, int nCompressionLevel) : 
-    m_semProcess(1), 
+CAPECompressCore::CAPECompressCore(const WAVEFORMATEX * pwfeInput, int nMaxFrameBlocks, int nCompressionLevel) :
+    m_semProcess(1),
     m_semReady(1),
+    m_aryPredictors{},
+    m_aryBitArrayStates{},
     m_nInputBytes(0),
     m_nMaxFrameBlocks(nMaxFrameBlocks),
     m_bExit(false)
 {
     m_semProcess.Wait();
 
-    APE_CLEAR(m_aryBitArrayStates);
     int nDataSize = m_nMaxFrameBlocks * pwfeInput->nChannels * (pwfeInput->wBitsPerSample / 8);
     m_spInputData.AllocateArray(nDataSize);
     m_spBitArray.Assign(new CBitArray(static_cast<uint32>(nDataSize / 4 * 3)));
     m_spData.AllocateArray(static_cast<int64>(m_nMaxFrameBlocks) * pwfeInput->nChannels);
     m_spPrepare.Assign(new CPrepare);
-    APE_CLEAR(m_aryPredictors);
     for (int nChannel = 0; nChannel < pwfeInput->nChannels; nChannel++)
     {
         if (pwfeInput->wBitsPerSample < 32)

@@ -167,10 +167,10 @@ public:
         m_nVersion(CURRENT_APE_TAG_VERSION),
         m_nSize(nFieldBytes + APE_TAG_FOOTER_BYTES),
         m_nFields(nFields),
-        m_nFlags(APE_TAG_FLAGS_DEFAULT)
+        m_nFlags(APE_TAG_FLAGS_DEFAULT),
+        m_cReserved{}
     {
         memcpy(m_cID, "APETAGEX", 8);
-        APE_CLEAR(m_cReserved);
     }
 
     APE_INLINE int GetTotalTagBytes() const { return m_nSize + (GetHasHeader() ? APE_TAG_FOOTER_BYTES : 0); }

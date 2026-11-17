@@ -8,7 +8,7 @@ namespace APE
 /**************************************************************************************************
 CBufferIO
 **************************************************************************************************/
-CBufferIO::CBufferIO(IAPEIO * pSource, int nBufferBytes) : 
+CBufferIO::CBufferIO(IAPEIO * pSource, int nBufferBytes) :
     m_nBufferBytes(0),
     m_nBufferTotalBytes(nBufferBytes),
     m_bReadToBuffer(true)
@@ -115,10 +115,10 @@ CHeaderIO
 **************************************************************************************************/
 CHeaderIO::CHeaderIO(IAPEIO * pSource) :
     m_nHeaderBytes(0),
+    m_aryHeader{},
     m_nPosition(0) // start at position zero even though we read the header
 {
     m_spSource.Assign(pSource);
-    APE_CLEAR(m_aryHeader);
 }
 
 CHeaderIO::~CHeaderIO()

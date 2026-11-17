@@ -85,13 +85,15 @@ class CArguments
 {
 public:
 #ifndef PLATFORM_WINDOWS
-    CArguments(int argc, char ** argv)
+    CArguments(int argc, char ** argv) :
+        m_argv(argv),
+        m_argc(argc)
 #else
-    CArguments(int argc, TCHAR ** argv)
+    CArguments(int argc, TCHAR ** argv) :
+        m_argv(argv),
+        m_argc(argc)
 #endif
     {
-        m_argv = argv;
-        m_argc = argc;
     }
 
     // data
@@ -307,7 +309,7 @@ Progress callback
 class CConsoleProgressCallback : public IAPEProgressCallback
 {
 public:
-    virtual void Progress(int nPercentageDone) APE_OVERRIDE
+    void Progress(int nPercentageDone) APE_OVERRIDE
     {
         // calculate the progress
         double dProgress = nPercentageDone / 1.e5;                                                    // [0...1]
@@ -329,7 +331,7 @@ public:
         #endif
     }
 
-    virtual int GetKillFlag() APE_OVERRIDE
+    int GetKillFlag() APE_OVERRIDE
     {
         return APE_KILL_FLAG_CONTINUE;
     }

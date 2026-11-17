@@ -14,8 +14,8 @@ public:
     CString    m_strDescription2;
 
 protected:
-    virtual void DoDataExchange(CDataExchange * pDX) APE_OVERRIDE;
-    virtual BOOL OnInitDialog() APE_OVERRIDE;
+    void DoDataExchange(CDataExchange * pDX) APE_OVERRIDE;
+    BOOL OnInitDialog() APE_OVERRIDE;
 
     DECLARE_MESSAGE_MAP()
 

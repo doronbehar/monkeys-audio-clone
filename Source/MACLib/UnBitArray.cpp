@@ -10,13 +10,13 @@ const uint32 K_SUM_MIN_BOUNDARY[32] = {0,32,64,128,256,512,1024,2048,4096,8192,1
 CUnBitArray
 **************************************************************************************************/
 CUnBitArray::CUnBitArray(IAPEIO * pIO, intn nVersion, int64 nFurthestReadByte) :
-    CUnBitArrayBase(nFurthestReadByte)
+    CUnBitArrayBase(nFurthestReadByte),
+    m_RangeCoderInfo{}
 {
     // this bit array should only be used on modern files
     ASSERT(nVersion >= 3990);
 
     // initialize
-    APE_CLEAR(m_RangeCoderInfo);
     CreateHelper(pIO, 16384, nVersion);
 
     // create the range table for the version we're decoding (no need to create both)

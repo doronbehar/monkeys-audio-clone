@@ -7,7 +7,7 @@ CMACDllApp g_Application;
 BEGIN_MESSAGE_MAP(CMACDllApp, CWinApp)
 END_MESSAGE_MAP()
 
-CMACDllApp::CMACDllApp() noexcept
+CMACDllApp::CMACDllApp() APE_NO_EXCEPT
 {
 }
 

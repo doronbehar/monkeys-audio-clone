@@ -14,7 +14,7 @@
 
 // forward declarations
 class CMACDlg;
-class CMACListCtrl; 
+class CMACListCtrl;
 
 /**************************************************************************************************
 CMACDropTarget
@@ -31,7 +31,7 @@ public:
     // called when dragging files over the control
     virtual DROPEFFECT OnDragEnter(CWnd * /*pWnd*/, COleDataObject * pDataObject, DWORD /*dwKeyState*/, CPoint /*point*/) override
     {
-        if (pDataObject->IsDataAvailable(CF_HDROP)) 
+        if (pDataObject->IsDataAvailable(CF_HDROP))
         {
             return DROPEFFECT_COPY; // shows "+" cursor
         }
@@ -40,7 +40,7 @@ public:
 
     virtual DROPEFFECT OnDragOver(CWnd * /*pWnd*/, COleDataObject * pDataObject, DWORD /*dwKeyState*/, CPoint /*point*/) override
     {
-        if (pDataObject->IsDataAvailable(CF_HDROP)) 
+        if (pDataObject->IsDataAvailable(CF_HDROP))
         {
             return DROPEFFECT_COPY;
         }

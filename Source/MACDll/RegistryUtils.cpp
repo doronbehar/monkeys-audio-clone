@@ -38,7 +38,7 @@ void RegisterSourceFilterExtension(const TCHAR* Extension,
     _stprintf(RegistryKeyName, _T("Media Type\\Extensions\\%s"), Extension);
     if (ERROR_SUCCESS == RegCreateKeyEx(HKEY_CLASSES_ROOT,
         RegistryKeyName, 0, _T("REG_SZ"), REG_OPTION_NON_VOLATILE, KEY_WRITE,
-        NULL, &Key, &Disp))
+        APE_NULL, &Key, &Disp))
     {
         GUID2String(CLSIDString, SourceFilterGUID);
         RegSetValueEx(Key, _T("Source Filter"), 0, REG_SZ,
@@ -90,7 +90,7 @@ void RegisterSourceFilterPattern(const char* Pattern,
     _stprintf(RegistryKeyName, _T("Media Type\\%s\\%s"), CLSIDString, CLSIDString2);
     if (ERROR_SUCCESS == RegCreateKeyEx(HKEY_CLASSES_ROOT,
         RegistryKeyName, 0, _T("REG_SZ"), REG_OPTION_NON_VOLATILE, KEY_WRITE,
-        NULL, &Key, &Disp))
+        APE_NULL, &Key, &Disp))
     {
         GUID2String(CLSIDString, SourceFilterGUID);
         RegSetValueEx(Key, _T("Source Filter"), 0, REG_SZ,
@@ -131,7 +131,7 @@ TCHAR* GetToken(TCHAR* src, const TCHAR* sep, int& position) {
 }
 
 int ContainsExt(const TCHAR* Src, const TCHAR* Extension) {
-    if (Src == NULL) {
+    if (Src == APE_NULL) {
         return 0;
     }
     TCHAR* SrcDup = _wcsdup(Src);
@@ -168,7 +168,7 @@ void RegisterWMPExtension(const TCHAR* Extension, const TCHAR* Description,
 
         // Check if our extension is not already here, and get the new index if it's not
         while (ERROR_SUCCESS == RegEnumValue(Key, Index++, KeyName, &KeyNameMaxLen,
-            NULL, NULL, reinterpret_cast<BYTE*>(KeyValue), &KeyValueMaxLen))
+            APE_NULL, APE_NULL, reinterpret_cast<BYTE*>(KeyValue), &KeyValueMaxLen))
         {
             _wcslwr_s(KeyValue, 255);
             if (ContainsExt(KeyValue, Extension))
@@ -225,7 +225,7 @@ void RegisterWMPExtension(const TCHAR* Extension, const TCHAR* Description,
         _T("SOFTWARE\\Microsoft\\Multimedia\\WMPlayer\\Extensions\\%s"), ExtensionWithoutStar);
 
     if (ERROR_SUCCESS == RegCreateKeyEx(HKEY_LOCAL_MACHINE, RegistryKeyName,
-        0, _T("REG_SZ"), REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &Key, &Disp))
+        0, _T("REG_SZ"), REG_OPTION_NON_VOLATILE, KEY_WRITE, APE_NULL, &Key, &Disp))
     {
         RegSetValueEx(Key, _T("Runtime"), 0, REG_DWORD, reinterpret_cast<BYTE*>(&dwRuntimeFlag),
             sizeof(DWORD));
@@ -262,7 +262,7 @@ void UnRegisterWMPExtension(const TCHAR* Extension)
 
         // Check if our extension is already here
         while (ERROR_SUCCESS == RegEnumValue(Key, Index++, KeyName, &KeyNameMaxLen,
-            NULL, NULL, reinterpret_cast<BYTE*>(KeyValue), &KeyValueMaxLen))
+            APE_NULL, APE_NULL, reinterpret_cast<BYTE*>(KeyValue), &KeyValueMaxLen))
         {
             _wcslwr_s(KeyValue, 255);
             if (ContainsExt(KeyValue, Extension))

@@ -10,10 +10,10 @@ CPredictorCompress
 **************************************************************************************************/
 template <class INTTYPE, class DATATYPE> CPredictorCompress<INTTYPE, DATATYPE>::CPredictorCompress(int nCompressionLevel, int nBitsPerSample) :
     m_nCurrentIndex(0),
-    m_nBitsPerSample(nBitsPerSample)
+    m_nBitsPerSample(nBitsPerSample),
+    m_aryM{}
 {
     // initialize (to avoid warnings)
-    APE_CLEAR(m_aryM);
     APE_VERSION Version(APE_FILE_VERSION_NUMBER, APE_PROGRAM_VERSION_NUMBER, 0);
 
     if (nCompressionLevel == APE_COMPRESSION_LEVEL_FAST)
@@ -147,16 +147,14 @@ template class CPredictorCompress<int64, int>;
 CPredictorDecompress3950toCurrent
 **************************************************************************************************/
 template <class INTTYPE, class DATATYPE> CPredictorDecompress3950toCurrent<INTTYPE, DATATYPE>::CPredictorDecompress3950toCurrent(int nCompressionLevel, APE_VERSION Version, int nBitsPerSample) :
+    m_aryMA{},
+    m_aryMB{},
     m_nLastValueA(0),
     m_nCurrentIndex(0),
     m_Version(Version),
     m_nBitsPerSample(nBitsPerSample),
     m_nPadding(0)
 {
-    // initialize (to avoid warnings)
-    APE_CLEAR(m_aryMA);
-    APE_CLEAR(m_aryMB);
-
     if (nCompressionLevel == APE_COMPRESSION_LEVEL_FAST)
     {
     }

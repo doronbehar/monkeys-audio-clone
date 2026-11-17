@@ -14,7 +14,7 @@ public:
     bool m_bArray;
     bool m_bDelete;
 
-    APE_INLINE CSmartPtr() :
+    APE_INLINE CSmartPtr() APE_NO_EXCEPT :
         m_pObject(APE_NULL),
         m_bArray(false),
         m_bDelete(true)

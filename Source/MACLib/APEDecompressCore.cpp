@@ -11,7 +11,7 @@ namespace APE
 {
 
 CAPEDecompressCore::CAPEDecompressCore(int * pErrorCode, CAPEDecompress * pDecompress, IAPEInfo * pAPEInfo) :
-    m_semProcess(1), 
+    m_semProcess(1),
     m_semReady(1),
     m_nBlockAlign(0),
     m_nSkipBytes(0),
@@ -24,6 +24,8 @@ CAPEDecompressCore::CAPEDecompressCore(int * pErrorCode, CAPEDecompress * pDecom
     m_nStoredCRC(0),
     m_nSpecialCodes(0),
     m_pAPEInfo(pAPEInfo),
+    m_aryBitArrayStates{},
+    m_aryPredictor{},
     m_nLastX(0),
     m_nInputBytes(0),
     m_bErrorDecodingCurrentFrame(false),
@@ -38,14 +40,8 @@ CAPEDecompressCore::CAPEDecompressCore(int * pErrorCode, CAPEDecompress * pDecom
     m_pAPEInfo->GetInfo(IAPEDecompress::APE_INFO_WAVEFORMATEX, APE_POINTER_TO_INT64(&m_wfeInput));
     m_nBlockAlign = static_cast<int>(m_pAPEInfo->GetInfo(IAPEDecompress::APE_INFO_BLOCK_ALIGN));
 
-    // initialize other stuff
-    APE_CLEAR(m_aryBitArrayStates);
-
     // channel data
     m_sparyChannelData.AllocateArray(APE_MAXIMUM_CHANNELS);
-
-    // predictors
-    APE_CLEAR(m_aryPredictor);
 
     // version check (this implementation only works with 3.93 and later files)
     // we do this after setting all the variables or else we get compile warnings

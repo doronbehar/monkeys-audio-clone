@@ -117,7 +117,7 @@ const str_utfn * CAPETag::s_aryID3GenreNames[CAPETag::s_nID3GenreCount] =
     L"Crossover", L"Contemporary C", L"Christian Rock", L"Merengue", L"Salsa", L"Thrash Metal", L"Anime", L"JPop", L"SynthPop"
 };
 
-CAPETag::CAPETag(const str_utfn * pFilename, bool bAnalyze) : 
+CAPETag::CAPETag(const str_utfn * pFilename, bool bAnalyze) :
     m_nTagBytes(0),
     m_nAPETagVersion(-1),
     m_nFields(0),
@@ -903,7 +903,7 @@ int CAPETag::RemoveField(int nIndex)
             delete m_aryFields[nIndex];
             m_aryFields[nIndex] = APE_NULL;
         }
-        
+
         memmove(static_cast<void *>(&m_aryFields[nIndex]), static_cast<void *>(&m_aryFields[static_cast<size_t>(nIndex) + 1]), (static_cast<size_t>(m_nAllocatedFields) - static_cast<size_t>(nIndex) - 1) * sizeof(m_aryFields[0]));
         m_nFields--;
         return APE_ERROR_SUCCESS;

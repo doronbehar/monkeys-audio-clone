@@ -19,8 +19,8 @@ public:
     ~CMACApp() APE_OVERRIDE;
 
     // initialize
-    virtual BOOL InitInstance() APE_OVERRIDE;
-    virtual int ExitInstance() APE_OVERRIDE;
+    BOOL InitInstance() APE_OVERRIDE;
+    int ExitInstance() APE_OVERRIDE;
 
     // data access
     CFormatArray * GetFormatArray();

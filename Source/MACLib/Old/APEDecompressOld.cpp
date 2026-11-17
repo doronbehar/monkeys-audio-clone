@@ -7,7 +7,7 @@
 namespace APE
 {
 
-CAPEDecompressOld::CAPEDecompressOld() : 
+CAPEDecompressOld::CAPEDecompressOld() :
     m_nBufferTail(0),
     m_nBlockAlign(0),
     m_nCurrentFrame(0),
@@ -50,7 +50,7 @@ int CAPEDecompressOld::Initialize(IAPEInfo * pAPEInfo, int64 nStartBlock, int64 
     // check block alignment
     if ((m_nBlockAlign <= 0) || (m_nBlockAlign > 32))
         return APE_ERROR_INVALID_INPUT_FILE;
-    
+
     return APE_ERROR_SUCCESS;
 }
 

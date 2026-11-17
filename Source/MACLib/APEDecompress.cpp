@@ -8,7 +8,7 @@
 namespace APE
 {
 
-CAPEDecompress::CAPEDecompress() : 
+CAPEDecompress::CAPEDecompress() :
     m_nBlockAlign(0),
     m_nCurrentFrame(0),
     m_nThreads(1),

@@ -82,7 +82,11 @@ CWinampSettingsDlg CAPEWinampPlugin::m_WinampSettingsDlg;
 CString CAPEWinampPlugin::s_strFilenameExtendedInfo;
 APE::CSmartPtr<APE::IAPEDecompress> CAPEWinampPlugin::s_spAPEDecompressExtendedFileInfo;
 HANDLE CAPEWinampPlugin::s_hTimer = APE_NULL;
-CCriticalSection CAPEWinampPlugin::s_Lock;
+CCriticalSection & CAPEWinampPlugin::GetLock()
+{
+    static CCriticalSection s_Lock;
+    return s_Lock;
+}
 
 /**************************************************************************************************
 Plays a file (called once on the start of a file)
@@ -674,7 +678,7 @@ Extended info
 // timer for destruction (since Winamp doesn't let us know when it finishes, we just have to use a timer)
 void CAPEWinampPlugin::KillMediaTimer()
 {
-    CSingleLock Lock(&CAPEWinampPlugin::s_Lock);
+    CSingleLock Lock(&CAPEWinampPlugin::GetLock());
     if (CAPEWinampPlugin::s_hTimer != APE_NULL)
     {
         BOOL bResult = DeleteTimerQueueTimer(APE_NULL, CAPEWinampPlugin::s_hTimer, APE_NULL);
@@ -698,7 +702,7 @@ void CAPEWinampPlugin::KillMediaTimer()
 void CALLBACK CAPEWinampPlugin::TimerProc(void *, BOOLEAN)
 {
     // check if the timer has already been deleted and don't run in that case
-    CSingleLock Lock(&CAPEWinampPlugin::s_Lock);
+    CSingleLock Lock(&CAPEWinampPlugin::GetLock());
     if (CAPEWinampPlugin::s_hTimer != APE_NULL)
     {
         CAPEWinampPlugin::s_spAPEDecompressExtendedFileInfo.Delete();
@@ -708,14 +712,14 @@ void CALLBACK CAPEWinampPlugin::TimerProc(void *, BOOLEAN)
 
 void CAPEWinampPlugin::UnloadFileAfterDelay()
 {
-    CSingleLock Lock(&CAPEWinampPlugin::s_Lock);
+    CSingleLock Lock(&CAPEWinampPlugin::GetLock());
     KillMediaTimer();
     CreateTimerQueueTimer(&CAPEWinampPlugin::s_hTimer, APE_NULL, static_cast<WAITORTIMERCALLBACK>(TimerProc), APE_NULL, 3000, 0, WT_EXECUTEINTIMERTHREAD);
 }
 
 int CAPEWinampPlugin::winampGetExtendedFileInfo(extendedFileInfoStruct & Info)
 {
-    CSingleLock Lock(&s_Lock);
+    CSingleLock Lock(&GetLock());
     KillMediaTimer(); // stop the cleanup timer (or else it can run while we're working)
 
     // on startup, type is queried for
@@ -735,8 +739,8 @@ int CAPEWinampPlugin::winampGetExtendedFileInfo(extendedFileInfoStruct & Info)
     }
 
     // check for errors
-    if ((s_spAPEDecompressExtendedFileInfo == NULL) ||
-        (s_spAPEDecompressExtendedFileInfo->GetTag() == NULL))
+    if ((s_spAPEDecompressExtendedFileInfo == APE_NULL) ||
+        (s_spAPEDecompressExtendedFileInfo->GetTag() == APE_NULL))
     {
         return 1;
     }
@@ -862,7 +866,7 @@ int CAPEWinampPlugin::winampGetExtendedFileInfo(extendedFileInfoStruct & Info)
 
 int CAPEWinampPlugin::winampSetExtendedFileInfo(const char * filename, const char * metadata, char * val)
 {
-    CSingleLock Lock(&s_Lock);
+    CSingleLock Lock(&GetLock());
 
     // load the file
     CSmartPtr<str_utfn> spUTFN(CAPECharacterHelper::GetUTFNFromANSI(filename), true);
@@ -908,7 +912,7 @@ int CAPEWinampPlugin::winampSetExtendedFileInfo(const char * filename, const cha
 
 int CAPEWinampPlugin::winampWriteExtendedFileInfo(void)
 {
-    CSingleLock Lock(&CAPEWinampPlugin::s_Lock);
+    CSingleLock Lock(&CAPEWinampPlugin::GetLock());
 
     int nResult = 0;
     if (s_spAPEDecompressExtendedFileInfo != APE_NULL)

@@ -26,7 +26,7 @@ CFolderDialog::CFolderDialog(LPCTSTR lpszFolderName, DWORD dwFlags, CWnd * pPare
     // initialize
     m_hDialogBox = APE_NULL;
     m_strDisplayName.Empty();
-    
+
     // Use the supplied initial folder if non-null.
     if (lpszFolderName == APE_NULL)
         m_strInitialFolderName = _T("");

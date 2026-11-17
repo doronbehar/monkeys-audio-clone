@@ -21,13 +21,13 @@ CString GetInstallPath()
     #endif
     CString strInstallDirectory;
     ULONG nChars = 0;
-    
+
     // get the size
     reg.QueryStringValue(_T("Install_Dir"), APE_NULL, &nChars);
 
     // get the value
     reg.QueryStringValue(_T("Install_Dir"), strInstallDirectory.GetBuffer(static_cast<int>(nChars)), &nChars);
-    
+
     // release, clean, and return
     strInstallDirectory.ReleaseBuffer();
     FixDirectory(strInstallDirectory);

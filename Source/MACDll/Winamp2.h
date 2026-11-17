@@ -57,7 +57,7 @@ protected:
 
     // use ugly statics since Winamp is built around global variables
     static HANDLE s_hTimer;
-    static CCriticalSection s_Lock;
+    static CCriticalSection & GetLock();
     static CString s_strFilenameExtendedInfo;
     static APE::CSmartPtr<APE::IAPEDecompress> s_spAPEDecompressExtendedFileInfo;
     static APE::CSmartPtr<APE::IAPEDecompress> s_spAPEDecompressPlay;

@@ -13,9 +13,9 @@ public:
     CButton m_ctrlPageFrame;
 
 protected:
-    virtual void DoDataExchange(CDataExchange * pDX) APE_OVERRIDE;
-    virtual BOOL OnInitDialog() APE_OVERRIDE;
-    virtual void OnOK() APE_OVERRIDE;
+    void DoDataExchange(CDataExchange * pDX) APE_OVERRIDE;
+    BOOL OnInitDialog() APE_OVERRIDE;
+    void OnOK() APE_OVERRIDE;
 
     afx_msg void OnItemchangedPageList(NMHDR * pNMHDR, LRESULT * pResult);
     afx_msg void OnDestroy();

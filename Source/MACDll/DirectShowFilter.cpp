@@ -34,13 +34,13 @@ const AMOVIESETUP_MEDIATYPE sudAPEOutPinTypes =
 
 const AMOVIESETUP_PIN sudAPEOutPin =
                                 {
-                                    NULL,                   // Pin string name (MSDN says this is obsolete, so I switched from L"PCM Out" to NULL on 3/11/2024 to avoid Clang warning)
+                                    APE_NULL,               // Pin string name (MSDN says this is obsolete, so I switched from L"PCM Out" to APE_NULL on 3/11/2024 to avoid Clang warning)
                                     FALSE,                  // Is it rendered
                                     TRUE,                   // Is it an output
                                     FALSE,                  // Can we have none
                                     FALSE,                  // Can we have many
                                     &CLSID_NULL,            // Connects to filter
-                                    NULL,                   // Connects to pin
+                                    APE_NULL,               // Connects to pin
                                     1,                      // Number of types
                                     &sudAPEOutPinTypes      // Pin details
                                 };
@@ -59,7 +59,7 @@ CFactoryTemplate g_Templates[] = {
                                     L"APE DirectShow Filter",
                                     &CLSID_APEDecoder,
                                     CAPESource::CreateInstance,
-                                    NULL,
+                                    APE_NULL,
                                     &sudAPEDec
                                 }
                                 };
@@ -141,28 +141,28 @@ STDAPI DllUnregisterServer()
 CUnknown *WINAPI CAPESource::CreateInstance(LPUNKNOWN lpunk, HRESULT *phr)
 {
     CUnknown *punk = new CAPESource(lpunk, phr);
-    if (punk == NULL) *phr = E_OUTOFMEMORY;
+    if (punk == APE_NULL) *phr = E_OUTOFMEMORY;
     return punk;
 }
 
 CAPESource::CAPESource(LPUNKNOWN lpunk, HRESULT *phr)
     :
     CSource(NAME("APE DirectShow Filter"), lpunk, CLSID_APEDecoder),
-    m_pFileName(NULL)
+    m_pFileName(APE_NULL)
 {
 
     CAutoLock cAutoLock(&m_cStateLock);
 
     // output pins
     m_paStreams    = reinterpret_cast<CSourceStream **>(new CAPEStream*[1]);
-    if (m_paStreams == NULL)
+    if (m_paStreams == APE_NULL)
     {
         *phr = E_OUTOFMEMORY;
         return;
     }
 
     m_paStreams[0] = new CAPEStream(phr, this, L"PCM Out");
-    if (m_paStreams[0] == NULL)
+    if (m_paStreams[0] == APE_NULL)
     {
         *phr = E_OUTOFMEMORY;
         return;
@@ -171,29 +171,29 @@ CAPESource::CAPESource(LPUNKNOWN lpunk, HRESULT *phr)
 
 CAPESource::~CAPESource()
 {
-    if (m_pFileName != NULL) {
+    if (m_pFileName != APE_NULL) {
         free(m_pFileName);
-        m_pFileName = NULL;
+        m_pFileName = APE_NULL;
     }
 }
 
 STDMETHODIMP CAPESource::GetCurFile(LPOLESTR * ppszFileName, AM_MEDIA_TYPE * pmt)
 {
     CheckPointer(ppszFileName, E_POINTER)
-    *ppszFileName = NULL;
+    *ppszFileName = APE_NULL;
 
-    if (m_pFileName != NULL) 
+    if (m_pFileName != APE_NULL)
     {
         size_t n = sizeof(WCHAR) * (static_cast<size_t>(1) + static_cast<size_t>(lstrlenW(m_pFileName)));
-        
+
         *ppszFileName = static_cast<LPOLESTR>(CoTaskMemAlloc(n));
-        if (*ppszFileName != NULL) 
+        if (*ppszFileName != APE_NULL)
         {
             CopyMemory(*ppszFileName, m_pFileName, n);
         }
     }
 
-    if (pmt != NULL) 
+    if (pmt != APE_NULL)
     {
         CopyMediaType(pmt, &((static_cast<CAPEStream *>(m_paStreams[0]))->m_mtOut));
     }
@@ -209,7 +209,7 @@ STDMETHODIMP CAPESource::Load(LPCOLESTR lpwszFileName, const AM_MEDIA_TYPE * pmt
     // lstrlenW is one of the few Unicode functions that works on win95
     size_t cch = static_cast<size_t>(lstrlenW(lpwszFileName)) + static_cast<size_t>(1);
     m_pFileName = new WCHAR[cch];
-    if (m_pFileName != NULL) 
+    if (m_pFileName != APE_NULL)
         CopyMemory(m_pFileName, lpwszFileName, cch * sizeof(WCHAR));
 
     // open the file
@@ -223,7 +223,7 @@ STDMETHODIMP CAPESource::NonDelegatingQueryInterface(REFIID riid,void ** ppv)
 {
     CheckPointer(ppv,E_POINTER)
 
-    if (riid == IID_IFileSourceFilter) 
+    if (riid == IID_IFileSourceFilter)
     {
         return GetInterface(static_cast<IFileSourceFilter *>(this), ppv);
     }
@@ -245,9 +245,9 @@ STDMETHODIMP CAPESource::NonDelegatingQueryInterface(REFIID riid,void ** ppv)
 CAPEStream::CAPEStream(HRESULT * phr, CAPESource * pParent, LPCWSTR pPinName)
     :
     CSourceStream(NAME("PCM Out"),phr, pParent, pPinName),
-    CSourceSeeking(NAME("APE Seeking"), NULL, phr, &m_csSeeking),
+    CSourceSeeking(NAME("APE Seeking"), APE_NULL, phr, &m_csSeeking),
     m_pSource(pParent),
-    m_pDecoder(NULL),
+    m_pDecoder(APE_NULL),
     m_dDuration(0),
     m_iBlockSize(0),
     m_iBlocksDecoded(0),
@@ -271,7 +271,7 @@ CAPEStream::~CAPEStream()
 //-----------------------------------------------------------------------------
 STDMETHODIMP CAPEStream::NonDelegatingQueryInterface(REFIID riid, VOID ** ppv)
 {
-    if (riid == IID_IMediaSeeking) 
+    if (riid == IID_IMediaSeeking)
     {
         return CSourceSeeking::NonDelegatingQueryInterface(riid, ppv);
     }
@@ -288,11 +288,11 @@ HRESULT CAPEStream::DecideBufferSize(IMemAllocator * pAlloc, ALLOCATOR_PROPERTIE
     ASSERT(pRequest);
 
     // must have a decoder
-    if (m_pDecoder == NULL) return E_FAIL;
+    if (m_pDecoder == APE_NULL) return E_FAIL;
 
     // get the format
     WAVEFORMATEX *pwf = reinterpret_cast<WAVEFORMATEX *>(m_mtOut.Format());
-    if (pwf == NULL) return E_FAIL;
+    if (pwf == APE_NULL) return E_FAIL;
 
     pRequest->cbBuffer    =    pwf->nChannels * WAVE_BUFFER_SIZE;
     pRequest->cBuffers    =    (static_cast<long>(pwf->nChannels) * static_cast<long>(pwf->nSamplesPerSec) * static_cast<long>(pwf->wBitsPerSample)) /
@@ -317,7 +317,7 @@ HRESULT CAPEStream::DecideBufferSize(IMemAllocator * pAlloc, ALLOCATOR_PROPERTIE
 //-----------------------------------------------------------------------------
 HRESULT CAPEStream::CheckMediaType(const CMediaType * pmt)
 {
-    if (m_pDecoder == NULL || *pmt != m_mtOut) return E_FAIL;
+    if (m_pDecoder == APE_NULL || *pmt != m_mtOut) return E_FAIL;
 
     return NOERROR;
 }
@@ -338,10 +338,10 @@ HRESULT CAPEStream::GetMediaType(CMediaType * pmt)
 //-----------------------------------------------------------------------------
 void CAPEStream::ReleaseAPEObjects()
 {
-    if (m_pDecoder != NULL)
+    if (m_pDecoder != APE_NULL)
     {
         delete m_pDecoder;
-        m_pDecoder = NULL;
+        m_pDecoder = APE_NULL;
     }
 }
 
@@ -351,13 +351,13 @@ void CAPEStream::ReleaseAPEObjects()
 HRESULT CAPEStream::OpenAPEFile(LPWSTR pFileName)
 {
     // file already opened ?
-    if (m_pDecoder != NULL) return S_FALSE;
+    if (m_pDecoder != APE_NULL) return S_FALSE;
 
     int nResult = ERROR_SUCCESS;
     m_pDecoder = CreateIAPEDecompress(pFileName, &nResult, true, true, false);
 
     // no decoder, fail
-    if ((m_pDecoder == NULL) || (nResult != ERROR_SUCCESS))
+    if ((m_pDecoder == APE_NULL) || (nResult != ERROR_SUCCESS))
         return E_FAIL;
 
     m_dDuration = static_cast<double>(m_pDecoder->GetInfo(APE::IAPEDecompress::APE_DECOMPRESS_LENGTH_MS));
@@ -376,7 +376,7 @@ HRESULT CAPEStream::OpenAPEFile(LPWSTR pFileName)
              m_pDecoder->GetInfo(APE_INFO_LENGTH_MS),
              m_iBlockSize,
              m_iTotalBlocks);
-    MessageBox(NULL, str, "Info", 0);
+    MessageBox(APE_NULL, str, "Info", 0);
 
     free(str);
 #endif /* DISPLAY_MESSAGE */
@@ -416,7 +416,7 @@ HRESULT CAPEStream::FillBuffer(IMediaSample * pSample)
     ASSERT(pSample);
     ASSERT(m_pDecoder);
 
-    PBYTE    pData = NULL;
+    PBYTE    pData = APE_NULL;
     pSample->GetPointer(&pData);
     int64_t lSize = pSample->GetSize();
 
@@ -478,7 +478,7 @@ HRESULT CAPEStream::OnThreadStartPlay()
 //-----------------------------------------------------------------------------
 HRESULT CAPEStream::ChangeStart()
 {
-    if (m_pDecoder == NULL) return S_FALSE;
+    if (m_pDecoder == APE_NULL) return S_FALSE;
 
     unsigned int iBlock = static_cast<unsigned int>((static_cast<double>(m_rtStart) / static_cast<double>(m_rtDuration)) * m_iTotalBlocks);
     {

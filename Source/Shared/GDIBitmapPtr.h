@@ -11,9 +11,9 @@ sense.
 class CGDIBitmapPtr
 {
 public:
-    CGDIBitmapPtr()
+    CGDIBitmapPtr() :
+        m_pBitmap(APE_NULL)
     {
-        m_pBitmap = APE_NULL;
     }
     ~CGDIBitmapPtr()
     {

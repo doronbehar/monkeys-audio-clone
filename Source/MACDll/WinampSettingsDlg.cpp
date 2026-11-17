@@ -3,11 +3,10 @@
 
 IMPLEMENT_DYNAMIC(CWinampSettingsDlg, CDialog)
 
-CWinampSettingsDlg::CWinampSettingsDlg(CWnd * pParent)
-    : CDialog(CWinampSettingsDlg::IDD, pParent)
+CWinampSettingsDlg::CWinampSettingsDlg(CWnd * pParent) APE_NO_EXCEPT
+    : CDialog(CWinampSettingsDlg::IDD, pParent),
+    m_hwndParent(APE_NULL)
 {
-    m_hwndParent = APE_NULL;
-
     GetModuleFileName(APE_NULL, m_strSettingsFilename.GetBuffer(APE_MAX_PATH), APE_MAX_PATH);
     m_strSettingsFilename.ReleaseBuffer();
     m_strSettingsFilename = m_strSettingsFilename.Left(m_strSettingsFilename.GetLength() - 3) + _T("ini");

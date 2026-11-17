@@ -19,8 +19,8 @@ public:
     enum { IDD = IDD_APE_INFO_FORMAT };
 
 protected:
-    virtual void DoDataExchange(CDataExchange * pDX) APE_OVERRIDE;
-    virtual BOOL OnInitDialog() APE_OVERRIDE;
+    void DoDataExchange(CDataExchange * pDX) APE_OVERRIDE;
+    BOOL OnInitDialog() APE_OVERRIDE;
     DECLARE_MESSAGE_MAP()
 
     CMACDlg * m_pMACDlg;

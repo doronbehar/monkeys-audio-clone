@@ -24,8 +24,8 @@ public:
     CComboBox m_ctrlFontSize;
 
 protected:
-    virtual void DoDataExchange(CDataExchange * pDX) APE_OVERRIDE;
-    virtual BOOL OnInitDialog() APE_OVERRIDE;
+    void DoDataExchange(CDataExchange * pDX) APE_OVERRIDE;
+    BOOL OnInitDialog() APE_OVERRIDE;
 
     afx_msg void OnSize(UINT nType, int cx, int cy);
     afx_msg void OnOK() APE_OVERRIDE;
